@@ -1,5 +1,5 @@
 from pathlib import Path
-from SetAnubis.core.Madgraph.adapters.input.ParamCardBuilder import ParamCardBuilder
+from SetAnubis.core.MadGraph.adapters.input.ParamCardBuilder import ParamCardBuilder
 
 if __name__ == "__main__":
     ufo_path = Path("db/HNL/UFO_HNL")

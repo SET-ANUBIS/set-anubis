@@ -1,6 +1,6 @@
-from SetAnubis.core.Madgraph.ports.IMadgraphPort import IMadGraphPort
-from SetAnubis.core.Madgraph.domain.MadGraphManager import MadGraphManager
-from SetAnubis.core.Madgraph.ports.output.IMadGraphRunner import IMadGraphRunner
+from SetAnubis.core.MadGraph.ports.IMadgraphPort import IMadGraphPort
+from SetAnubis.core.MadGraph.domain.MadGraphManager import MadGraphManager
+from SetAnubis.core.MadGraph.ports.output.IMadGraphRunner import IMadGraphRunner
 
 class MadgraphInterface(IMadGraphPort):
     def __init__(

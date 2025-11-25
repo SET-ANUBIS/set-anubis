@@ -1,7 +1,7 @@
-from SetAnubis.core.Madgraph.ports.IJobScriptBuilder import IJobScriptBuilder
-from SetAnubis.core.Madgraph.ports.ICardWriter import ICardWriter
-from SetAnubis.core.Madgraph.domain.MadGraphCommandCard import MadGraphCommandCard
-from SetAnubis.core.Madgraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
+from SetAnubis.core.MadGraph.ports.IJobScriptBuilder import IJobScriptBuilder
+from SetAnubis.core.MadGraph.ports.ICardWriter import ICardWriter
+from SetAnubis.core.MadGraph.domain.MadGraphCommandCard import MadGraphCommandCard
+from SetAnubis.core.MadGraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
 
 class JobScriptBuilder(IJobScriptBuilder, ICardWriter):
     """

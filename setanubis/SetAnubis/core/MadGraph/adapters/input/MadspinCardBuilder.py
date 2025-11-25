@@ -1,7 +1,7 @@
-from SetAnubis.core.Madgraph.ports.IMadSpinCardBuilder import IMadSpinCardBuilder
-from SetAnubis.core.Madgraph.ports.ICardWriter import ICardWriter
-from SetAnubis.core.Madgraph.domain.MadspinCardBuilder import MadSpinCardBuilder
-from SetAnubis.core.Madgraph.adapters.output.CardAdapter import CardAdapter, CardType
+from SetAnubis.core.MadGraph.ports.IMadSpinCardBuilder import IMadSpinCardBuilder
+from SetAnubis.core.MadGraph.ports.ICardWriter import ICardWriter
+from SetAnubis.core.MadGraph.domain.MadspinCardBuilder import MadSpinCardBuilder
+from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, CardType
 
 class MadSpinCardAdapter(IMadSpinCardBuilder, ICardWriter):
     """

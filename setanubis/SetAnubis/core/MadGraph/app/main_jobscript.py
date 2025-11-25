@@ -1,6 +1,6 @@
-from SetAnubis.core.Madgraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
-from SetAnubis.core.Madgraph.domain.MadGraphCommandCard import MadGraphCommandCard
-from SetAnubis.core.Madgraph.domain.MadGraphWidthCard import MadGraphWidthCard
+from SetAnubis.core.MadGraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
+from SetAnubis.core.MadGraph.domain.MadGraphCommandCard import MadGraphCommandCard
+from SetAnubis.core.MadGraph.domain.MadGraphWidthCard import MadGraphWidthCard
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
 
 import os

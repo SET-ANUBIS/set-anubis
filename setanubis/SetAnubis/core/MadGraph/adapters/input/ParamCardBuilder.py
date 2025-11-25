@@ -1,5 +1,5 @@
-from SetAnubis.core.Madgraph.ports.ICardWriter import ICardWriter
-from SetAnubis.core.Madgraph.adapters.output.ParamCardInitializer import ParamCardInitializer
+from SetAnubis.core.MadGraph.ports.ICardWriter import ICardWriter
+from SetAnubis.core.MadGraph.adapters.output.ParamCardInitializer import ParamCardInitializer
 
 class ParamCardBuilder(ICardWriter):
     """

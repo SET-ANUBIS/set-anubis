@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
-from SetAnubis.core.Madgraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
-from SetAnubis.core.Madgraph.adapters.input.MadGraphInterface import MadgraphDockerInterface
+from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
+from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphDockerInterface
 
 def run_madgraph(config_path, dry_run=True):
     with open(config_path, "r") as f:

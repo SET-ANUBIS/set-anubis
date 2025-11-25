@@ -43,7 +43,7 @@ def test_end_to_end_strings_for_analytic_and_numeric():
     nsa = FakeNSA(masses={})
     ana = mtm_mod.MartyTemplateManager(
         model_name="SM",
-        mother=23,
+        mothers=[23],
         daugthers=MultiSet([11, -11]),
         template_type=mtm_mod.TemplateType.ANALYTIC,
         nsa=nsa,
@@ -61,7 +61,7 @@ def test_end_to_end_strings_for_analytic_and_numeric():
     nsa2 = FakeNSA(masses={24: 80.379, 11: 0.000511, 12: 0.0})
     num = mtm_mod.MartyTemplateManager(
         model_name="SM",
-        mother=[-24, 24],
+        mothers=[-24, 24],
         daugthers=MultiSet([11, 12]),
         template_type=mtm_mod.TemplateType.NUMERIC,
         nsa=nsa2,

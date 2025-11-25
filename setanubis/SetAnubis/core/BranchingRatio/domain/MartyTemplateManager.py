@@ -167,7 +167,7 @@ int main() {
             # incoming = f'Incoming("{mother_name}")'
             
             incomings = []
-            if isinstance(self.mothers, list):
+            if isinstance(self.mothers, list) or isinstance(self.mothers, MultiSet):
                 for m in self.mothers:
                     name = mapping.get(str(abs(m)), "")
                     if name == "":
@@ -229,14 +229,21 @@ int main() {
 
             self._change_namespace()
             is_list_mothers = isinstance(self.mothers, list)
+            if not is_list_mothers:
+                is_list_mothers = isinstance(self.mothers, MultiSet)
             mothers = self.mothers
-            if isinstance(self.mothers, list) and len(self.mothers) <=1:
+            if (isinstance(self.mothers, list) or isinstance(self.mothers, MultiSet) )and len(self.mothers) <=1:
                 is_list_mothers = False
-                mothers = self.mothers[0]
-                
+                if isinstance(self.mothers, list):
+                    mothers = self.mothers[0]
+                elif isinstance(self.mothers, MultiSet):
+                    mothers = self.mothers.items[0]
+            
+            
             if is_list_mothers:
                 mother_masses = [self.nsa.get_particle_mass(m) for m in mothers]
             else:
+                print(mothers)
                 mother_masses = [self.nsa.get_particle_mass(mothers)]
 
             sum_mothers = sum(mother_masses)

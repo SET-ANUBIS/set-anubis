@@ -44,7 +44,7 @@ def test_analytic_change_model_and_particles_and_paths(patch_mappings_and_names)
     nsa = FakeNSA(masses={})
     mgr = mtm_mod.MartyTemplateManager(
         model_name="SM",
-        mother=23,
+        mothers=MultiSet([23]),
         daugthers=MultiSet([2, -2]),
         template_type=mtm_mod.TemplateType.ANALYTIC,
         nsa=nsa,
@@ -72,7 +72,7 @@ def test_numeric_include_namespace_paramlist_and_masses(patch_mappings_and_names
     nsa = FakeNSA(masses={23: 91.1876, 11: 0.000511})
     mgr = mtm_mod.MartyTemplateManager(
         model_name="SM",
-        mother=23,
+        mothers=MultiSet([23]),
         daugthers=MultiSet([11, -11]),
         template_type=mtm_mod.TemplateType.NUMERIC,
         nsa=nsa,

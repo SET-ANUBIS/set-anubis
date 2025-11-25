@@ -1,4 +1,4 @@
-from SetAnubis.core.Madgraph.domain.MadspinSectionType import MadSpinSectionType
+from SetAnubis.core.MadGraph.domain.MadspinSectionType import MadSpinSectionType
 
 class MadSpinSection:
     def __init__(self, section_type: MadSpinSectionType, content: str):

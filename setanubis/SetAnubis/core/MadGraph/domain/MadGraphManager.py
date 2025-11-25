@@ -1,7 +1,7 @@
 import os
 import docker
 import subprocess
-from SetAnubis.core.Madgraph.ports.output.IMadGraphRunner import IMadGraphRunner
+from SetAnubis.core.MadGraph.ports.output.IMadGraphRunner import IMadGraphRunner
 
 class MadGraphManager:
     """Class to manage MadGraph simulations using Docker containers.

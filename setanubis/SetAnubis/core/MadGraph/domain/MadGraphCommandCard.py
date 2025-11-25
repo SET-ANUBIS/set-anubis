@@ -1,6 +1,6 @@
-from SetAnubis.core.Madgraph.domain.CommandSectionType import CommandSectionType
-from SetAnubis.core.Madgraph.domain.MadGraphCommandSection import MadGraphCommandSection
-from SetAnubis.core.Madgraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
+from SetAnubis.core.MadGraph.domain.CommandSectionType import CommandSectionType
+from SetAnubis.core.MadGraph.domain.MadGraphCommandSection import MadGraphCommandSection
+from SetAnubis.core.MadGraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
 
 from pathlib import Path
 

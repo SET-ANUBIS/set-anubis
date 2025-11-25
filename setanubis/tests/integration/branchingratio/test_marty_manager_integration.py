@@ -48,6 +48,8 @@ class StubParamManager:
         self.nsa = nsa
     def create_csv(self):
         return "p,3\nq,4\n"
+    def create_particle_csv(self, mothers, daugthers):
+        return "23_in,91\n2_out,0.006\n-2_out,0,006\n"
 
 
 class StubCompiler:

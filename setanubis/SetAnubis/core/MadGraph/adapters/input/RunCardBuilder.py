@@ -1,8 +1,8 @@
 from typing import Optional
-from SetAnubis.core.Madgraph.ports.IRunCardBuilder import IRunCardBuilder
-from SetAnubis.core.Madgraph.ports.ICardWriter import ICardWriter
-from SetAnubis.core.Madgraph.domain.MadGraphRunCardEditor import RunCardEditor as DomainRunCardEditor
-from SetAnubis.core.Madgraph.adapters.output.CardAdapter import CardAdapter, CardType
+from SetAnubis.core.MadGraph.ports.IRunCardBuilder import IRunCardBuilder
+from SetAnubis.core.MadGraph.ports.ICardWriter import ICardWriter
+from SetAnubis.core.MadGraph.domain.MadGraphRunCardEditor import RunCardEditor as DomainRunCardEditor
+from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, CardType
 
 class RunCardBuilder(IRunCardBuilder, ICardWriter):
     """

@@ -1,7 +1,7 @@
 import os
 import docker
 import subprocess
-from SetAnubis.core.Madgraph.ports.output.IMadGraphRunner import IMadGraphRunner
+from SetAnubis.core.MadGraph.ports.output.IMadGraphRunner import IMadGraphRunner
 
 DOCKER_IMAGE = "ryudoro/madgraph-anubis"
 CONTAINER_NAME = "madgraph-anubis"

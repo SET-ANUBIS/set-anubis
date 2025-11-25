@@ -1,6 +1,6 @@
 import os
 import subprocess
-from SetAnubis.core.Madgraph.ports.output.IMadGraphRunner import IMadGraphRunner
+from SetAnubis.core.MadGraph.ports.output.IMadGraphRunner import IMadGraphRunner
 import re
 
 class MadGraphLocalRunner(IMadGraphRunner):

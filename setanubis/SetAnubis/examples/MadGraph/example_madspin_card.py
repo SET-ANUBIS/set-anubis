@@ -1,5 +1,5 @@
-from SetAnubis.core.Madgraph.domain.MadspinCardBuilder import MadSpinCardBuilder
-from SetAnubis.core.Madgraph.adapters.output.CardAdapter import CardAdapter, CardType
+from SetAnubis.core.MadGraph.domain.MadspinCardBuilder import MadSpinCardBuilder
+from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, CardType
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-from SetAnubis.core.Madgraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
-from SetAnubis.core.Madgraph.adapters.input.MadGraphInterface import MadgraphInterface
+from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
+from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphInterface
 from SetAnubis.core.interfaces import SetAnubisInterface
 
 if __name__ == "__main__":

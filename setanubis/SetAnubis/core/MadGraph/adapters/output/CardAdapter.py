@@ -1,5 +1,5 @@
 from SetAnubis.core.DataBase.adapters.CardGetter import CardGetter, CardType
-from SetAnubis.core.Madgraph.ports.output.ICardAdapter import ICardAdapter
+from SetAnubis.core.MadGraph.ports.output.ICardAdapter import ICardAdapter
 
 class CardAdapter(ICardAdapter):
     

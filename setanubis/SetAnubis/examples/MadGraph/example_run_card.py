@@ -1,4 +1,4 @@
-from SetAnubis.core.Madgraph.adapters.input.RunCardBuilder import RunCardBuilder
+from SetAnubis.core.MadGraph.adapters.input.RunCardBuilder import RunCardBuilder
 
 if __name__ == "__main__":
     runcard_editor = RunCardBuilder()

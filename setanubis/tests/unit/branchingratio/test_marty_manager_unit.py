@@ -80,6 +80,8 @@ class FakeParamManager:
         self.nsa = nsa
     def create_csv(self):
         return "a,1\nb,2\n"
+    def create_particle_csv(self, mothers, daugthers):
+        return "23_in,91\n2_out,0.006\n-2_out,0,006\n"
 
 
 @pytest.fixture(autouse=True)

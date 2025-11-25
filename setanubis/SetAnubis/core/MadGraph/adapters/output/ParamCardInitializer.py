@@ -1,4 +1,4 @@
-from SetAnubis.core.Madgraph.ports.ICardInitializer import ICardInitializer
+from SetAnubis.core.MadGraph.ports.ICardInitializer import ICardInitializer
 from SetAnubis.core.DataBase.adapters.ParamCardGeneratorAdapter import ParamCardGeneratorAdapter
 
 class ParamCardInitializer(ICardInitializer):

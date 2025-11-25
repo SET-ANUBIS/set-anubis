@@ -1,5 +1,5 @@
 import argparse
-from SetAnubis.core.Madgraph.app.CLI.run_madgraph import run_madgraph
+from SetAnubis.core.MadGraph.app.CLI.run_madgraph import run_madgraph
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MadGraph CLI runner")

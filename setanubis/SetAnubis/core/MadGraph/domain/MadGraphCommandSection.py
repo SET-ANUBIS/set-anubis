@@ -1,4 +1,4 @@
-from SetAnubis.core.Madgraph.domain.CommandSectionType import CommandSectionType
+from SetAnubis.core.MadGraph.domain.CommandSectionType import CommandSectionType
 
 class MadGraphCommandSection:
     """Class representing a section within a MadGraph command card.

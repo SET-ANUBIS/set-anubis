@@ -1,5 +1,5 @@
 import pytest
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from SetAnubis.core.ModelCore.domain.SetAnubisManager import (
     SetAnubisManager,
     SetAnubisPortsConfig,
@@ -7,6 +7,7 @@ from SetAnubis.core.ModelCore.domain.SetAnubisManager import (
 from SetAnubis.core.ModelCore.adapters.output.ParticlesFromJSONProxy import (
     ParticlesFromJSONProxy,
 )
+import sympy as sp
 
 class FakeNode:
     def __init__(self, value=None, deps=None, expr=None, block="BLOCK", code=1):
@@ -41,6 +42,53 @@ class FakeExpressionTree:
     def get_value(self, name):
         return self.nodes[name]
 
+    def add_leaf(self, name: str, value: Optional[float] = None,
+        lha_block: Optional[str] = None,
+        lha_code: Optional[List[int]] = None,
+        overwrite: bool = False):
+        
+        if name in self.nodes and not overwrite:
+            return #TODO : for now no warning
+        
+        self.nodes[name] = FakeNode(value=value, block=lha_block, code=lha_code)
+
+    def add_expression(self, name: str, expression: str,
+        lha_block: Optional[str] = None,
+        lha_code: Optional[List[int]] = None,
+        overwrite: bool = False,
+        create_missing: bool = True):
+
+        if name in self.nodes and not overwrite:
+            raise ValueError(f"Le nœud '{name}' existe déjà. Utilisez overwrite=True pour remplacer.")
+
+
+        cleaned = expression
+
+
+        # Identifier les symboles libres de l'expression
+        tmp_locals = {k: sp.Symbol(k) for k in self.nodes.keys() | {name}}
+        sympy_expr = sp.sympify(cleaned, locals=tmp_locals)
+        deps = {str(s) for s in sympy_expr.free_symbols if str(s) != name}
+
+
+        # Créer les dépendances manquantes si demandé
+        missing = [d for d in deps if d not in self.nodes]
+        if missing:
+            if create_missing:
+                for d in missing:
+                    # Feuille placeholder (value=None, expression=None)
+                    self.nodes[d] = FakeNode(d)
+                    print("d : ", d)
+            else:
+                raise KeyError(f"Dépendances absentes pour '{name}': {missing}")
+
+        print(cleaned)
+
+        # Installer le nœud
+        self.nodes[name] = FakeNode(expr=cleaned, block=lha_block, code=lha_code)
+        
+        
+        
 class FakeUFOGetterPort:
     def __init__(self, tree=None):
         self._tree = tree or FakeExpressionTree()

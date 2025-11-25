@@ -236,5 +236,5 @@ Logs/
 **/NeoSetAnubis.egg-info
 
 db/EventsStorage
-setanubis/SetAnubis/core/Madgraph/app/TestFiles/tag_1_pythia8_events.hepmc
+setanubis/SetAnubis/core/MadGraph/app/TestFiles/tag_1_pythia8_events.hepmc
 

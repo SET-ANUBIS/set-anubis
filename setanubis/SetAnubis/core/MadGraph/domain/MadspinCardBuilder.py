@@ -1,5 +1,5 @@
-from SetAnubis.core.Madgraph.domain.MadspinSectionType import MadSpinSectionType
-from SetAnubis.core.Madgraph.domain.MadspinSection import MadSpinSection
+from SetAnubis.core.MadGraph.domain.MadspinSectionType import MadSpinSectionType
+from SetAnubis.core.MadGraph.domain.MadspinSection import MadSpinSection
 
 class MadSpinCardBuilder:
     def __init__(self):

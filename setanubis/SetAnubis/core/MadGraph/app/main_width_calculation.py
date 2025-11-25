@@ -1,11 +1,11 @@
 from pathlib import Path
-from SetAnubis.core.Madgraph.adapters.output.CardAdapter import CardAdapter, CardType
-from SetAnubis.core.Madgraph.adapters.input.JobscriptBuilder import JobScriptBuilder, MadGraphCommandConfig
-from SetAnubis.core.Madgraph.adapters.input.RunCardBuilder import RunCardBuilder
-from SetAnubis.core.Madgraph.adapters.input.ParamCardBuilder import ParamCardBuilder
-from SetAnubis.core.Madgraph.adapters.input.MadGraphInterface import MadgraphInterface
+from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, CardType
+from SetAnubis.core.MadGraph.adapters.input.JobscriptBuilder import JobScriptBuilder, MadGraphCommandConfig
+from SetAnubis.core.MadGraph.adapters.input.RunCardBuilder import RunCardBuilder
+from SetAnubis.core.MadGraph.adapters.input.ParamCardBuilder import ParamCardBuilder
+from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphInterface
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
-from SetAnubis.core.Madgraph.adapters.output.MadGraphLocalRunner import MadGraphLocalRunner
+from SetAnubis.core.MadGraph.adapters.output.MadGraphLocalRunner import MadGraphLocalRunner
 import os
 
 UFO_HNL_DIR = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "Assets", "UFO", "UFO_HNL"))
