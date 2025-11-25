@@ -1,0 +1,16 @@
+model_path: "db/HNL/UFO_HNL"
+particle: 9900012
+mass: 1.0
+
+decay:
+  enabled: true
+  type: all
+
+production:
+  - D_meson
+  - Lambda_c
+
+change_sm_particles: "TestFiles/sm_particles_changes.yaml"
+custom_params:
+  VeN1: 1e-2
+  VmuN1: 1e-3

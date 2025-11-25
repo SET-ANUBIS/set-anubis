@@ -1,0 +1,37 @@
+#! 1) Settings used in the main program.
+Main:numberOfEvents = 10000        ! number of events to generate
+Main:timesAllowErrors = 3          ! how many aborts before run stops
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = on ! list changed particle data
+Next:numberCount = 500             ! print message every n events
+Next:numberShowInfo = 2            ! print event information n times
+Next:numberShowProcess = 2         ! print process record n times
+Next:numberShowEvent = 2           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 13000.                 ! CM energy of collision
+
+4132:new Xi_c0 Xi_cbar0 2 0 0 2.47088 0.0336 0.0 0.0 0.0 0 0 1 0 1 0
+
+9900012:new N1 N1 2 0 0 0.01 0.0 0.0 0.0 100.5 0 0 1 0 1 0
+
+HardQCD::hardccbar = on
+
+HardQCD::hardbbbar = on
+
+4132:addChannel = 1 0.3444528086979846 0 -11 3312 9900012
+4132:addChannel = 1 0.6555471913020153 0 -13 3312 9900012
+421:addChannel = 1 0.37517442215064467 0 -321 -11 9900012
+421:addChannel = 1 0.2589908282589847 0 -323 -11 9900012
+421:addChannel = 1 0.3658347495903707 0 -321 -13 9900012
+
+9900012:addChannel = 1 0.451 0 -12 12 12
+9900012:addChannel = 1 0.133 0 -11 11 12
+9900012:addChannel = 1 0.0 0 -11 11 14
+9900012:addChannel = 1 0.0 0 -11 11 16
+9900012:addChannel = 1 0.414 0 -13 11 14
+9900012:addChannel = 1 0.0 0 -11 12 13

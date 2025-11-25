@@ -1,0 +1,84 @@
+#! 1) Settings used in the main program.
+Main:numberOfEvents = 10000        ! number of events to generate
+Main:timesAllowErrors = 3          ! how many aborts before run stops
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = off ! list changed particle data
+Next:numberCount = 500             ! print message every n events
+Next:numberShowInfo = 2            ! print event information n times
+Next:numberShowProcess = 2         ! print process record n times
+Next:numberShowEvent = 2           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 13000.                 ! CM energy of collision
+
+9900012:new N1 N1 2 0 0 2.5 1.4243895913651042e-19 0 0 100 0 0 1 0 1 0
+
+9900012:addChannel = 1 0.01966823479070921 0 -11 11 14
+9900012:addChannel = 1 0.3089434919344603 0 -13 11 12
+9900012:addChannel = 1 0.02501787400211999 0 14 111
+9900012:addChannel = 1 0.09062661799189367 0 -13 13 14
+9900012:addChannel = 1 0.09433390325513501 0 13 211
+9900012:addChannel = 1 0.008979657510778888 0 14 221
+9900012:addChannel = 1 0.0107072047018428 0 14 113
+9900012:addChannel = 1 0.003260702278854864 0 14 223
+9900012:addChannel = 1 0.2382178312819988 0 13 213
+9900012:addChannel = 1 0.009691508165401099 0 14 331
+9900012:addChannel = 1 0.03532532851692323 0 14 333
+9900012:addChannel = 1 0.004518120009136556 0 -13 15 16
+9900012:addChannel = 1 0.049131177847052857 0 13 431
+9900012:addChannel = 1 0.10157834771369256 0 13 433
+
+5122:addChannel = 1 0.07405689 0 11 4122 9900012
+5122:addChannel = 1 0.07354021 0 13 4122 9900012
+5122:addChannel = 1 0.0 0 15 4122 9900012
+521:addChannel = 1 0.00010327 0 -15 9900012
+521:addChannel = 1 4.6e-07 0 -13 9900012
+521:addChannel = 1 0.0 0 -11 9900012
+521:addChannel = 1 0.02337137 0 -11 421 9900012
+521:addChannel = 1 0.06176336 0 -11 423 9900012
+521:addChannel = 1 0.02327536 0 -13 421 9900012
+521:addChannel = 1 0.061471675 0 -13 423 9900012
+521:addChannel = 1 0.0 0 -15 421 9900012
+521:addChannel = 1 0.0 0 -15 423 9900012
+521:addChannel = 1 6.027e-05 0 -11 111 9900012
+521:addChannel = 1 6.024e-05 0 -13 111 9900012
+521:addChannel = 1 4.702e-05 0 -15 111 9900012
+521:addChannel = 1 0.00018045 0 -11 113 9900012
+521:addChannel = 1 0.00018011 0 -13 113 9900012
+521:addChannel = 1 0.00010081 0 -15 113 9900012
+5232:addChannel = 1 0.0 0 15 4232 9900012
+5232:addChannel = 1 0.07935139499999999 0 13 4232 9900012
+5232:addChannel = 1 0.0799093 0 11 4232 9900012
+531:addChannel = 1 0.021561455 0 -431 -11 9900012
+531:addChannel = 1 0.05607072 0 -433 -11 9900012
+531:addChannel = 1 0.02146663 0 -431 -13 9900012
+531:addChannel = 1 0.055811115 0 -433 -13 9900012
+531:addChannel = 1 0.0 0 -431 -15 9900012
+531:addChannel = 1 0.0 0 -433 -15 9900012
+531:addChannel = 1 0.00017469 0 -321 -11 9900012
+531:addChannel = 1 0.00017372 0 -321 -13 9900012
+531:addChannel = 1 0.00010091 0 -321 -15 9900012
+531:addChannel = 1 0.00035042 0 -323 -11 9900012
+531:addChannel = 1 0.00034967 0 -323 -13 9900012
+531:addChannel = 1 0.00019104 0 -323 -15 9900012
+5332:addChannel = 1 0.013284475 0 15 9900012
+5332:addChannel = 1 0.048007720000000004 0 13 9900012
+5332:addChannel = 1 0.048224345 0 11 9900012
+511:addChannel = 1 0.02176736 0 -411 -11 9900012
+511:addChannel = 1 0.057463025 0 -413 -11 9900012
+511:addChannel = 1 0.02167736 0 -411 -13 9900012
+511:addChannel = 1 0.057191165 0 -413 -13 9900012
+511:addChannel = 1 0.0 0 -411 -15 9900012
+511:addChannel = 1 0.0 0 -413 -15 9900012
+511:addChannel = 1 0.00011522 0 -211 -11 9900012
+511:addChannel = 1 0.00011515 0 -211 -13 9900012
+511:addChannel = 1 8.941e-05 0 -211 -15 9900012
+511:addChannel = 1 0.00033724 0 -213 -11 9900012
+511:addChannel = 1 0.00033662 0 -213 -13 9900012
+511:addChannel = 1 0.00018843 0 -213 -15 9900012
+
+HardQCD::hardbbbar = on

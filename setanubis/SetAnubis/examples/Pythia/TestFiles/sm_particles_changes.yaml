@@ -1,0 +1,17 @@
+4132:
+  name: Xi_c0
+  antiname: Xi_cbar0
+  spin: 2
+  charge: 0
+  color: 0
+  mass: 2.47088
+  mMin: 0.0
+  mMax: 0.0
+  mWidth: 0.0336
+  tau0: 0.0
+  tauCalc: false
+  isResonance: false
+  mayDecay: true
+  doExternalDecay: false
+  isVisible: true
+  doForceWidth: false

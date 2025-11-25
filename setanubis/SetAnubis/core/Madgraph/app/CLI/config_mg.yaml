@@ -1,0 +1,16 @@
+ufo_path: "db/HNL/UFO_HNL"
+cards_path: "/External_Integration/input_files/"
+model_in_madgraph: "SM_HeavyN_CKM_AllMasses_LO"
+shower: "py8"
+madspin: "ON"
+nevents: 2000
+
+output_name: "HNL_Condor_CCDY_qqe"
+decays:
+  - "decay n1 > ell ell vv"
+processes:
+  - "generate p p > n1 ell # [QCD]"
+
+parameter_scans:
+  VeN1: "[1e-6, 1.]"
+  MN1: "[0.5, 1.0]"

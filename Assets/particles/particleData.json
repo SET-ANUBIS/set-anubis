@@ -1,0 +1,5126 @@
+{
+  "1": {
+    "name": "d",
+    "antiName": "dbar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 0.33
+  },
+  "2": {
+    "name": "u",
+    "antiName": "ubar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 0.33
+  },
+  "3": {
+    "name": "s",
+    "antiName": "sbar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 0.5
+  },
+  "4": {
+    "name": "c",
+    "antiName": "cbar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 1.5
+  },
+  "5": {
+    "name": "b",
+    "antiName": "bbar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 4.8
+  },
+  "6": {
+    "name": "t",
+    "antiName": "tbar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 173.0
+  },
+  "7": {
+    "name": "b'",
+    "antiName": "b'bar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "8": {
+    "name": "t'",
+    "antiName": "t'bar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "11": {
+    "name": "e-",
+    "antiName": "e+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.000511
+  },
+  "12": {
+    "name": "nu_e",
+    "antiName": "nu_ebar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "13": {
+    "name": "mu-",
+    "antiName": "mu+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.10566
+  },
+  "14": {
+    "name": "nu_mu",
+    "antiName": "nu_mubar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "15": {
+    "name": "tau-",
+    "antiName": "tau+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.77682
+  },
+  "16": {
+    "name": "nu_tau",
+    "antiName": "nu_taubar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "17": {
+    "name": "tau'-",
+    "antiName": "tau'+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "18": {
+    "name": "nu'_tau",
+    "antiName": "nu'_taubar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "21": {
+    "name": "g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 0.0
+  },
+  "22": {
+    "name": "gamma",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "23": {
+    "name": "Z0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 91.1876
+  },
+  "24": {
+    "name": "W+",
+    "antiName": "W-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 80.385
+  },
+  "25": {
+    "name": "h0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 125.0
+  },
+  "32": {
+    "name": "Z'0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "33": {
+    "name": "Z''0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 900.0
+  },
+  "34": {
+    "name": "W'+",
+    "antiName": "W'-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "35": {
+    "name": "H0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 300.0
+  },
+  "36": {
+    "name": "A0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 300.0
+  },
+  "37": {
+    "name": "H+",
+    "antiName": "H-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 300.0
+  },
+  "39": {
+    "name": "Graviton",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "40": {
+    "name": "BlackHole",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "41": {
+    "name": "R0",
+    "antiName": "Rbar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5000.0
+  },
+  "42": {
+    "name": "LQ_ue",
+    "antiName": "LQ_uebar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 200.0
+  },
+  "45": {
+    "name": "H_3",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "46": {
+    "name": "A_2",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "51": {
+    "name": "DM(s=0)",
+    "antiName": "DMbar(s=0)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "52": {
+    "name": "DM(s=1/2)",
+    "antiName": "DMbar(s=1/2)",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "53": {
+    "name": "DM(s=1)",
+    "antiName": "DMbar(s=1)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "54": {
+    "name": "DMmed(s=0)",
+    "antiName": "DMmedbar(s=0)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "55": {
+    "name": "DMmed(s=1)",
+    "antiName": "DMmedbar(s=1)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "56": {
+    "name": "Sl",
+    "antiName": "Slbar",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "57": {
+    "name": "DM+",
+    "antiName": "DM-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "58": {
+    "name": "DM2",
+    "antiName": "DMbar2",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "59": {
+    "name": "DM++",
+    "antiName": "DM--",
+    "spin": 2.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "60": {
+    "name": "DM?5",
+    "antiName": "DMbar?5",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 100.0
+  },
+  "81": {
+    "name": "specflav",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "82": {
+    "name": "rndmflavq",
+    "antiName": "rndmflavqbar",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "83": {
+    "name": "rndmflavg",
+    "antiName": "rndmflavgbar",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "90": {
+    "name": "system",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "93": {
+    "name": "Z0copy",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 91.1876
+  },
+  "94": {
+    "name": "W+copy",
+    "antiName": "W-copy",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 80.385
+  },
+  "110": {
+    "name": "Reggeon",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "111": {
+    "name": "pi0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.13498
+  },
+  "113": {
+    "name": "rho0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.77549
+  },
+  "115": {
+    "name": "a_20",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.3183
+  },
+  "130": {
+    "name": "K_L0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.49761
+  },
+  "211": {
+    "name": "pi+",
+    "antiName": "pi-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.13957
+  },
+  "213": {
+    "name": "rho+",
+    "antiName": "rho-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.77549
+  },
+  "215": {
+    "name": "a_2+",
+    "antiName": "a_2-",
+    "spin": 5.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.3183
+  },
+  "221": {
+    "name": "eta",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.54785
+  },
+  "223": {
+    "name": "omega",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.78265
+  },
+  "225": {
+    "name": "f_2",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.2751
+  },
+  "310": {
+    "name": "K_S0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.49761
+  },
+  "311": {
+    "name": "K0",
+    "antiName": "Kbar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.49761
+  },
+  "313": {
+    "name": "K*0",
+    "antiName": "K*bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.89594
+  },
+  "315": {
+    "name": "K*_2(1430)0",
+    "antiName": "K*_2(1430)bar0",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.4324
+  },
+  "321": {
+    "name": "K+",
+    "antiName": "K-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.49368
+  },
+  "323": {
+    "name": "K*+",
+    "antiName": "K*-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.89166
+  },
+  "325": {
+    "name": "K*_2(1430)+",
+    "antiName": "K*_2(1430)-",
+    "spin": 5.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.4256
+  },
+  "331": {
+    "name": "eta'",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.95778
+  },
+  "333": {
+    "name": "phi",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.01946
+  },
+  "335": {
+    "name": "f'_2(1525)",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.525
+  },
+  "411": {
+    "name": "D+",
+    "antiName": "D-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.86962
+  },
+  "413": {
+    "name": "D*+",
+    "antiName": "D*-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.01028
+  },
+  "415": {
+    "name": "D*_2(2460)+",
+    "antiName": "D*_2(2460)-",
+    "spin": 5.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.4644
+  },
+  "421": {
+    "name": "D0",
+    "antiName": "Dbar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.86486
+  },
+  "423": {
+    "name": "D*0",
+    "antiName": "D*bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.00698
+  },
+  "425": {
+    "name": "D*_2(2460)0",
+    "antiName": "D*_2(2460)bar0",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.4626
+  },
+  "431": {
+    "name": "D_s+",
+    "antiName": "D_s-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.96849
+  },
+  "433": {
+    "name": "D*_s+",
+    "antiName": "D*_s-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.1123
+  },
+  "435": {
+    "name": "D*_2s(2573)+",
+    "antiName": "D*_2s(2573)-",
+    "spin": 5.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.5719
+  },
+  "441": {
+    "name": "eta_c",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.981
+  },
+  "443": {
+    "name": "J/psi",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.09692
+  },
+  "445": {
+    "name": "chi_2c",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.5562
+  },
+  "511": {
+    "name": "B0",
+    "antiName": "Bbar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.27958
+  },
+  "513": {
+    "name": "B*0",
+    "antiName": "B*bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.3252
+  },
+  "515": {
+    "name": "B*_20",
+    "antiName": "B*_2bar0",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.743
+  },
+  "521": {
+    "name": "B+",
+    "antiName": "B-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.27925
+  },
+  "523": {
+    "name": "B*+",
+    "antiName": "B*-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.3252
+  },
+  "525": {
+    "name": "B*_2+",
+    "antiName": "B*_2-",
+    "spin": 5.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.743
+  },
+  "531": {
+    "name": "B_s0",
+    "antiName": "B_sbar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.36677
+  },
+  "533": {
+    "name": "B*_s0",
+    "antiName": "B*_sbar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.4154
+  },
+  "535": {
+    "name": "B*_2s0",
+    "antiName": "B*_2sbar0",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.8397
+  },
+  "541": {
+    "name": "B_c+",
+    "antiName": "B_c-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 6.277
+  },
+  "543": {
+    "name": "B*_c+",
+    "antiName": "B*_c-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 6.34
+  },
+  "545": {
+    "name": "B*_2c+",
+    "antiName": "B*_2c-",
+    "spin": 5.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.35
+  },
+  "551": {
+    "name": "eta_b",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 9.4
+  },
+  "553": {
+    "name": "Upsilon",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 9.4603
+  },
+  "555": {
+    "name": "chi_2b",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 9.9122
+  },
+  "990": {
+    "name": "Pomeron",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "1103": {
+    "name": "dd_1",
+    "antiName": "dd_1bar",
+    "spin": 3.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 0.77133
+  },
+  "1114": {
+    "name": "Delta-",
+    "antiName": "Deltabar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.232
+  },
+  "2101": {
+    "name": "ud_0",
+    "antiName": "ud_0bar",
+    "spin": 1.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 0.57933
+  },
+  "2103": {
+    "name": "ud_1",
+    "antiName": "ud_1bar",
+    "spin": 3.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 0.77133
+  },
+  "2112": {
+    "name": "n0",
+    "antiName": "nbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.93957
+  },
+  "2114": {
+    "name": "Delta0",
+    "antiName": "Deltabar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.232
+  },
+  "2203": {
+    "name": "uu_1",
+    "antiName": "uu_1bar",
+    "spin": 3.0,
+    "charge": 1.3333333333333333,
+    "colour": -1.0,
+    "mass": 0.77133
+  },
+  "2212": {
+    "name": "p+",
+    "antiName": "pbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.93827
+  },
+  "2214": {
+    "name": "Delta+",
+    "antiName": "Deltabar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.232
+  },
+  "2224": {
+    "name": "Delta++",
+    "antiName": "Deltabar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.232
+  },
+  "3101": {
+    "name": "sd_0",
+    "antiName": "sd_0bar",
+    "spin": 1.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 0.80473
+  },
+  "3103": {
+    "name": "sd_1",
+    "antiName": "sd_1bar",
+    "spin": 3.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 0.92953
+  },
+  "3112": {
+    "name": "Sigma-",
+    "antiName": "Sigmabar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.19745
+  },
+  "3114": {
+    "name": "Sigma*-",
+    "antiName": "Sigma*bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.3872
+  },
+  "3122": {
+    "name": "Lambda0",
+    "antiName": "Lambdabar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.11568
+  },
+  "3201": {
+    "name": "su_0",
+    "antiName": "su_0bar",
+    "spin": 1.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 0.80473
+  },
+  "3203": {
+    "name": "su_1",
+    "antiName": "su_1bar",
+    "spin": 3.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 0.92953
+  },
+  "3212": {
+    "name": "Sigma0",
+    "antiName": "Sigmabar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.19264
+  },
+  "3214": {
+    "name": "Sigma*0",
+    "antiName": "Sigma*bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.3837
+  },
+  "3222": {
+    "name": "Sigma+",
+    "antiName": "Sigmabar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.18937
+  },
+  "3224": {
+    "name": "Sigma*+",
+    "antiName": "Sigma*bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.3828
+  },
+  "3303": {
+    "name": "ss_1",
+    "antiName": "ss_1bar",
+    "spin": 3.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 1.09361
+  },
+  "3312": {
+    "name": "Xi-",
+    "antiName": "Xibar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.32171
+  },
+  "3314": {
+    "name": "Xi*-",
+    "antiName": "Xi*bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.535
+  },
+  "3322": {
+    "name": "Xi0",
+    "antiName": "Xibar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.31486
+  },
+  "3324": {
+    "name": "Xi*0",
+    "antiName": "Xi*bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.5318
+  },
+  "3334": {
+    "name": "Omega-",
+    "antiName": "Omegabar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.67245
+  },
+  "4101": {
+    "name": "cd_0",
+    "antiName": "cd_0bar",
+    "spin": 1.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 1.96908
+  },
+  "4103": {
+    "name": "cd_1",
+    "antiName": "cd_1bar",
+    "spin": 3.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 2.00808
+  },
+  "4112": {
+    "name": "Sigma_c0",
+    "antiName": "Sigma_cbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.45374
+  },
+  "4114": {
+    "name": "Sigma*_c0",
+    "antiName": "Sigma*_cbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.5188
+  },
+  "4122": {
+    "name": "Lambda_c+",
+    "antiName": "Lambda_cbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.28646
+  },
+  "4124": {
+    "name": "Lambda_c(2625)+",
+    "antiName": "Lambda_c(2625)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.6281
+  },
+  "4132": {
+    "name": "Xi_c0",
+    "antiName": "Xi_cbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.47088
+  },
+  "4201": {
+    "name": "cu_0",
+    "antiName": "cu_0bar",
+    "spin": 1.0,
+    "charge": 1.3333333333333333,
+    "colour": -1.0,
+    "mass": 1.96908
+  },
+  "4203": {
+    "name": "cu_1",
+    "antiName": "cu_1bar",
+    "spin": 3.0,
+    "charge": 1.3333333333333333,
+    "colour": -1.0,
+    "mass": 2.00808
+  },
+  "4212": {
+    "name": "Sigma_c+",
+    "antiName": "Sigma_cbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.4529
+  },
+  "4214": {
+    "name": "Sigma*_c+",
+    "antiName": "Sigma*_cbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.5175
+  },
+  "4222": {
+    "name": "Sigma_c++",
+    "antiName": "Sigma_cbar--",
+    "spin": 2.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 2.45398
+  },
+  "4224": {
+    "name": "Sigma*_c++",
+    "antiName": "Sigma*_cbar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 2.5179
+  },
+  "4232": {
+    "name": "Xi_c+",
+    "antiName": "Xi_cbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.4678
+  },
+  "4301": {
+    "name": "cs_0",
+    "antiName": "cs_0bar",
+    "spin": 1.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 2.15432
+  },
+  "4303": {
+    "name": "cs_1",
+    "antiName": "cs_1bar",
+    "spin": 3.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 2.17967
+  },
+  "4312": {
+    "name": "Xi'_c0",
+    "antiName": "Xi'_cbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.5779
+  },
+  "4314": {
+    "name": "Xi*_c0",
+    "antiName": "Xi*_cbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.6459
+  },
+  "4322": {
+    "name": "Xi'_c+",
+    "antiName": "Xi'_cbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.5756
+  },
+  "4324": {
+    "name": "Xi*_c+",
+    "antiName": "Xi*_cbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.6459
+  },
+  "4332": {
+    "name": "Omega_c0",
+    "antiName": "Omega_cbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.6952
+  },
+  "4334": {
+    "name": "Omega*_c0",
+    "antiName": "Omega*_cbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.7659
+  },
+  "4403": {
+    "name": "cc_1",
+    "antiName": "cc_1bar",
+    "spin": 3.0,
+    "charge": 1.3333333333333333,
+    "colour": -1.0,
+    "mass": 3.27531
+  },
+  "4412": {
+    "name": "Xi_cc+",
+    "antiName": "Xi_ccbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 3.59798
+  },
+  "4414": {
+    "name": "Xi*_cc+",
+    "antiName": "Xi*_ccbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 3.65648
+  },
+  "4422": {
+    "name": "Xi_cc++",
+    "antiName": "Xi_ccbar--",
+    "spin": 2.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 3.59798
+  },
+  "4424": {
+    "name": "Xi*_cc++",
+    "antiName": "Xi*_ccbar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 3.65648
+  },
+  "4432": {
+    "name": "Omega_cc+",
+    "antiName": "Omega_ccbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 3.78663
+  },
+  "4434": {
+    "name": "Omega*_cc+",
+    "antiName": "Omega*_ccbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 3.82466
+  },
+  "4444": {
+    "name": "Omega*_ccc++",
+    "antiName": "Omega*_cccbar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 4.91594
+  },
+  "5101": {
+    "name": "bd_0",
+    "antiName": "bd_0bar",
+    "spin": 1.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 5.38897
+  },
+  "5103": {
+    "name": "bd_1",
+    "antiName": "bd_1bar",
+    "spin": 3.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 5.40145
+  },
+  "5112": {
+    "name": "Sigma_b-",
+    "antiName": "Sigma_bbar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 5.8155
+  },
+  "5114": {
+    "name": "Sigma*_b-",
+    "antiName": "Sigma*_bbar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 5.8351
+  },
+  "5122": {
+    "name": "Lambda_b0",
+    "antiName": "Lambda_bbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.6194
+  },
+  "5132": {
+    "name": "Xi_b-",
+    "antiName": "Xi_bbar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 5.7911
+  },
+  "5142": {
+    "name": "Xi_bc0",
+    "antiName": "Xi_bcbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 7.00575
+  },
+  "5201": {
+    "name": "bu_0",
+    "antiName": "bu_0bar",
+    "spin": 1.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 5.38897
+  },
+  "5203": {
+    "name": "bu_1",
+    "antiName": "bu_1bar",
+    "spin": 3.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 5.40145
+  },
+  "5212": {
+    "name": "Sigma_b0",
+    "antiName": "Sigma_bbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.8
+  },
+  "5214": {
+    "name": "Sigma*_b0",
+    "antiName": "Sigma*_bbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.81
+  },
+  "5222": {
+    "name": "Sigma_b+",
+    "antiName": "Sigma_bbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.8113
+  },
+  "5224": {
+    "name": "Sigma*_b+",
+    "antiName": "Sigma*_bbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.8321
+  },
+  "5232": {
+    "name": "Xi_b0",
+    "antiName": "Xi_bbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.788
+  },
+  "5242": {
+    "name": "Xi_bc+",
+    "antiName": "Xi_bcbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.00575
+  },
+  "5301": {
+    "name": "bs_0",
+    "antiName": "bs_0bar",
+    "spin": 1.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 5.56725
+  },
+  "5303": {
+    "name": "bs_1",
+    "antiName": "bs_1bar",
+    "spin": 3.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 5.57536
+  },
+  "5312": {
+    "name": "Xi'_b-",
+    "antiName": "Xi'_bbar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 5.96
+  },
+  "5314": {
+    "name": "Xi*_b-",
+    "antiName": "Xi*_bbar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 5.97
+  },
+  "5322": {
+    "name": "Xi'_b0",
+    "antiName": "Xi'_bbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.96
+  },
+  "5324": {
+    "name": "Xi*_b0",
+    "antiName": "Xi*_bbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.97
+  },
+  "5332": {
+    "name": "Omega_b-",
+    "antiName": "Omega_bbar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 6.07
+  },
+  "5334": {
+    "name": "Omega*_b-",
+    "antiName": "Omega*_bbar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 6.13
+  },
+  "5342": {
+    "name": "Omega_bc0",
+    "antiName": "Omega_bcbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 7.19099
+  },
+  "5401": {
+    "name": "bc_0",
+    "antiName": "bc_0bar",
+    "spin": 1.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 6.67143
+  },
+  "5403": {
+    "name": "bc_1",
+    "antiName": "bc_1bar",
+    "spin": 3.0,
+    "charge": 0.3333333333333333,
+    "colour": -1.0,
+    "mass": 6.67397
+  },
+  "5412": {
+    "name": "Xi'_bc0",
+    "antiName": "Xi'_bcbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 7.03724
+  },
+  "5414": {
+    "name": "Xi*_bc0",
+    "antiName": "Xi*_bcbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 7.0485
+  },
+  "5422": {
+    "name": "Xi'_bc+",
+    "antiName": "Xi'_bcbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.03724
+  },
+  "5424": {
+    "name": "Xi*_bc+",
+    "antiName": "Xi*_bcbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.0485
+  },
+  "5432": {
+    "name": "Omega'_bc0",
+    "antiName": "Omega'_bcbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 7.21101
+  },
+  "5434": {
+    "name": "Omega*_bc0",
+    "antiName": "Omega*_bcbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 7.219
+  },
+  "5442": {
+    "name": "Omega_bcc+",
+    "antiName": "Omega_bccbar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 8.30945
+  },
+  "5444": {
+    "name": "Omega*_bcc+",
+    "antiName": "Omega*_bccbar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 8.31325
+  },
+  "5503": {
+    "name": "bb_1",
+    "antiName": "bb_1bar",
+    "spin": 3.0,
+    "charge": -0.6666666666666666,
+    "colour": -1.0,
+    "mass": 10.07354
+  },
+  "5512": {
+    "name": "Xi_bb-",
+    "antiName": "Xi_bbbar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 10.42272
+  },
+  "5514": {
+    "name": "Xi*_bb-",
+    "antiName": "Xi*_bbbar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 10.44144
+  },
+  "5522": {
+    "name": "Xi_bb0",
+    "antiName": "Xi_bbbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.42272
+  },
+  "5524": {
+    "name": "Xi*_bb0",
+    "antiName": "Xi*_bbbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.44144
+  },
+  "5532": {
+    "name": "Omega_bb-",
+    "antiName": "Omega_bbbar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 10.60209
+  },
+  "5534": {
+    "name": "Omega*_bb-",
+    "antiName": "Omega*_bbbar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 10.61426
+  },
+  "5542": {
+    "name": "Omega_bbc0",
+    "antiName": "Omega_bbcbar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 11.70767
+  },
+  "5544": {
+    "name": "Omega*_bbc0",
+    "antiName": "Omega*_bbcbar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 11.71147
+  },
+  "5554": {
+    "name": "Omega*_bbb-",
+    "antiName": "Omega*_bbbbar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 15.11061
+  },
+  "10111": {
+    "name": "a_0(1450)0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.474
+  },
+  "10113": {
+    "name": "b_1(1235)0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.2295
+  },
+  "10211": {
+    "name": "a_0(1450)+",
+    "antiName": "a_0(1450)-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.474
+  },
+  "10213": {
+    "name": "b_1(1235)+",
+    "antiName": "b_1(1235)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.2295
+  },
+  "10221": {
+    "name": "f_0(1370)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.35
+  },
+  "10223": {
+    "name": "h_1(1170)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.17
+  },
+  "10311": {
+    "name": "K*_0(1430)0",
+    "antiName": "K*_0(1430)bar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.43
+  },
+  "10313": {
+    "name": "K_1(1270)0",
+    "antiName": "K_1(1270)bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.272
+  },
+  "10321": {
+    "name": "K*_0(1430)+",
+    "antiName": "K*_0(1430)-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.43
+  },
+  "10323": {
+    "name": "K_1(1270)+",
+    "antiName": "K_1(1270)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.272
+  },
+  "10331": {
+    "name": "f_0(1710)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "10333": {
+    "name": "h_1(1380)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.386
+  },
+  "10411": {
+    "name": "D*_0+",
+    "antiName": "D*_0-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.318
+  },
+  "10413": {
+    "name": "D_1+",
+    "antiName": "D_1-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.424
+  },
+  "10421": {
+    "name": "D*_00",
+    "antiName": "D*_0bar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.318
+  },
+  "10423": {
+    "name": "D_10",
+    "antiName": "D_1bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.4213
+  },
+  "10431": {
+    "name": "D*_0s+",
+    "antiName": "D*_0s-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.3178
+  },
+  "10433": {
+    "name": "D_1s+",
+    "antiName": "D_1s-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.53512
+  },
+  "10441": {
+    "name": "chi_0c",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.41475
+  },
+  "10443": {
+    "name": "h_1c",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.52541
+  },
+  "10511": {
+    "name": "B*_00",
+    "antiName": "B*_0bar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.68
+  },
+  "10513": {
+    "name": "B_10",
+    "antiName": "B_1bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.73
+  },
+  "10521": {
+    "name": "B*_0+",
+    "antiName": "B*_0-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.68
+  },
+  "10523": {
+    "name": "B_1+",
+    "antiName": "B_1-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.73
+  },
+  "10531": {
+    "name": "B*_0s0",
+    "antiName": "B*_0sbar0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.92
+  },
+  "10533": {
+    "name": "B_1s0",
+    "antiName": "B_1sbar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.829
+  },
+  "10541": {
+    "name": "B*_0c+",
+    "antiName": "B*_0c-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.25
+  },
+  "10543": {
+    "name": "B_1c+",
+    "antiName": "B_1c-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.3
+  },
+  "10551": {
+    "name": "chi_0b",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 9.8594
+  },
+  "10553": {
+    "name": "h_1b",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 9.8986
+  },
+  "14122": {
+    "name": "Lambda_c(2593)+",
+    "antiName": "Lambda_c(2593)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.59225
+  },
+  "20113": {
+    "name": "a_1(1260)0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.23
+  },
+  "20213": {
+    "name": "a_1(1260)+",
+    "antiName": "a_1(1260)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.23
+  },
+  "20223": {
+    "name": "f_1(1285)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.2821
+  },
+  "20313": {
+    "name": "K_1(1400)0",
+    "antiName": "K_1(1400)bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.403
+  },
+  "20323": {
+    "name": "K_1(1400)+",
+    "antiName": "K_1(1400)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.403
+  },
+  "20333": {
+    "name": "f_1(1420)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.4264
+  },
+  "20413": {
+    "name": "D*_1+",
+    "antiName": "D*_1-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.427
+  },
+  "20423": {
+    "name": "D*_10",
+    "antiName": "D*_1bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.427
+  },
+  "20433": {
+    "name": "D*_1s+",
+    "antiName": "D*_1s-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.4596
+  },
+  "20443": {
+    "name": "chi_1c",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.51066
+  },
+  "20513": {
+    "name": "B*_10",
+    "antiName": "B*_1bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.78
+  },
+  "20523": {
+    "name": "B*_1+",
+    "antiName": "B*_1-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 5.78
+  },
+  "20533": {
+    "name": "B*_1s0",
+    "antiName": "B*_1sbar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 6.02
+  },
+  "20543": {
+    "name": "B*_1c+",
+    "antiName": "B*_1c-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 7.3
+  },
+  "20553": {
+    "name": "chi_1b",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 9.8928
+  },
+  "30113": {
+    "name": "rho(1700)0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "30213": {
+    "name": "rho(1700)+",
+    "antiName": "rho(1700)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "30313": {
+    "name": "K*(1680)0",
+    "antiName": "K*(1680)bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.717
+  },
+  "30323": {
+    "name": "K*(1680)+",
+    "antiName": "K*(1680)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.717
+  },
+  "30443": {
+    "name": "psi(3770)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.77315
+  },
+  "100111": {
+    "name": "pi(1300)0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.3
+  },
+  "100113": {
+    "name": "rho(1450)0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.465
+  },
+  "100211": {
+    "name": "pi(1300)+",
+    "antiName": "pi(1300)-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.3
+  },
+  "100213": {
+    "name": "rho(1450)+",
+    "antiName": "rho(1450)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.465
+  },
+  "100223": {
+    "name": "omega(1420)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.425
+  },
+  "100313": {
+    "name": "K*(1410)0",
+    "antiName": "K*(1410)bar0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.414
+  },
+  "100323": {
+    "name": "K*(1410)+",
+    "antiName": "K*(1410)-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.414
+  },
+  "100441": {
+    "name": "eta_c(2S)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.6389
+  },
+  "100443": {
+    "name": "psi(2S)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 3.68611
+  },
+  "100553": {
+    "name": "Upsilon(2S)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.02326
+  },
+  "102112": {
+    "name": "n(1535)0",
+    "antiName": "n(1535)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.53
+  },
+  "102114": {
+    "name": "n(1520)0",
+    "antiName": "n(1520)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.515
+  },
+  "102116": {
+    "name": "n(1675)0",
+    "antiName": "n(1675)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.675
+  },
+  "102132": {
+    "name": "Lambda(1405)0",
+    "antiName": "Lambda(1405)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.4051
+  },
+  "102134": {
+    "name": "Lambda(1520)0",
+    "antiName": "Lambda(1520)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.5195
+  },
+  "102212": {
+    "name": "p(1535)+",
+    "antiName": "p(1535)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.53
+  },
+  "102214": {
+    "name": "p(1520)+",
+    "antiName": "p(1520)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.515
+  },
+  "102216": {
+    "name": "p(1675)+",
+    "antiName": "p(1675)bar-",
+    "spin": 6.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.675
+  },
+  "103114": {
+    "name": "Sigma(1670)-",
+    "antiName": "Sigma(1670)bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.67
+  },
+  "103116": {
+    "name": "Sigma(1775)-",
+    "antiName": "Sigma(1775)bar+",
+    "spin": 6.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.775
+  },
+  "103122": {
+    "name": "Lambda(1670)0",
+    "antiName": "Lambda(1670)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.67
+  },
+  "103124": {
+    "name": "Lambda(1690)0",
+    "antiName": "Lambda(1690)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.69
+  },
+  "103126": {
+    "name": "Lambda(1830)0",
+    "antiName": "Lambda(1830)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.83
+  },
+  "103214": {
+    "name": "Sigma(1670)0",
+    "antiName": "Sigma(1670)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.67
+  },
+  "103216": {
+    "name": "Sigma(1775)0",
+    "antiName": "Sigma(1775)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.775
+  },
+  "103224": {
+    "name": "Sigma(1670)+",
+    "antiName": "Sigma(1670)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.67
+  },
+  "103226": {
+    "name": "Sigma(1775)+",
+    "antiName": "Sigma(1775)bar-",
+    "spin": 6.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.775
+  },
+  "103314": {
+    "name": "Xi(1820)-",
+    "antiName": "Xi(1820)bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.823
+  },
+  "103324": {
+    "name": "Xi(1820)0",
+    "antiName": "Xi(1820)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.823
+  },
+  "111112": {
+    "name": "Delta(1620)-",
+    "antiName": "Delta(1620)bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.63
+  },
+  "112112": {
+    "name": "Delta(1620)0",
+    "antiName": "Delta(1620)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.63
+  },
+  "112114": {
+    "name": "n(1700)0",
+    "antiName": "n(1700)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "112212": {
+    "name": "Delta(1620)+",
+    "antiName": "Delta(1620)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.63
+  },
+  "112214": {
+    "name": "p(1700)+",
+    "antiName": "p(1700)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "112222": {
+    "name": "Delta(1620)++",
+    "antiName": "Delta(1620)bar--",
+    "spin": 2.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.63
+  },
+  "113112": {
+    "name": "Sigma(1750)-",
+    "antiName": "Sigma(1750)bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.75
+  },
+  "113114": {
+    "name": "Sigma(1940)-",
+    "antiName": "Sigma(1940)bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.94
+  },
+  "113212": {
+    "name": "Sigma(1750)0",
+    "antiName": "Sigma(1750)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.75
+  },
+  "113214": {
+    "name": "Sigma(1940)0",
+    "antiName": "Sigma(1940)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.94
+  },
+  "113222": {
+    "name": "Sigma(1750)+",
+    "antiName": "Sigma(1750)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.75
+  },
+  "113224": {
+    "name": "Sigma(1940)+",
+    "antiName": "Sigma(1940)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.94
+  },
+  "121114": {
+    "name": "Delta(1700)-",
+    "antiName": "Delta(1700)bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.7
+  },
+  "122112": {
+    "name": "n(1650)0",
+    "antiName": "n(1650)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.65
+  },
+  "122114": {
+    "name": "Delta(1700)0",
+    "antiName": "Delta(1700)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.7
+  },
+  "122212": {
+    "name": "p(1650)+",
+    "antiName": "p(1650)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.65
+  },
+  "122214": {
+    "name": "Delta(1700)+",
+    "antiName": "Delta(1700)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.7
+  },
+  "122224": {
+    "name": "Delta(1700)++",
+    "antiName": "Delta(1700)bar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.7
+  },
+  "123122": {
+    "name": "Lambda(1800)0",
+    "antiName": "Lambda(1800)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.8
+  },
+  "200553": {
+    "name": "Upsilon(3S)",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.3552
+  },
+  "201114": {
+    "name": "Delta(1600)-",
+    "antiName": "Delta(1600)bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.6
+  },
+  "201118": {
+    "name": "Delta(1950)-",
+    "antiName": "Delta(1950)bar+",
+    "spin": 8.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.93
+  },
+  "202112": {
+    "name": "n(1440)0",
+    "antiName": "n(1440)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.44
+  },
+  "202114": {
+    "name": "Delta(1600)0",
+    "antiName": "Delta(1600)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.6
+  },
+  "202116": {
+    "name": "n(1680)0",
+    "antiName": "n(1680)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.685
+  },
+  "202118": {
+    "name": "Delta(1950)0",
+    "antiName": "Delta(1950)bar0",
+    "spin": 8.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.93
+  },
+  "202212": {
+    "name": "p(1440)+",
+    "antiName": "p(1440)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.44
+  },
+  "202214": {
+    "name": "Delta(1600)+",
+    "antiName": "Delta(1600)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.6
+  },
+  "202216": {
+    "name": "p(1680)+",
+    "antiName": "p(1680)bar-",
+    "spin": 6.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.685
+  },
+  "202218": {
+    "name": "Delta(1950)+",
+    "antiName": "Delta(1950)bar-",
+    "spin": 8.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.93
+  },
+  "202224": {
+    "name": "Delta(1600)++",
+    "antiName": "Delta(1600)bar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.6
+  },
+  "202228": {
+    "name": "Delta(1950)++",
+    "antiName": "Delta(1950)bar--",
+    "spin": 8.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.93
+  },
+  "203112": {
+    "name": "Sigma(1660)-",
+    "antiName": "Sigma(1660)bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.66
+  },
+  "203116": {
+    "name": "Sigma(1915)-",
+    "antiName": "Sigma(1915)bar+",
+    "spin": 6.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.915
+  },
+  "203118": {
+    "name": "Sigma(2030)-",
+    "antiName": "Sigma(2030)bar+",
+    "spin": 8.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 2.03
+  },
+  "203122": {
+    "name": "Lambda(1600)0",
+    "antiName": "Lambda(1600)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.6
+  },
+  "203126": {
+    "name": "Lambda(1820)0",
+    "antiName": "Lambda(1820)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.82
+  },
+  "203212": {
+    "name": "Sigma(1660)0",
+    "antiName": "Sigma(1660)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.66
+  },
+  "203216": {
+    "name": "Sigma(1915)0",
+    "antiName": "Sigma(1915)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.915
+  },
+  "203218": {
+    "name": "Sigma(2030)0",
+    "antiName": "Sigma(2030)bar0",
+    "spin": 8.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.03
+  },
+  "203222": {
+    "name": "Sigma(1660)+",
+    "antiName": "Sigma(1660)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.66
+  },
+  "203226": {
+    "name": "Sigma(1915)+",
+    "antiName": "Sigma(1915)bar-",
+    "spin": 6.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.915
+  },
+  "203228": {
+    "name": "Sigma(2030)+",
+    "antiName": "Sigma(2030)bar-",
+    "spin": 8.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 2.03
+  },
+  "203316": {
+    "name": "Xi(2030)-",
+    "antiName": "Xi(2030)bar+",
+    "spin": 6.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 2.025
+  },
+  "203326": {
+    "name": "Xi(2030)0",
+    "antiName": "Xi(2030)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.025
+  },
+  "211116": {
+    "name": "Delta(1905)-",
+    "antiName": "Delta(1905)bar+",
+    "spin": 6.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.88
+  },
+  "212112": {
+    "name": "n(1710)0",
+    "antiName": "n(1710)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.71
+  },
+  "212114": {
+    "name": "n(1720)0",
+    "antiName": "n(1720)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "212116": {
+    "name": "Delta(1905)0",
+    "antiName": "Delta(1905)bar0",
+    "spin": 6.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.88
+  },
+  "212212": {
+    "name": "p(1710)+",
+    "antiName": "p(1710)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.71
+  },
+  "212214": {
+    "name": "p(1720)+",
+    "antiName": "p(1720)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.72
+  },
+  "212216": {
+    "name": "Delta(1905)+",
+    "antiName": "Delta(1905)bar-",
+    "spin": 6.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.88
+  },
+  "212226": {
+    "name": "Delta(1905)++",
+    "antiName": "Delta(1905)bar--",
+    "spin": 6.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.88
+  },
+  "213122": {
+    "name": "Lambda(1810)0",
+    "antiName": "Lambda(1810)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.81
+  },
+  "213124": {
+    "name": "Lambda(1890)0",
+    "antiName": "Lambda(1890)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.89
+  },
+  "221112": {
+    "name": "Delta(1910)-",
+    "antiName": "Delta(1910)bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.9
+  },
+  "221114": {
+    "name": "Delta(1920)-",
+    "antiName": "Delta(1920)bar+",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 1.92
+  },
+  "222112": {
+    "name": "Delta(1910)0",
+    "antiName": "Delta(1910)bar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.9
+  },
+  "222114": {
+    "name": "Delta(1920)0",
+    "antiName": "Delta(1920)bar0",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.92
+  },
+  "222212": {
+    "name": "Delta(1910)+",
+    "antiName": "Delta(1910)bar-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.9
+  },
+  "222214": {
+    "name": "Delta(1920)+",
+    "antiName": "Delta(1920)bar-",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 1.92
+  },
+  "222222": {
+    "name": "Delta(1910)++",
+    "antiName": "Delta(1910)bar--",
+    "spin": 2.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.9
+  },
+  "222224": {
+    "name": "Delta(1920)++",
+    "antiName": "Delta(1920)bar--",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 1.92
+  },
+  "302138": {
+    "name": "Lambda(2100)0",
+    "antiName": "Lambda(2100)bar0",
+    "spin": 8.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 2.1
+  },
+  "1000001": {
+    "name": "~d_L",
+    "antiName": "~d_Lbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1000002": {
+    "name": "~u_L",
+    "antiName": "~u_Lbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1000003": {
+    "name": "~s_L",
+    "antiName": "~s_Lbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1000004": {
+    "name": "~c_L",
+    "antiName": "~c_Lbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1000005": {
+    "name": "~b_1",
+    "antiName": "~b_1bar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1000006": {
+    "name": "~t_1",
+    "antiName": "~t_1bar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1000011": {
+    "name": "~e_L-",
+    "antiName": "~e_L+",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000012": {
+    "name": "~nu_eL",
+    "antiName": "~nu_eLbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000013": {
+    "name": "~mu_L-",
+    "antiName": "~mu_L+",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000014": {
+    "name": "~nu_muL",
+    "antiName": "~nu_muLbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000015": {
+    "name": "~tau_1-",
+    "antiName": "~tau_1+",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000016": {
+    "name": "~nu_tauL",
+    "antiName": "~nu_tauLbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000021": {
+    "name": "~g",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 500.0
+  },
+  "1000022": {
+    "name": "~chi_10",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000023": {
+    "name": "~chi_20",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000024": {
+    "name": "~chi_1+",
+    "antiName": "~chi_1-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000025": {
+    "name": "~chi_30",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000035": {
+    "name": "~chi_40",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000037": {
+    "name": "~chi_2+",
+    "antiName": "~chi_2-",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000039": {
+    "name": "~Gravitino",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.001
+  },
+  "1000045": {
+    "name": "~chi_50",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000512": {
+    "name": "R0(~b",
+    "antiName": "R0(~bbar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000522": {
+    "name": "R-(~b",
+    "antiName": "R+(~bbar",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000532": {
+    "name": "R0(~b",
+    "antiName": "R0(~bbar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000542": {
+    "name": "R-(~b",
+    "antiName": "R+(~bbar",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000552": {
+    "name": "R0(~b",
+    "antiName": "R0(~bbar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000612": {
+    "name": "R+(~t",
+    "antiName": "R-(~tbar",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000622": {
+    "name": "R0(~t",
+    "antiName": "R0(~tbar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000632": {
+    "name": "R+(~t",
+    "antiName": "R-(~tbar",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000642": {
+    "name": "R0(~t",
+    "antiName": "R0(~tbar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000652": {
+    "name": "R+(~t",
+    "antiName": "R-(~tbar",
+    "spin": 2.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1000993": {
+    "name": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005113": {
+    "name": "R-(~b",
+    "antiName": "Rbar+(~b",
+    "spin": 3.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005211": {
+    "name": "R0(~b",
+    "antiName": "Rbar0(~b",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005213": {
+    "name": "R0(~b",
+    "antiName": "Rbar0(~b",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005223": {
+    "name": "R+(~b",
+    "antiName": "Rbar-(~b",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005311": {
+    "name": "R-(~b",
+    "antiName": "Rbar+(~b",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005313": {
+    "name": "R-(~b",
+    "antiName": "Rbar+(~b",
+    "spin": 3.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005321": {
+    "name": "R0(~b",
+    "antiName": "Rbar0(~b",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005323": {
+    "name": "R0(~b",
+    "antiName": "Rbar0(~b",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1005333": {
+    "name": "R-(~b",
+    "antiName": "Rbar+(~b",
+    "spin": 3.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006113": {
+    "name": "R0(~t",
+    "antiName": "Rbar0(~t",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006211": {
+    "name": "R+(~t",
+    "antiName": "Rbar-(~t",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006213": {
+    "name": "R+(~t",
+    "antiName": "Rbar-(~t",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006223": {
+    "name": "R++(~t",
+    "antiName": "Rbar--(~t",
+    "spin": 3.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006311": {
+    "name": "R0(~t",
+    "antiName": "Rbar+(~t",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006313": {
+    "name": "R0(~t",
+    "antiName": "Rbar+(~t",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006321": {
+    "name": "R+(~t",
+    "antiName": "Rbar0(~t",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006323": {
+    "name": "R+(~t",
+    "antiName": "Rbar0(~t",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1006333": {
+    "name": "R0(~t",
+    "antiName": "Rbar0(~t",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009002": {
+    "name": "Rtemp(~g",
+    "antiName": "Rtemp(~g",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "1009113": {
+    "name": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009213": {
+    "name": "R+(~g",
+    "antiName": "R-(~g",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009223": {
+    "name": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009313": {
+    "name": "R0(~g",
+    "antiName": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009323": {
+    "name": "R+(~g",
+    "antiName": "R-(~g",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009333": {
+    "name": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009413": {
+    "name": "R+(~g",
+    "antiName": "R-(~g",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009423": {
+    "name": "R0(~g",
+    "antiName": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009433": {
+    "name": "R+(~g",
+    "antiName": "R-(~g",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009443": {
+    "name": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009513": {
+    "name": "R0(~g",
+    "antiName": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009523": {
+    "name": "R+(~g",
+    "antiName": "R-(~g",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009533": {
+    "name": "R0(~g",
+    "antiName": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009543": {
+    "name": "R+(~g",
+    "antiName": "R-(~g",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1009553": {
+    "name": "R0(~g",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1091114": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1092114": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1092214": {
+    "name": "R+(~g",
+    "antiName": "Rbar-(~g",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1092224": {
+    "name": "R++(~g",
+    "antiName": "Rbar--(~g",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1093114": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1093214": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1093224": {
+    "name": "R+(~g",
+    "antiName": "Rbar-(~g",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1093314": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1093324": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1093334": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1094114": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1094214": {
+    "name": "R+(~g",
+    "antiName": "Rbar-(~g",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1094224": {
+    "name": "R++(~g",
+    "antiName": "Rbar--(~g",
+    "spin": 4.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1094314": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1094324": {
+    "name": "R+(~g",
+    "antiName": "Rbar-(~g",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1094334": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1095114": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1095214": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1095224": {
+    "name": "R+(~g",
+    "antiName": "Rbar-(~g",
+    "spin": 4.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1095314": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1095324": {
+    "name": "R0(~g",
+    "antiName": "Rbar0(~g",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "1095334": {
+    "name": "R-(~g",
+    "antiName": "Rbar+(~g",
+    "spin": 4.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "2000001": {
+    "name": "~d_R",
+    "antiName": "~d_Rbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "2000002": {
+    "name": "~u_R",
+    "antiName": "~u_Rbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "2000003": {
+    "name": "~s_R",
+    "antiName": "~s_Rbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "2000004": {
+    "name": "~c_R",
+    "antiName": "~c_Rbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "2000005": {
+    "name": "~b_2",
+    "antiName": "~b_2bar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "2000006": {
+    "name": "~t_2",
+    "antiName": "~t_2bar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 500.0
+  },
+  "2000011": {
+    "name": "~e_R-",
+    "antiName": "~e_R+",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "2000012": {
+    "name": "~nu_eR",
+    "antiName": "~nu_eRbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "2000013": {
+    "name": "~mu_R-",
+    "antiName": "~mu_R+",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "2000014": {
+    "name": "~nu_muR",
+    "antiName": "~nu_muRbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "2000015": {
+    "name": "~tau_2-",
+    "antiName": "~tau_2+",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "2000016": {
+    "name": "~nu_tauR",
+    "antiName": "~nu_tauRbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "3000111": {
+    "name": "pi_tc0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 110.0
+  },
+  "3000113": {
+    "name": "rho_tc0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 210.0
+  },
+  "3000211": {
+    "name": "pi_tc+",
+    "antiName": "pi_tc-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 110.0
+  },
+  "3000213": {
+    "name": "rho_tc+",
+    "antiName": "rho_tc-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 210.0
+  },
+  "3000221": {
+    "name": "pi'_tc0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 110.0
+  },
+  "3000223": {
+    "name": "omega_tc",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 210.0
+  },
+  "3000331": {
+    "name": "eta_tc0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 350.0
+  },
+  "3100021": {
+    "name": "V8_tc",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 500.0
+  },
+  "3100111": {
+    "name": "pi_22_1_tc",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 125.0
+  },
+  "3100113": {
+    "name": "rho_11_tc",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 400.0
+  },
+  "3200111": {
+    "name": "pi_22_8_tc",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 250.0
+  },
+  "3200113": {
+    "name": "rho_12_tc",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 350.0
+  },
+  "3300113": {
+    "name": "rho_21_tc",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 350.0
+  },
+  "3400113": {
+    "name": "rho_22_tc",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 300.0
+  },
+  "4000001": {
+    "name": "d*",
+    "antiName": "d*bar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4000002": {
+    "name": "u*",
+    "antiName": "u*bar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4000003": {
+    "name": "s*",
+    "antiName": "s*bar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4000004": {
+    "name": "c*",
+    "antiName": "c*bar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4000005": {
+    "name": "b*",
+    "antiName": "b*bar",
+    "spin": 2.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4000006": {
+    "name": "t*",
+    "antiName": "t*bar",
+    "spin": 2.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4000011": {
+    "name": "e*-",
+    "antiName": "e*bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4000012": {
+    "name": "nu*_e0",
+    "antiName": "nu*_ebar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4000013": {
+    "name": "mu*-",
+    "antiName": "mu*bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4000014": {
+    "name": "nu*_mu0",
+    "antiName": "nu*_mubar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4000015": {
+    "name": "tau*-",
+    "antiName": "tau*bar+",
+    "spin": 2.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4000016": {
+    "name": "nu*_tau0",
+    "antiName": "nu*_taubar0",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900001": {
+    "name": "Dv",
+    "antiName": "Dvbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4900002": {
+    "name": "Uv",
+    "antiName": "Uvbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4900003": {
+    "name": "Sv",
+    "antiName": "Svbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4900004": {
+    "name": "Cv",
+    "antiName": "Cvbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4900005": {
+    "name": "Bv",
+    "antiName": "Bvbar",
+    "spin": 1.0,
+    "charge": -0.3333333333333333,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4900006": {
+    "name": "Tv",
+    "antiName": "Tvbar",
+    "spin": 1.0,
+    "charge": 0.6666666666666666,
+    "colour": 1.0,
+    "mass": 400.0
+  },
+  "4900011": {
+    "name": "Ev",
+    "antiName": "Evbar",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900012": {
+    "name": "nuEv",
+    "antiName": "nuEvbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900013": {
+    "name": "MUv",
+    "antiName": "MUvbar",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900014": {
+    "name": "nuMUv",
+    "antiName": "nuMUvbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900015": {
+    "name": "TAUv",
+    "antiName": "TAUvbar",
+    "spin": 1.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900016": {
+    "name": "nuTAUv",
+    "antiName": "nuTAUvbar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 400.0
+  },
+  "4900021": {
+    "name": "gv",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "4900022": {
+    "name": "gammav",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "4900023": {
+    "name": "Zv",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1000.0
+  },
+  "4900101": {
+    "name": "qv1",
+    "antiName": "qv1bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900102": {
+    "name": "qv2",
+    "antiName": "qv2bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900103": {
+    "name": "qv3",
+    "antiName": "qv3bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900104": {
+    "name": "qv4",
+    "antiName": "qv4bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900105": {
+    "name": "qv5",
+    "antiName": "qv5bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900106": {
+    "name": "qv6",
+    "antiName": "qv6bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900107": {
+    "name": "qv7",
+    "antiName": "qv7bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900108": {
+    "name": "qv8",
+    "antiName": "qv8bar",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 5.0
+  },
+  "4900111": {
+    "name": "piv11",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900113": {
+    "name": "rhov11",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900211": {
+    "name": "piv21",
+    "antiName": "piv21bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900213": {
+    "name": "rhov21",
+    "antiName": "rhov21bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900221": {
+    "name": "piv22",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900223": {
+    "name": "rhov22",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900311": {
+    "name": "piv31",
+    "antiName": "piv31bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900313": {
+    "name": "rhov31",
+    "antiName": "rhov31bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900321": {
+    "name": "piv32",
+    "antiName": "piv32bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900323": {
+    "name": "rhov32",
+    "antiName": "rhov32bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900331": {
+    "name": "piv33",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900333": {
+    "name": "rhov33",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900411": {
+    "name": "piv41",
+    "antiName": "piv41bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900413": {
+    "name": "rhov41",
+    "antiName": "rhov41bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900421": {
+    "name": "piv42",
+    "antiName": "piv42bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900423": {
+    "name": "rhov42",
+    "antiName": "rhov42bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900431": {
+    "name": "piv43",
+    "antiName": "piv43bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900433": {
+    "name": "rhov43",
+    "antiName": "rhov43bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900441": {
+    "name": "piv44",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900443": {
+    "name": "rhov44",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900511": {
+    "name": "piv51",
+    "antiName": "piv51bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900513": {
+    "name": "rhov51",
+    "antiName": "rhov51bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900521": {
+    "name": "piv52",
+    "antiName": "piv52bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900523": {
+    "name": "rhov52",
+    "antiName": "rhov52bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900531": {
+    "name": "piv53",
+    "antiName": "piv53bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900533": {
+    "name": "rhov53",
+    "antiName": "rhov53bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900541": {
+    "name": "piv54",
+    "antiName": "piv54bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900543": {
+    "name": "rhov54",
+    "antiName": "rhov54bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900551": {
+    "name": "piv55",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900553": {
+    "name": "rhov55",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900611": {
+    "name": "piv61",
+    "antiName": "piv61bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900613": {
+    "name": "rhov61",
+    "antiName": "rhov61bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900621": {
+    "name": "piv62",
+    "antiName": "piv62bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900623": {
+    "name": "rhov62",
+    "antiName": "rhov62bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900631": {
+    "name": "piv63",
+    "antiName": "piv63bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900633": {
+    "name": "rhov63",
+    "antiName": "rhov63bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900641": {
+    "name": "piv64",
+    "antiName": "piv64bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900643": {
+    "name": "rhov64",
+    "antiName": "rhov64bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900651": {
+    "name": "piv65",
+    "antiName": "piv65bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900653": {
+    "name": "rhov65",
+    "antiName": "rhov65bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900661": {
+    "name": "piv66",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900663": {
+    "name": "rhov66",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900711": {
+    "name": "piv71",
+    "antiName": "piv71bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900713": {
+    "name": "rhov71",
+    "antiName": "rhov71bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900721": {
+    "name": "piv72",
+    "antiName": "piv72bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900723": {
+    "name": "rhov72",
+    "antiName": "rhov72bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900731": {
+    "name": "piv73",
+    "antiName": "piv73bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900733": {
+    "name": "rhov73",
+    "antiName": "rhov73bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900741": {
+    "name": "piv74",
+    "antiName": "piv74bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900743": {
+    "name": "rhov74",
+    "antiName": "rhov74bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900751": {
+    "name": "piv75",
+    "antiName": "piv75bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900753": {
+    "name": "rhov75",
+    "antiName": "rhov75bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900761": {
+    "name": "piv76",
+    "antiName": "piv76bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900763": {
+    "name": "rhov76",
+    "antiName": "rhov76bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900771": {
+    "name": "piv77",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900773": {
+    "name": "rhov77",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900811": {
+    "name": "piv81",
+    "antiName": "piv81bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900813": {
+    "name": "rhov81",
+    "antiName": "rhov81bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900821": {
+    "name": "piv82",
+    "antiName": "piv82bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900823": {
+    "name": "rhov82",
+    "antiName": "rhov82bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900831": {
+    "name": "piv83",
+    "antiName": "piv83bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900833": {
+    "name": "rhov83",
+    "antiName": "rhov83bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900841": {
+    "name": "piv84",
+    "antiName": "piv84bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900843": {
+    "name": "rhov84",
+    "antiName": "rhov84bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900851": {
+    "name": "piv85",
+    "antiName": "piv85bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900853": {
+    "name": "rhov85",
+    "antiName": "rhov85bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900861": {
+    "name": "piv86",
+    "antiName": "piv86bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900863": {
+    "name": "rhov86",
+    "antiName": "rhov86bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900871": {
+    "name": "piv87",
+    "antiName": "piv87bar",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900873": {
+    "name": "rhov87",
+    "antiName": "rhov87bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900881": {
+    "name": "piv88",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900883": {
+    "name": "rhov88",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4900991": {
+    "name": "ggv",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.0
+  },
+  "4901103": {
+    "name": "qv1qv1",
+    "antiName": "qv1qv1bar",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 10.0
+  },
+  "4901114": {
+    "name": "Deltav1",
+    "antiName": "Deltav1bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4902114": {
+    "name": "Deltav2",
+    "antiName": "Deltav2bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4903114": {
+    "name": "Deltav3",
+    "antiName": "Deltav3bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4904114": {
+    "name": "Deltav4",
+    "antiName": "Deltav4bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4905114": {
+    "name": "Deltav5",
+    "antiName": "Deltav5bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4906114": {
+    "name": "Deltav6",
+    "antiName": "Deltav6bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4907114": {
+    "name": "Deltav7",
+    "antiName": "Deltav7bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "4908114": {
+    "name": "Deltav8",
+    "antiName": "Deltav8bar",
+    "spin": 4.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 15.0
+  },
+  "5000023": {
+    "name": "Z_KK",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 4000.0
+  },
+  "5000039": {
+    "name": "Graviton",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "5100021": {
+    "name": "KKgluon*",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 1000.0
+  },
+  "5100039": {
+    "name": "Graviton*",
+    "spin": 5.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1000.0
+  },
+  "9000111": {
+    "name": "a_0(980)0",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.9835
+  },
+  "9000211": {
+    "name": "a_0(980)+",
+    "antiName": "a_0(980)-",
+    "spin": 1.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.9835
+  },
+  "9000221": {
+    "name": "f_0(500)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.475
+  },
+  "9010221": {
+    "name": "f_0(980)",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1.0
+  },
+  "9900012": {
+    "name": "nu_Re",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "9900014": {
+    "name": "nu_Rmu",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "9900016": {
+    "name": "nu_Rtau",
+    "spin": 2.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 500.0
+  },
+  "9900020": {
+    "name": "gam_diff0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900023": {
+    "name": "Z_R0",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 1200.0
+  },
+  "9900024": {
+    "name": "W_R+",
+    "antiName": "W_R-",
+    "spin": 3.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 750.0
+  },
+  "9900041": {
+    "name": "H_L++",
+    "antiName": "H_L--",
+    "spin": 1.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 200.0
+  },
+  "9900042": {
+    "name": "H_R++",
+    "antiName": "H_R--",
+    "spin": 1.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 200.0
+  },
+  "9900110": {
+    "name": "rho_dif0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900130": {
+    "name": "K_dif0",
+    "antiName": "",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900210": {
+    "name": "pi_dif+",
+    "antiName": "pi_dif-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900220": {
+    "name": "omega_dif",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900310": {
+    "name": "K_dif0",
+    "antiName": "K_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900320": {
+    "name": "K_dif+",
+    "antiName": "K_dif-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900330": {
+    "name": "phi_dif",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900410": {
+    "name": "D_dif+",
+    "antiName": "D_dif-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900420": {
+    "name": "D_dif0",
+    "antiName": "D_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900430": {
+    "name": "D_sdif+",
+    "antiName": "D_sdif-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900440": {
+    "name": "J/psi_dif",
+    "antiName": "",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900510": {
+    "name": "B_dif0",
+    "antiName": "B_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900520": {
+    "name": "B_dif+",
+    "antiName": "B_dif-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900530": {
+    "name": "B_sdif0",
+    "antiName": "B_sdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900540": {
+    "name": "B_cdif+",
+    "antiName": "B_cdif-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9900550": {
+    "name": "Upsilon_dif",
+    "antiName": "",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9901110": {
+    "name": "Delta_dif-",
+    "antiName": "Delta_difbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9902110": {
+    "name": "n_dif0",
+    "antiName": "n_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9902130": {
+    "name": "Lambda*_dif0",
+    "antiName": "Lambda*_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9902210": {
+    "name": "p_dif+",
+    "antiName": "p_difbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9902220": {
+    "name": "Delta_dif++",
+    "antiName": "Delta_difbar--",
+    "spin": 0.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903110": {
+    "name": "Sigma_dif-",
+    "antiName": "Sigma_difbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903120": {
+    "name": "Lambda_dif0",
+    "antiName": "Lambda_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903210": {
+    "name": "Sigma_dif0",
+    "antiName": "Sigma_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903220": {
+    "name": "Sigma_dif+",
+    "antiName": "Sigma_difbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903310": {
+    "name": "Xi_dif-",
+    "antiName": "Xi_difbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903320": {
+    "name": "Xi_dif0",
+    "antiName": "Xi_difbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9903330": {
+    "name": "Omega_dif-",
+    "antiName": "Omega_difbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904110": {
+    "name": "Sigma_cdif0",
+    "antiName": "Sigma_cdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904120": {
+    "name": "Lambda_cdif+",
+    "antiName": "Lambda_cdifbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904130": {
+    "name": "Xi_cdif0",
+    "antiName": "Xi_cdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904210": {
+    "name": "Sigma_cdif+",
+    "antiName": "Sigma_cdifbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904220": {
+    "name": "Sigma_cdif++",
+    "antiName": "Sigma_cdifbar--",
+    "spin": 0.0,
+    "charge": 2.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904230": {
+    "name": "Xi_cdif+",
+    "antiName": "Xi_cdifbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904310": {
+    "name": "Xi'_cdif0",
+    "antiName": "Xi'_cdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904320": {
+    "name": "Xi'_cdif+",
+    "antiName": "Xi'_cdifbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9904330": {
+    "name": "Omega_cdif0",
+    "antiName": "Omega_cdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905110": {
+    "name": "Sigma_bdif-",
+    "antiName": "Sigma_bdifbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905120": {
+    "name": "Lambda_bdif0",
+    "antiName": "Lambda_bdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905210": {
+    "name": "Sigma_bdif0",
+    "antiName": "Sigma_bdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905220": {
+    "name": "Sigma_bdif+",
+    "antiName": "Sigma_bdifbar-",
+    "spin": 0.0,
+    "charge": 1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905130": {
+    "name": "Xi_bdif-",
+    "antiName": "Xi_bdifbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905230": {
+    "name": "Xi_bdif0",
+    "antiName": "Xi_bdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905310": {
+    "name": "Xi'_bdif-",
+    "antiName": "Xi'_bdifbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905320": {
+    "name": "Xi'_bdif0",
+    "antiName": "Xi'_bdifbar0",
+    "spin": 0.0,
+    "charge": 0.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9905330": {
+    "name": "Omega_bdif-",
+    "antiName": "Omega_bdifbar+",
+    "spin": 0.0,
+    "charge": -1.0,
+    "colour": 0.0,
+    "mass": 0.0
+  },
+  "9940001": {
+    "name": "eta_c[3S1(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.181
+  },
+  "9940003": {
+    "name": "J/psi[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.29692
+  },
+  "9940005": {
+    "name": "chi_2c[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.7562
+  },
+  "9940011": {
+    "name": "chi_0c[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.61475
+  },
+  "9940023": {
+    "name": "chi_1c[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.71066
+  },
+  "9940103": {
+    "name": "psi(2S)[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.88611
+  },
+  "9941003": {
+    "name": "J/psi[1S0(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.29692
+  },
+  "9941103": {
+    "name": "psi(2S)[1S0(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.88611
+  },
+  "9942003": {
+    "name": "J/psi[3PJ(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.29692
+  },
+  "9942033": {
+    "name": "psi(3770)[3PJ(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.97315
+  },
+  "9942103": {
+    "name": "psi(2S)[3PJ(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 3.88611
+  },
+  "9950001": {
+    "name": "eta_b[3S1(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 9.6
+  },
+  "9950003": {
+    "name": "Upsilon[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 9.6603
+  },
+  "9950005": {
+    "name": "chi_2b[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.1122
+  },
+  "9950011": {
+    "name": "chi_0b[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.0594
+  },
+  "9950023": {
+    "name": "chi_1b[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.0928
+  },
+  "9950103": {
+    "name": "Upsilon(2S)[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.22326
+  },
+  "9950203": {
+    "name": "Upsilon(3S)[3S1(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.5552
+  },
+  "9951003": {
+    "name": "Upsilon[1S0(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 9.6603
+  },
+  "9951103": {
+    "name": "Upsilon(2S)[1S0(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.22326
+  },
+  "9951203": {
+    "name": "Upsilon(3S)[1S0(8)]",
+    "spin": 1.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 10.5552
+  },
+  "9952003": {
+    "name": "Upsilon[3PJ(8)]",
+    "spin": 3.0,
+    "charge": 0.0,
+    "colour": 2.0,
+    "mass": 9.6603
+  }
+}

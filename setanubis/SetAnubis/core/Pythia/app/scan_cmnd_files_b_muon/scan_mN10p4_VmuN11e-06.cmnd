@@ -1,0 +1,75 @@
+#! 1) Settings used in the main program.
+Main:numberOfEvents = 10000        ! number of events to generate
+Main:timesAllowErrors = 3          ! how many aborts before run stops
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = off ! list changed particle data
+Next:numberCount = 500             ! print message every n events
+Next:numberShowInfo = 2            ! print event information n times
+Next:numberShowProcess = 2         ! print process record n times
+Next:numberShowEvent = 2           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 13000.                 ! CM energy of collision
+
+9900012:new N1 N1 2 0 0 0.4 4.731173174894102e-27 0 0 100 0 0 1 0 1 0
+
+9900012:addChannel = 1 0.006208854114114111 0 -11 11 14
+9900012:addChannel = 1 0.05935585772096625 0 -13 11 12
+9900012:addChannel = 1 0.24367088859224553 0 14 111
+9900012:addChannel = 1 0.009756730746898219 0 -13 13 14
+9900012:addChannel = 1 0.6810076688257759 0 13 211
+
+5122:addChannel = 1 0.07405764399999999 0 11 4122 9900012
+5122:addChannel = 1 0.073540684 0 13 4122 9900012
+5122:addChannel = 1 0.019709895999999998 0 15 4122 9900012
+521:addChannel = 1 0.00010327 0 -15 9900012
+521:addChannel = 1 4.6e-07 0 -13 9900012
+521:addChannel = 1 0.0 0 -11 9900012
+521:addChannel = 1 0.023371424 0 -11 421 9900012
+521:addChannel = 1 0.061763482 0 -11 423 9900012
+521:addChannel = 1 0.02327541 0 -13 421 9900012
+521:addChannel = 1 0.061471838 0 -13 423 9900012
+521:addChannel = 1 0.00706068 0 -15 421 9900012
+521:addChannel = 1 0.015109152 0 -15 423 9900012
+521:addChannel = 1 6.027e-05 0 -11 111 9900012
+521:addChannel = 1 6.024e-05 0 -13 111 9900012
+521:addChannel = 1 4.702e-05 0 -15 111 9900012
+521:addChannel = 1 0.00018045 0 -11 113 9900012
+521:addChannel = 1 0.00018011 0 -13 113 9900012
+521:addChannel = 1 0.00010081 0 -15 113 9900012
+5232:addChannel = 1 0.021125975999999998 0 15 4232 9900012
+5232:addChannel = 1 0.07935191600000001 0 13 4232 9900012
+5232:addChannel = 1 0.079910126 0 11 4232 9900012
+531:addChannel = 1 0.021561508 0 -431 -11 9900012
+531:addChannel = 1 0.056070832 0 -433 -11 9900012
+531:addChannel = 1 0.02146668 0 -431 -13 9900012
+531:addChannel = 1 0.055811262 0 -433 -13 9900012
+531:addChannel = 1 0.006302576000000001 0 -431 -15 9900012
+531:addChannel = 1 0.013490352 0 -433 -15 9900012
+531:addChannel = 1 0.00017469 0 -321 -11 9900012
+531:addChannel = 1 0.00017372 0 -321 -13 9900012
+531:addChannel = 1 0.00010091 0 -321 -15 9900012
+531:addChannel = 1 0.00035042 0 -323 -11 9900012
+531:addChannel = 1 0.00034967 0 -323 -13 9900012
+531:addChannel = 1 0.00019104 0 -323 -15 9900012
+5332:addChannel = 1 0.013284614 0 15 9900012
+5332:addChannel = 1 0.048007916 0 13 9900012
+5332:addChannel = 1 0.048224578000000004 0 11 9900012
+511:addChannel = 1 0.021767408 0 -411 -11 9900012
+511:addChannel = 1 0.057463132 0 -413 -11 9900012
+511:addChannel = 1 0.021677406 0 -411 -13 9900012
+511:addChannel = 1 0.057191312 0 -413 -13 9900012
+511:addChannel = 1 0.00654382 0 -411 -15 9900012
+511:addChannel = 1 0.014013616 0 -413 -15 9900012
+511:addChannel = 1 0.00011522 0 -211 -11 9900012
+511:addChannel = 1 0.00011515 0 -211 -13 9900012
+511:addChannel = 1 8.941e-05 0 -211 -15 9900012
+511:addChannel = 1 0.00033724 0 -213 -11 9900012
+511:addChannel = 1 0.00033662 0 -213 -13 9900012
+511:addChannel = 1 0.00018843 0 -213 -15 9900012
+
+HardQCD::hardbbbar = on

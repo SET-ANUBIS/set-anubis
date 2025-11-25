@@ -1,0 +1,17 @@
+13:
+  name: mu-
+  antiname: mu+
+  spin: 1
+  charge: -3
+  color: 0
+  mass: 0.106
+  mWidth: 2.995e-19
+  mMin: 0.105
+  mMax: 0.107
+  tau0: 658.2
+  tauCalc: false
+  isResonance: false
+  mayDecay: true
+  doExternalDecay: false
+  isVisible: true
+  doForceWidth: false
