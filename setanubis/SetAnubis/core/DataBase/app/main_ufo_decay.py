@@ -4,8 +4,12 @@ matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
 import numpy as np
 
+import os
+
+UFO_HNL_DIR = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "Assets", "UFO", "UFO_HNL"))
+
 if __name__ == "__main__":
-    decay = DecayUFOManager("Assets/UFO/UFO_HNL")
+    decay = DecayUFOManager(UFO_HNL_DIR)
 
     decay.evaluate_with_sm()
 

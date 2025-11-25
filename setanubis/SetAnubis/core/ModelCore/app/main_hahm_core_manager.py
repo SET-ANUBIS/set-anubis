@@ -1,5 +1,9 @@
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
 
+import os
+
+UFO_HAHM_DIR = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "Assets", "UFO", "HAHM_variableMW_v5_UFO"))
+
 if __name__ == "__main__":
     params = [
         {"name": "alpha_em", "value": 1/137.0},
@@ -9,7 +13,7 @@ if __name__ == "__main__":
         # ...
     ]
     # model_manager = SetAnubisManager("db/HNL/UFO_HNL")
-    model_interface = SetAnubisInterface("Assets/UFO/HAHM_variableMW_v5_UFO")
+    model_interface = SetAnubisInterface(UFO_HAHM_DIR)
     print("--------------------------------------------------------------------------------------------------------------------------------------")
     print(model_interface.get_all_parameters())
     print("--------------------------------------------------------------------------------------------------------------------------------------")

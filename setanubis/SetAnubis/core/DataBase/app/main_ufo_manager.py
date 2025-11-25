@@ -1,8 +1,11 @@
 from SetAnubis.core.DataBase.domain.UFOManager import UFOManager
 
+import os
+
+UFO_HNL_DIR = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "Assets", "UFO", "UFO_HNL"))
 
 if __name__ == "__main__":
-    ufo_manager = UFOManager("Assets/UFO/UFO_HNL")
+    ufo_manager = UFOManager(UFO_HNL_DIR)
     
     print("get_all_particles :\n", ufo_manager.get_all_particles())
     print("\n-----------------------------------------------------------------------------------\n")

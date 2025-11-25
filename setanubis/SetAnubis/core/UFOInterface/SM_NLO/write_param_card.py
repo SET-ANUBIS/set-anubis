@@ -178,7 +178,7 @@ class ParamCardWriter(object):
         """ write qnumber """
         from SetAnubis.core.UFOInterface.SM_NLO.particles import all_particles
         import SetAnubis.core.UFOInterface.SM_NLO.particles
-        print(NeoSetAnubis.core.UFOInterface.SM_NLO.particles.__file__)
+        # print(SetAnubis.core.UFOInterface.SM_NLO.particles.__file__)
         text="""#===========================================================\n"""
         text += """# QUANTUM NUMBERS OF NEW STATE(S) (NON SM PDG CODE)\n"""
         text += """#===========================================================\n\n"""
