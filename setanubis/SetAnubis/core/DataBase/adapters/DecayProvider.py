@@ -1,6 +1,7 @@
 from typing import Set, Callable, Dict, Any
 from SetAnubis.core.DataBase.ports.IDecayProvider import IDecayProvider
 from SetAnubis.core.DataBase.domain.UFODecayManager import DecayUFOManager
+from SetAnubis.core.Common.MultiSet import MultiSet
 
 from enum import Enum
 
@@ -22,7 +23,7 @@ class DecayProvider(IDecayProvider):
         self.decay_manager.create_func_caches()
  
 
-    def get_function(self, mother: int, daughters: Set[int]) -> Callable[[Dict[str, Any]], float]:
+    def get_function(self, mother: int, daughters: MultiSet[int]) -> Callable[[Dict[str, Any]], float]:
         """
         Retrieves the decay function for a given mother particle and its daughter particles.
         

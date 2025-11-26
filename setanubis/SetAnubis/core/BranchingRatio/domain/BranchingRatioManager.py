@@ -288,7 +288,7 @@ class BranchingRatioManager:
         is_br = config.get("BR", False)
         
         if strategy_type == CalculationDecayStrategy.UFO:
-            return UFOCalculationAdapter(config["ufo_path"], is_br)
+            return UFOCalculationAdapter(config["ufo_path"])
         elif strategy_type == CalculationDecayStrategy.PYTHON:
             return PythonCalculationAdapter(config["script_path"], is_br)
         elif strategy_type == CalculationDecayStrategy.FILE_INTERPOLATION:

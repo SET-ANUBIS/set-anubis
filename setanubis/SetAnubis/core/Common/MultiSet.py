@@ -1,4 +1,5 @@
 from typing import TypeVar, Generic, Iterable, Iterator
+from collections import Counter
 
 T = TypeVar('T')
 
@@ -9,10 +10,14 @@ class MultiSet(Generic[T]):
     def __eq__(self, other):
         if not isinstance(other, MultiSet):
             return NotImplemented
-        return sorted(self.items) == sorted(other.items)
+        return Counter(self.items) == Counter(other.items)
 
+    def __hash__(self):
+
+        return hash(frozenset(Counter(self.items).items()))
+    
     def __repr__(self):
-        return f"MultiBag({self.items})"
+        return f"MultiSet({self.items})"
 
     def add(self, item):
         self.items.append(item)
@@ -55,3 +60,10 @@ class MultiSet(Generic[T]):
     
     
     
+if __name__ == "__main__":
+    a = MultiSet([11, -12])
+    b = MultiSet([-12, 11])
+
+    print(a == b)  # True (avec ton __eq__ actuel)
+    d = {a: "ok"}
+    print(d[b])    # KeyError si __hash__ ne suit pas la même logique

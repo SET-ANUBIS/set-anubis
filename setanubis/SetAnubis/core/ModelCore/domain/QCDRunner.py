@@ -40,13 +40,13 @@ class QCDRunner:
         Alternate constructor using a SetAnubisManager instance.
         """
         alpha_s_MZ = 0.1172
-        m_Z = neo.get_mass(23)
+        m_Z = neo.get_particle_mass(23)
         m_t_pole = 172.5
         m_b_running = 4.25
-        m_u = neo.get_mass(2)
-        m_d = neo.get_mass(1)
-        m_s = neo.get_mass(3)
-        m_c = neo.get_mass(4)
+        m_u = neo.get_particle_mass(2)
+        m_d = neo.get_particle_mass(1)
+        m_s = neo.get_particle_mass(3)
+        m_c = neo.get_particle_mass(4)
         return cls(alpha_s_MZ, m_Z, m_t_pole, m_b_running, m_u, m_d, m_s, m_c)
         
     def alpha_s(self, Q: float, mass_b_type: MassType=None, mass_t_type: MassType=None) -> float:

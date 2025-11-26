@@ -3,10 +3,11 @@ from SetAnubis.core.DataBase.domain.UFOManager import UFOManager
 import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
+from SetAnubis.core.Common.MultiSet import MultiSet
 
 class DecayUFOManager:
     def __init__(self, ufo_path =""):
-        self.ufo_path = os.path.join(os.getcwd(), "db", "HNL", "UFO_HNL")
+        self.ufo_path = ufo_path
         self.ufo_manager = UFOManager(self.ufo_path )
 
         self.decay_from_new_particles = self.ufo_manager.get_decays_from_new_particles()
@@ -67,10 +68,10 @@ class DecayUFOManager:
                 self.func[part][pair] = func
                 self.params[part][pair] = param_list
 
-    def evaluate(self, mother : str, daughters : set, params):
+    def evaluate(self, mother : str, daughters : MultiSet, params):
         return self.func[mother][daughters](params)
     
-    def get_function(self, mother : int, daughters : set):
+    def get_function(self, mother : int, daughters : MultiSet):
         return self.func[mother][daughters]
     
     def get_caches(self):

@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 
 from SetAnubis.core.DataBase.adapters.UFOParser import UFOParser
 from SetAnubis.core.DataBase.domain.UFOTree import ExpressionTree
+from SetAnubis.core.Common.MultiSet import MultiSet
 
 SM_PARAMETERS = {
     "MASS" : [1,2,3,4,5,6,11,12,13,14,15,16,23,24,25],
@@ -143,7 +144,7 @@ class UFOManager:
 
         return name_to_pdg
     
-    def get_decays(self) -> Dict[str, Dict[tuple, str]]:
+    def get_decays(self) -> Dict[str, Dict[MultiSet, str]]:
         """
         Extracts decay equations from the UFO model.
         
@@ -173,8 +174,8 @@ class UFOManager:
                         decay_dict = {}
                         for key, value in zip(partial_widths.keys, partial_widths.values):
                             if isinstance(key, ast.Tuple):
-                                daughters = tuple(k.attr for k in key.elts)
-                                daughters = tuple(name_to_pdg[name] for name in daughters if name in name_to_pdg)
+                                daughters = MultiSet(k.attr for k in key.elts)
+                                daughters = MultiSet(name_to_pdg[name] for name in daughters if name in name_to_pdg)
                                 equation = ast.unparse(value)
                                 equation = self.clean_expression(equation)
                                 decay_dict[daughters] = equation.replace("'", "")
@@ -182,7 +183,7 @@ class UFOManager:
         
         return decays
     
-    def get_decays_from_new_particles(self) -> Dict[str, Dict[tuple, str]]:
+    def get_decays_from_new_particles(self) -> Dict[str, Dict[MultiSet, str]]:
         """
         Extracts decay equations only for new particles beyond the Standard Model.
         
@@ -198,7 +199,7 @@ class UFOManager:
                 new_decays[particle] = decays
         return new_decays
 
-    def get_decays_to_new_particles(self) -> Dict[str, Dict[tuple, str]]:
+    def get_decays_to_new_particles(self) -> Dict[str, Dict[MultiSet, str]]:
         """
         Extracts decay equations where at least one decay product is a new particle.
         
