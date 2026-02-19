@@ -858,7 +858,7 @@ class ATLASCavern():
 
         return {"corners": corners, "midPoint": midPoints, "LayerID": layerIDs, "RPCid": RPCIDs, "plane": planes} 
 
-    from SetAnubis.core.Geometry.domain._plotGeometry import plotCavernXY, plotCavernXZ, plotCavernZY, plotCavern3D, plotRPCsXY, plotRPCsXZ, plotRPCsZY,\ 
+    from SetAnubis.core.Geometry.domain._plotGeometry import plotCavernXY, plotCavernXZ, plotCavernZY, plotCavern3D, plotRPCsXY, plotRPCsXZ, plotRPCsZY,\
                                                              plotRPCs3D, shaftRPCshape, plotSimpleRPCsXY, plotHitsHist, plotHitsScatter, plotShaftRPCsXY,\
                                                              plotShaftRPCsXZ, plotShaftRPCsZY, plotShaftRPCs3D,plotCavernCeilingCoords, plotSimpleRPCsLocalCoords
 
