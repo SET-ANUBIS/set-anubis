@@ -490,7 +490,7 @@ class ATLASCavern():
                         for tempIntX, tempIntY in zip(tX, tY):
                             vec1 = self.createVector([tempIntX, tempIntY], [position[0], position[1]])
                             vec2 = self.createVector([self.CavernX[1], 0], [0, 0])
-                            tempPhi = np.sign(vec1[1])*np.arccos(np.clip(tempPhi, -1, 1)) # In radians, the sign function ensures a [-pi, pi] range
+                            tempPhi = np.dot(vec1, vec2) / ( np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
                             phiDiff.append(abs(phi - tempPhi))
 
@@ -736,8 +736,8 @@ class ATLASCavern():
         for i in [0,1]:
             # Corner of the cavern in YZ space where X is set to 0
             cornerY = self.obtainCavernYFromX(0) - refY
-            vec1 = self.createVector([self.CavernX[i],self.CavernY[1]], [refX, refY])
-            vec2 = self.createVector([self.CavernX[1], refY], [refX, refY])
+            vec1 = self.createVector([self.CavernZ[i], cornerY, 0], [refZ, refY, refX])
+            vec2 = self.createVector([self.CavernZ[1], refY, refX], [refZ, refY, refX])
             tempTheta = np.dot(vec1, vec2) / ( np.linalg.norm(vec1) * np.linalg.norm(vec2))
             theta.append(np.arccos(np.clip(tempTheta, -1, 1))) # In radians
 
@@ -1176,7 +1176,7 @@ class ATLASCavern():
                     origin = (self.centreOfCurvature["x"], self.centreOfCurvature["y"], 0)
 
                 #RPCs["theta"][angleRef].append([min(tempAngles[angleRef]["theta"]), max(tempAngles[angleRef]["theta"])])
-                thetaList=[]
+                tempList=[]
                 for i in [1,0]:
                     for j in [1,0]:
                         # Getting minimum Y values to get max theta coverage: This is on the X boundaries of the cavern.
