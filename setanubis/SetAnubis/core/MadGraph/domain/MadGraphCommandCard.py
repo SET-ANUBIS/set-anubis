@@ -155,8 +155,12 @@ class MadGraphCommandCard:
         return "\n".join([
             "define p = g u c d s u~ c~ d~ s~",
             "define j = g u c d s u~ c~ d~ s~",
-            "define vv = ve ve~",
+            "define vve = ve ve~",
+            "define vvm = vm vm~",
+            "define vvt = vt vt~",
             "define ell = e+ e-",
+            "define mull = mu+ mu-",
+            "define tall = ta+ ta-",
             "define q = u c d s u~ c~ d~ s~",
             "set automatic_html_opening False"
         ])

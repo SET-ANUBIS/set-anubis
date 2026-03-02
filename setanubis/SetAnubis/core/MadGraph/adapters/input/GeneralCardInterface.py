@@ -8,8 +8,8 @@ from pathlib import Path
 
 class GeneralCardInterface:
     def __init__(self, config : MadGraphCommandConfig):
-        self.josbscript_builder = JobScriptBuilder(config)
-        self.madspin_builder = MadSpinCardAdapter()
-        self.param_card= ParamCardBuilder(Path(config.neo_set_anubis.get_ufo_path()) / 'write_param_card.py').serialize()
-        self.run_card_builder = RunCardBuilder() 
-        self.pythia_builder = PythiaCardBuilder()
+        self.josbscript_builder : JobScriptBuilder = JobScriptBuilder(config)
+        self.madspin_builder : MadSpinCardAdapter = MadSpinCardAdapter()
+        self.param_card : ParamCardBuilder = ParamCardBuilder(Path(config.neo_set_anubis.get_ufo_path()) / 'write_param_card.py').serialize()
+        self.run_card_builder : RunCardBuilder = RunCardBuilder() 
+        self.pythia_builder : PythiaCardBuilder = PythiaCardBuilder()
