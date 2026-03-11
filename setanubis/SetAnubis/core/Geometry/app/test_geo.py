@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("tkagg")
+import matplotlib.pyplot as plt
 from SetAnubis.core.Geometry.domain.builder import GeometryBuilder, GeometryBuildConfig
 from SetAnubis.core.Geometry.adapters.geometry_builder import CavernGeometryBuilder
 from SetAnubis.core.Geometry.adapters.geometry_query import CavernQuery
@@ -21,6 +24,10 @@ if __name__ == "__main__":
 
     sel_geo = SelectionGeometryAdapter(geom_row)
     
-    plotter = MatplotlibPlotter()
-    plotter.plot(geom, show=True, savepath="geom_new.png")
+    
+    ax = plt.subplot()
+    geom.cavern.plotCavern3D(ax)
+    # plotter = MatplotlibPlotter()
+    # plotter.plot(geom.cavern, show=True, savepath="geom_new.png")
+    plt.show()
     print("Plot enregistré -> geom_new.png")
