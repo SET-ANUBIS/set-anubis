@@ -25,12 +25,13 @@ class SetAnubisInterface(IParameterService):
 
     Args:
         ufo_path (str): Path to the UFO (Universal FeynRules Output) model directory.
+        json_path (str): Path to the particleData json in the Assets folder.
 
     Attributes:
         manager (SetAnubisManager): Internal manager handling parameter and particle data logic.
     """
 
-    def __init__(self, ufo_path: str):
+    def __init__(self, ufo_path: str, json_path: str = "Assets/particles/particleData.json"):
         ufo_interface = UFOGetter(ufo_path)
 
         base_particles = ufo_interface.ufo_interface.ufo_manager.get_all_particles(True)
@@ -47,7 +48,6 @@ class SetAnubisInterface(IParameterService):
             mass_scale=1.0,
             mass_as_complex=True,
         )
-
         set_anubis_port_config = SetAnubisPortsConfig(ufo_interface, proxy)
         self.manager = SetAnubisManager(set_anubis_port_config, base_particles)
         self.ufo_path: str = ufo_path
