@@ -1,8 +1,11 @@
 from typing import Optional
+import numpy as np
+
 from SetAnubis.core.MadGraph.ports.IRunCardBuilder import IRunCardBuilder
 from SetAnubis.core.MadGraph.ports.ICardWriter import ICardWriter
 from SetAnubis.core.MadGraph.domain.MadGraphRunCardEditor import RunCardEditor as DomainRunCardEditor
 from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, CardType
+
 
 class RunCardBuilder(IRunCardBuilder, ICardWriter):
     """
@@ -12,15 +15,26 @@ class RunCardBuilder(IRunCardBuilder, ICardWriter):
     for a MadGraph run card. It wraps a `RunCardEditor` instance and implements
     both the `IRunCardBuilder` and `ICardWriter` interfaces.
 
-    Args:
-        template (str): The initial run card content to be loaded and edited.
-
     Attributes:
-        editor (RunCardEditor): Internal editor used to manipulate run card values.
+        editor (DomainRunCardEditor): Internal editor used to manipulate run card
+            values.
+        rng (np.random.Generator): Random number generator used to create seeds.
     """
-    def __init__(self):
+
+    def __init__(self, rng: Optional[np.random.Generator] = None):
+        """
+        Initialize the run card builder with a default template.
+
+        Args:
+            rng (Optional[np.random.Generator]): Random number generator used for
+                seed generation. If None, a default NumPy generator is created.
+
+        Returns:
+            None
+        """
         runcard_template = CardAdapter.get(CardType.RUNCARD)
         self.editor = DomainRunCardEditor(runcard_template)
+        self.rng = rng or np.random.default_rng()
 
     def get(self, key: str) -> Optional[str]:
         """
@@ -46,6 +60,26 @@ class RunCardBuilder(IRunCardBuilder, ICardWriter):
             None
         """
         self.editor.set(key, value)
+
+    def set_random_seed(self, seed: Optional[int] = None) -> int:
+        """
+        Set the `iseed` parameter in the run card.
+
+        If no seed is provided, a random seed is generated automatically using
+        NumPy.
+
+        Args:
+            seed (Optional[int]): The seed value to assign. If None, a random
+                seed is generated.
+
+        Returns:
+            int: The seed value that was written to the run card.
+        """
+        if seed is None:
+            seed = int(self.rng.integers(1, 2_147_483_647))
+
+        self.set("iseed", seed)
+        return seed
 
     def serialize(self) -> str:
         """
