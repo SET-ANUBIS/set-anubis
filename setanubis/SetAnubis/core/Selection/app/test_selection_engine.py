@@ -21,7 +21,9 @@ if __name__ == "__main__":
     nfs = SDFs_base["neutralFinalStates"].copy()
 
     cav = ATLASCavern()
-
+    cav.createSimpleRPCs([cav.archRadius-0.2, cav.archRadius-0.6, cav.archRadius-1.2], RPCthickness=0.06)   # I added this line to create RPCs, otherwise intersectANUBISstationsSimple fails? This is consistent with ceiling configuration where in defineGeometry.py
+                                                                                                            # line 1202 the simple RPCs are called ceiling (self.geoMode = "ceiling") and at then end in line 1365 in the __main__ section, this exact same call is in 
+                                                                                                            # the if args.mode in ["", "simple"] block
     gcfg = GeometryBuildConfig(
         geo_cache_file="atlas_cavern.pkl",
         origin="IP",
@@ -63,8 +65,8 @@ if __name__ == "__main__":
     )
 
     bundle2 = transform.apply(bundle)
-    # SDFs = bundle2.to_dict()
-    SDFs = SDFs_base
+    SDFs = bundle2.to_dict()
+    # SDFs = SDFs_base
 
     SDFs["finalStatePromptJets"] = createJetDF(ev, cfs, nfs)
     
