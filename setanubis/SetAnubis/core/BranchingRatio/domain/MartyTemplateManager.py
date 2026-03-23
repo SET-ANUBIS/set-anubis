@@ -52,8 +52,8 @@ int main() {
     
     SM_Model model;
     
-    //model.getParticle("W")->setWidth(csl::constant_s("G_W"));
-    //model.getParticle("Z")->setWidth(csl::constant_s("G_Z"));
+    model.getParticle("W")->setWidth(csl::constant_s("G_W"));
+    model.getParticle("Z")->setWidth(csl::constant_s("G_Z"));
     model.getParticle("W")->setGaugeChoice(gauge::Type::Unitary);
     model.getParticle("Z")->setGaugeChoice(gauge::Type::Unitary);
     undefineNumericalValues();

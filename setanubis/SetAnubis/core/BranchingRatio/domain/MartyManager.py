@@ -161,14 +161,17 @@ if __name__ == "__main__":
     result = mm.calculate_process([9900014], [-11,+11, 14], neo, builder_marty)
     print("N1 -> nu_mu + e + e : ", result)
     res = []
-    for i in range(10, 110, 5):
-        neo.set_leaf_param("mN2", i)
+    import numpy as np
+    x = np.linspace(0.0001, 1, 10)
+    for i in x:
+        neo.set_leaf_param("VmuN1", i)
+        # neo.set_leaf_param("MZ", i)
         res.append(mm.calculate_process([9900014], [-11,+11, 14], neo, builder_marty))
         # result = mm.calculate_process([9900014], [-11,+11, 14], neo, builder_marty)
     
     import matplotlib
     matplotlib.use("tkagg")
     import matplotlib.pyplot as plt
-    plt.scatter(range(10, 110, 5), res)
+    plt.scatter(x, res)
     
     plt.savefig("niels.png")

@@ -23,6 +23,7 @@ from bsm_analysis.extractor import ParticleExtractor, ExtractionConfig
 from bsm_analysis.filters import ParticleFilterSpec, Range, apply_filters
 from bsm_analysis.event_reader import load_event_from_hepmc
 from bsm_analysis.track_builder import TrackBuildConfig, build_event_tracks, TrackSegment
+from bsm_analysis.lifetime import add_lifetime_columns, lifetime_column_for_mode, event_lifetime_column_for_mode, lifetime_label_for_mode
 
 from geometry.cavern import CavernTransform
 from geometry.plotly_cavern import CavernFigureFactory
@@ -322,15 +323,21 @@ def build_events_table(df: pd.DataFrame) -> pd.DataFrame:
     Aggregate per-event summary used by the Event-by-event page and global filters.
     """
     if df.empty:
-        return pd.DataFrame(columns=["event", "n_bsm", "region", "met", "pt_max", "E_max"])
+        return pd.DataFrame(columns=[
+            "event", "n_bsm", "region",
+            "lifetime_proper_ns_max", "lifetime_lab_ns_max",
+            "met", "pt_max", "E_max",
+        ])
 
-    d = df.copy()
+    d = add_lifetime_columns(df.copy())
     if "region" not in d.columns:
         d["region"] = classify_rows_region(d)
 
     agg = d.groupby("event").agg(
         n_bsm=("pid", "size"),
         region=("region", lambda s: next((r for r in REGION_ORDER if (s == r).any()), "unknown")),
+        lifetime_proper_ns_max=("lifetime_proper_ns", "max"),
+        lifetime_lab_ns_max=("lifetime_lab_ns", "max"),
         met=("met", "max"),
         pt_max=("pt", "max"),
         E_max=("E", "max"),
@@ -390,6 +397,18 @@ def controls_sidebar() -> html.Div:
 
                     html.Div(className="row", children=[html.Div("max_events", className="label"), dcc.Input(id="max-events", type="text", value="")]),
                     html.Div(className="row", children=[html.Div("status", className="label"), dcc.Input(id="status", type="text", value="")]),
+
+                    html.Hr(),
+                    html.Div("Lifetime display", className="label"),
+                    dcc.RadioItems(
+                        id="lifetime-mode",
+                        options=[
+                            {"label": "proper time", "value": "proper"},
+                            {"label": "lab time", "value": "lab"},
+                        ],
+                        value="proper",
+                        className="checklist",
+                    ),
 
                     dcc.Checklist(
                         id="ignore-self-decays",
@@ -543,6 +562,13 @@ def overview_page() -> html.Div:
                 ],
             ),
             html.Div(
+                className="card graph-card",
+                children=[
+                    html.Div(className="card-title", children=[html.H2("HNL lifetime"), html.Span("selected mode • ns")]),
+                    dcc.Loading(dcc.Graph(id="hist-lifetime", style={"height": "32vh"}), type="dot"),
+                ],
+            ),
+            html.Div(
                 className="graph-row-2",
                 children=[
                     html.Div(className="card graph-card", children=[html.Div(className="card-title", children=[html.H2("Mother PDGs"), html.Span("top 15")]),
@@ -573,6 +599,7 @@ def event_page() -> html.Div:
                                     {"name": "event", "id": "event"},
                                     {"name": "region", "id": "region"},
                                     {"name": "n_bsm", "id": "n_bsm"},
+                                    {"name": "HNL lifetime [ns]", "id": "hnl_lifetime_ns"},
                                     {"name": "MET", "id": "met"},
                                     {"name": "pT max", "id": "pt_max"},
                                     {"name": "E max", "id": "E_max"},
@@ -698,7 +725,7 @@ def _toggle_event_geom_tabs(tab: str):
 @app.callback(Output("csv-hint", "children"), Input("source-kind", "value"))
 def _csv_hint(kind: str):
     if kind == "csv":
-        return "CSV placeholder: expected columns: event, pid, status, px,py,pz,E, prod_x_m,prod_y_m,prod_z_m, dec_x_m,dec_y_m,dec_z_m, mother_pids(list/tuple), child_pids(list/tuple), met"
+        return "CSV placeholder: expected columns: event, pid, status, px,py,pz,E, prod_x_m,prod_y_m,prod_z_m,prod_ct_m, dec_x_m,dec_y_m,dec_z_m,dec_ct_m, mother_pids(list/tuple), child_pids(list/tuple), met"
     return ""
 
 
@@ -755,12 +782,15 @@ def run_extraction(n_clicks, source_kind, hepmc_path, pdg_id, max_events, status
     if df.empty:
         return df.to_json(date_format="iso", orient="split"), pd.DataFrame().to_json(orient="split"), json.dumps({"hepmc_path": hepmc_path, "pdg_id": pid}), "No particle rows extracted."
 
+    df = add_lifetime_columns(df)
     df["region"] = classify_rows_region(df)
     events = build_events_table(df)
 
     # diagnostics
     n_prod = int(np.isfinite(df["prod_x_m"]).sum())
     n_dec = int(np.isfinite(df["dec_x_m"]).sum())
+    n_tau = int(np.isfinite(df["lifetime_proper_ns"]).sum()) if "lifetime_proper_ns" in df.columns else 0
+    n_tlab = int(np.isfinite(df["lifetime_lab_ns"]).sum()) if "lifetime_lab_ns" in df.columns else 0
     region_counts = events["region"].value_counts().to_dict()
 
     info = [
@@ -768,6 +798,7 @@ def run_extraction(n_clicks, source_kind, hepmc_path, pdg_id, max_events, status
         f"Events with ≥1 BSM: {len(events)}",
         f"PDG: {pid} | max_events={_int_or_none(max_events)} | status={_int_or_none(status)}",
         f"Finite production vertices: {n_prod} | Finite decay vertices: {n_dec}",
+        f"Finite proper lifetimes: {n_tau} | Finite lab lifetimes: {n_tlab}",
         f"Decay regions: {region_counts}",
     ]
 
@@ -825,6 +856,7 @@ def update_metrics(events_json, cfg_json=None):
     Output("hist-pt", "figure"),
     Output("hist-eta", "figure"),
     Output("hist-met", "figure"),
+    Output("hist-lifetime", "figure"),
     Output("bar-mothers", "figure"),
     Output("bar-children", "figure"),
     Input("df-store", "data"),
@@ -834,6 +866,7 @@ def update_metrics(events_json, cfg_json=None):
     Input("geom-options", "value"),
     Input("vertex-options", "value"),
     Input("event-region-filter", "value"),
+    Input("lifetime-mode", "value"),
     Input("tree-options", "value"),
     Input("tree-depth", "value"),
     Input("tree-max-events", "value"),
@@ -853,7 +886,7 @@ def update_metrics(events_json, cfg_json=None):
 )
 def update_dashboard_figures(
     df_json, events_json, cfg_json,
-    plane, geom_opts, vertex_opts, region_filter,
+    plane, geom_opts, vertex_opts, region_filter, lifetime_mode,
     tree_opts, tree_depth, tree_max_events,
     mother_pid, child_pid,
     E_lo, E_hi, pt_lo, pt_hi, p_lo, p_hi, px_lo, px_hi, py_lo, py_hi, pz_lo, pz_hi,
@@ -861,7 +894,7 @@ def update_dashboard_figures(
 ):
     empty = _fig_style(go.Figure(), "No data loaded yet")
     if not df_json:
-        return empty, empty, empty, empty, empty, empty, empty
+        return empty, empty, empty, empty, empty, empty, empty, empty
 
     df = pd.read_json(StringIO(df_json), orient="split")
 
@@ -999,10 +1032,11 @@ def update_dashboard_figures(
     pt_fig = make_hist(dff, "pt", "pT")
     eta_fig = make_hist(dff, "eta", "eta")
     met_fig = make_hist(dff, "met", "MET (simple truth)")
+    lifetime_fig = make_hist(dff, lifetime_column_for_mode(lifetime_mode, unit="ns"), lifetime_label_for_mode(lifetime_mode, unit="ns"))
     mother_fig = make_relations_bar(dff, "mother_pids", "Top mothers")
     child_fig = make_relations_bar(dff, "child_pids", "Top daughters")
 
-    return geom2d, geom3d, pt_fig, eta_fig, met_fig, mother_fig, child_fig
+    return geom2d, geom3d, pt_fig, eta_fig, met_fig, lifetime_fig, mother_fig, child_fig
 
 
 def _dash_safe_scalar(v):
@@ -1040,8 +1074,9 @@ def _dash_safe_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
     Input("events-store", "data"),
     Input("cfg-store", "data"),
     Input("event-region-filter", "value"),
+    Input("lifetime-mode", "value"),
 )
-def update_event_table(events_json, cfg_json, region_filter: str):
+def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode: str):
     if not events_json:
         return [], "Run extraction to populate the event list."
 
@@ -1063,11 +1098,14 @@ def update_event_table(events_json, cfg_json, region_filter: str):
     if "region" in out.columns:
         out["region"] = out["region"].astype(str)
 
-    for col in ["met", "pt_max", "E_max"]:
+    evt_lt_col = event_lifetime_column_for_mode(lifetime_mode, unit="ns")
+    out["hnl_lifetime_ns"] = pd.to_numeric(out.get(evt_lt_col, np.nan), errors="coerce")
+
+    for col in ["hnl_lifetime_ns", "met", "pt_max", "E_max"]:
         if col in out.columns:
             out[col] = pd.to_numeric(out[col], errors="coerce").round(3)
 
-    return _dash_safe_records(out), f"{len(out)} events shown (filter: {region_filter}). Select one row."
+    return _dash_safe_records(out), f"{len(out)} events shown (filter: {region_filter}, lifetime mode: {lifetime_mode}). Select one row."
 
 @app.callback(
     Output("tracks-store", "data"),
@@ -1144,7 +1182,7 @@ def compute_event_tracks(selected_rows, table_data, cfg_json, depth, extend_m):
         f"Event {event_id} | region={row.get('region')} | n_bsm={row.get('n_bsm')}",
         f"Tracks: total={n_all} (roots={n_root}, charged={n_ch}, neutral={n_neu})",
         f"Legend: root(BSM)=pink • charged=green • neutral=slate",
-        f"MET={row.get('met')} | pTmax={row.get('pt_max')} | Emax={row.get('E_max')}",
+        f"HNL lifetime={row.get('hnl_lifetime_ns')} ns | MET={row.get('met')} | pTmax={row.get('pt_max')} | Emax={row.get('E_max')}",
     ])
 
     return json.dumps({"event": event_id, "segments": ser}), summary

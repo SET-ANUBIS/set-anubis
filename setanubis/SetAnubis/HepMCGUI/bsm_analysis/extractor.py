@@ -52,36 +52,40 @@ def _safe_pid_list(particles: Iterable["hp.GenParticle"]) -> Tuple[int, ...]:
             continue
     return tuple(out)
 
-def _vertex_xyz(vtx: object) -> Optional[Tuple[float, float, float]]:
-    """Extract a vertex position as ``(x, y, z)``.
+def _vertex_xyzt(vtx: object) -> Optional[Tuple[float, float, float, float]]:
+    """Extract a vertex position as ``(x, y, z, t)``.
 
     The function supports multiple HepMC binding styles. It first tries
-    ``vertex.position.x/y/z`` and falls back to ``vertex.x/y/z``.
+    ``vertex.position.x/y/z/t`` and falls back to ``vertex.x/y/z/t``.
+
+    The time-like component is interpreted as ``c*t`` and therefore carries
+    the same HepMC length unit as the spatial coordinates.
 
     Args:
         vtx: HepMC vertex-like object.
 
     Returns:
-        A 3-tuple ``(x, y, z)`` if the position can be read, otherwise
+        A 4-tuple ``(x, y, z, t)`` if the position can be read, otherwise
         ``None``.
     """
     if vtx is None:
         return None
-    # HepMC3: vertex.position has x,y,z accessors; sometimes vtx.x, vtx.y, vtx.z exist
     pos = getattr(vtx, "position", None)
     try:
         if pos is not None:
             x = _call_or_attr(pos, "x")
             y = _call_or_attr(pos, "y")
             z = _call_or_attr(pos, "z")
-            return (x, y, z)
+            t = _call_or_attr(pos, "t")
+            return (x, y, z, t)
     except Exception:
         pass
     try:
         x = _call_or_attr(vtx, "x")
         y = _call_or_attr(vtx, "y")
         z = _call_or_attr(vtx, "z")
-        return (x, y, z)
+        t = _call_or_attr(vtx, "t")
+        return (x, y, z, t)
     except Exception:
         return None
 
@@ -207,8 +211,8 @@ class ParticleExtractor:
             - ``E``, ``pt``, ``p``, ``px``, ``py``, ``pz``
             - ``eta``, ``phi``, ``theta``
             - ``mother_pids``, ``child_pids``
-            - ``prod_x_m``, ``prod_y_m``, ``prod_z_m``
-            - ``dec_x_m``, ``dec_y_m``, ``dec_z_m``
+            - ``prod_x_m``, ``prod_y_m``, ``prod_z_m``, ``prod_ct_m``
+            - ``dec_x_m``, ``dec_y_m``, ``dec_z_m``, ``dec_ct_m``
             - ``met``
 
             If no particle matches, an empty ``DataFrame`` is returned.
@@ -268,19 +272,19 @@ class ParticleExtractor:
                     mothers = tuple(pid for pid in mothers if pid != int(cfg.pdg_id))
                     childs  = tuple(pid for pid in childs  if pid != int(cfg.pdg_id))
 
-                prod_v = _vertex_xyz(_production_vertex(p))
-                end_v  = _vertex_xyz(_end_vertex(p))
+                prod_v = _vertex_xyzt(_production_vertex(p))
+                end_v  = _vertex_xyzt(_end_vertex(p))
 
                 def _convert(v):
                     if v is None:
-                        return (np.nan, np.nan, np.nan)
-                    x, y, z = (v[0]*pos_scale, v[1]*pos_scale, v[2]*pos_scale)
+                        return (np.nan, np.nan, np.nan, np.nan)
+                    x, y, z, ct = (v[0]*pos_scale, v[1]*pos_scale, v[2]*pos_scale, v[3]*pos_scale)
                     if cfg.position_transform is not None:
                         x, y, z = cfg.position_transform(x, y, z)
-                    return (x, y, z)
+                    return (x, y, z, ct)
 
-                prod_x, prod_y, prod_z = _convert(prod_v)
-                dec_x, dec_y, dec_z = _convert(end_v)
+                prod_x, prod_y, prod_z, prod_ct = _convert(prod_v)
+                dec_x, dec_y, dec_z, dec_ct = _convert(end_v)
 
                 rows.append({
                     "event": i_event,
@@ -303,9 +307,11 @@ class ParticleExtractor:
                     "prod_x_m": float(prod_x),
                     "prod_y_m": float(prod_y),
                     "prod_z_m": float(prod_z),
+                    "prod_ct_m": float(prod_ct),
                     "dec_x_m": float(dec_x),
                     "dec_y_m": float(dec_y),
                     "dec_z_m": float(dec_z),
+                    "dec_ct_m": float(dec_ct),
                 })
 
         df = pd.DataFrame(rows)
