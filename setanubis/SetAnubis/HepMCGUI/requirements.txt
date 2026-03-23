@@ -1,0 +1,6 @@
+dash>=2.15
+plotly>=5.18
+pandas>=2.0
+numpy>=1.24
+pyhepmc>=2.14
+particle>=0.24

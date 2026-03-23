@@ -458,6 +458,43 @@ class SelectionEngine:
         )
 
         if isinstance(selected, pd.DataFrame):
+            out = selected.copy()
+            keep_idx = out.index
+        else:
+            keep_idx = pd.Index(selected)
+            out = df.loc[keep_idx].copy()
+
+        cutFlow = {
+            "nLLP_Tracker": len(out.index),
+            "nLLP_Tracker_weighted": float(
+                out["weight"].sum() if "weight" in out.columns else 0.0
+            ),
+        }
+        cutIndices = {"nLLP_Tracker": out.index.tolist()}
+        return {"dataframe": out, "cutFlow": cutFlow, "cutIndices": cutIndices}
+
+    def _select_tracks_old(
+        self,
+        df: pd.DataFrame,
+        children: pd.DataFrame,
+        selection: SelectionConfig,
+        run_cfg: RunConfig,
+    ) -> Dict[str, Any]:
+        prod_col = _vertex_col_in_df(children, "prodVertex", run_cfg)
+        decay_col = _vertex_col_in_df(children, "decayVertex", run_cfg)
+
+        selected = sel_filter_decay_hits(
+            df,
+            children,
+            selection.geometry,
+            nIntersections=selection.nIntersections,
+            nTracks=selection.nTracks,
+            requireCharge=True,
+            prodVertex=prod_col,
+            decayVertex=decay_col,
+        )
+
+        if isinstance(selected, pd.DataFrame):
             keep_idx = selected.index
         else:
             keep_idx = pd.Index(selected)
