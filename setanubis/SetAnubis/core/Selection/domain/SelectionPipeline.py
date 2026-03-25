@@ -8,7 +8,7 @@ import os
 import pickle
 import gzip
 
-from SetAnubis.core.Selection.domain.SelectionEngine import (
+from SetAnubis.core.Selection.domain.SelectionEnginev2 import (
     SelectionEngine, SelectionConfig, RunConfig
 )
 import dataclasses
