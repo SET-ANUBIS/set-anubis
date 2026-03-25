@@ -19,6 +19,7 @@ from SetAnubis.core.Selection.domain.ReweightTransformer import (
 )
 
 from SetAnubis.core.Selection.domain.DatasetSource import EventsBundleSource, BundleIO, SourceConfig
+from SetAnubis.core.Selection.domain.PhiFoldTransform import phi_fold_df
 
 class IDataSource(Protocol):
     """Return a df or and bundle already prepared."""
@@ -80,6 +81,7 @@ class PipelineOptions:
     selection_mode: str = "standard"   # "standard" | "2dv"
     # Reweight: If True, we onl apply transfo if a reweighter is done.
     enable_reweight_gate: bool = True
+    phiFold: bool = False
 
 @dataclass
 class SelectionPipeline:
@@ -105,16 +107,13 @@ class SelectionPipeline:
 
         allowed = {f.name for f in dataclasses.fields(DataBundle)}
 
-        # Sépare core/extras (extras = added tables like finalStatePromptJets)
         core_dict   = {k: v for k, v in bundle.items() if k in allowed}
         extras_dict = {k: v for k, v in bundle.items() if k not in allowed}
 
-        # Apply transformation on core
         db  = DataBundle.from_dict(core_dict)
         db2 = self.reweighter.apply(db)
         out = db2.to_dict()
 
-        # Extra (unchanged) reinjection.
         for k, v in extras_dict.items():
             out[k] = v
 
@@ -141,8 +140,14 @@ class SelectionPipeline:
         return out
 
     def run(self, source: EventsBundleSource, sel_cfg: SelectionConfig, run_cfg: RunConfig) -> Dict[str, Any]:
+        pre_df_transforms = list(self.pre_df_transforms)
+
+        if getattr(self.options, "phiFold", False):
+            pre_df_transforms.append(lambda df: phi_fold_df(df, source.cfg.llp_pid))
+        
         # Bundle  (already cached by source)
-        bundle = source.materialize()
+        bundle = source.materialize(pre_df_transforms=pre_df_transforms,
+        bundle_cache_tag=f"phiFold={getattr(self.options, 'phiFold', False)}",)
 
         # Post-bundle transforms
         for t in self.post_bundle_transforms:

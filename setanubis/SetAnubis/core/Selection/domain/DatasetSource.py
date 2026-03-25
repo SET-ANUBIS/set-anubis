@@ -99,7 +99,11 @@ class EventsBundleSource:
         return (os.path.join(self.cache_dir, f"{prefix}_df.pkl.gz"),
                 os.path.join(self.cache_dir, f"{prefix}_bundle.pkl.gz"))
 
-    def materialize(self) -> Dict[str, pd.DataFrame]:
+    def materialize(
+        self,
+        pre_df_transforms: Optional[List[Callable[[pd.DataFrame], pd.DataFrame]]] = None,
+        bundle_cache_tag: str = "",
+    ) -> Dict[str, pd.DataFrame]:
         if self.ready_bundle is not None:
             return self.ready_bundle
 
@@ -128,6 +132,9 @@ class EventsBundleSource:
             if (not self.force_recompute) and bundle_path and os.path.exists(bundle_path):
                 return BundleIO.load_bundle(bundle_path)
 
+        for transform in pre_df_transforms:
+            df = transform(df)
+        
         analyzer = LLPAnalyzer(df, pt_min_cfg=self.cfg.pt_min_cfg)
         bundle = analyzer.create_sample_dataframes(llpid=self.cfg.llp_pid)
 
