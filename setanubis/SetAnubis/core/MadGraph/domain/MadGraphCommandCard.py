@@ -51,6 +51,23 @@ class MadGraphCommandCard:
             current = current.next
         return None
     
+    def _get_existing_defines(self) -> dict[str, list[str]]:
+        """Returns all existing define aliases found in the card."""
+        defines = {}
+        current = self.head
+
+        while current:
+            for line in current.content.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("define ") and "=" in stripped:
+                    left, right = stripped[len("define "):].split("=", 1)
+                    alias = left.strip()
+                    particles = right.strip().split()
+                    defines[alias] = particles
+            current = current.next
+
+        return defines
+    
     def add_define(self, alias: str, particles: list[str]):
         """Adds a new 'define' line into the DEFINITIONS section.
 
