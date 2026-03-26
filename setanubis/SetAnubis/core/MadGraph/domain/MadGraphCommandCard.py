@@ -42,6 +42,49 @@ class MadGraphCommandCard:
             self.tail.next = section
             self.tail = section
 
+    def _find_section(self, section_type: CommandSectionType):
+        """Finds the first section of the given type."""
+        current = self.head
+        while current:
+            if current.section_type == section_type:
+                return current
+            current = current.next
+        return None
+    
+    def add_define(self, alias: str, particles: list[str]):
+        """Adds a new 'define' line into the DEFINITIONS section.
+
+        Args:
+            alias (str): Name of the alias, e.g. 'mull'.
+            particles (list[str]): List of particles, e.g. ['mu+', 'mu-'].
+
+        Raises:
+            ValueError: If alias is empty, particles is empty,
+                        or alias already exists in current defines.
+        """
+        alias = alias.strip()
+
+        if not alias:
+            raise ValueError("Alias cannot be empty")
+
+        if not particles:
+            raise ValueError("Particles list cannot be empty")
+
+        cleaned_particles = [p.strip() for p in particles if p.strip()]
+        if not cleaned_particles:
+            raise ValueError("Particles list cannot be empty")
+
+        existing_defines = self._get_existing_defines()
+        if alias in existing_defines:
+            raise ValueError(f"Define '{alias}' already exists")
+
+        definitions_section = self._find_section(CommandSectionType.DEFINITIONS)
+        if definitions_section is None:
+            raise ValueError("Definitions section not found")
+
+        new_define = f"define {alias} = {' '.join(cleaned_particles)}"
+        definitions_section.content = f"{definitions_section.content}\n{new_define}"
+        
     def add_model_import(self, ufo_path):
         """Imports a UFO model based on the provided path.
 

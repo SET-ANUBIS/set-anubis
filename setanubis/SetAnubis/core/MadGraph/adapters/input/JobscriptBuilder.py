@@ -58,6 +58,19 @@ class JobScriptBuilder(IJobScriptBuilder, ICardWriter):
         """
         self.builder.add_section(section_type, content)
         
+    def add_define(self, alias: str, particles: list[str]) -> None:
+        """
+        Add a MadGraph define in the definitions section.
+
+        Args:
+            alias (str): Alias name, e.g. 'mull2'.
+            particles (list[str]): List of particles, e.g. ['mu+', 'mu-'].
+
+        Returns:
+            None
+        """
+        self.builder.add_define(alias, particles)
+        
     def add_parameter_scan(self, key: str, values) -> None:
         """
         Add a parameter scan to the script, varying a parameter over a range or list of values.
