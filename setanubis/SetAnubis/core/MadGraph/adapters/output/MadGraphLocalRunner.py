@@ -4,11 +4,13 @@ from SetAnubis.core.MadGraph.ports.output.IMadGraphRunner import IMadGraphRunner
 import re
 
 class MadGraphLocalRunner(IMadGraphRunner):
-    def __init__(self, madgraph_path : str = None):
+    def __init__(self, madgraph_path : str = None, card_dir : str = ""):
         if madgraph_path:
             self.madgraph_path : str = madgraph_path
         else :
             self.madgraph_path : str = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "..", "External_Integration", "MadGraph", "MG5_aMC_v3_5_8"))
+
+         self.card_dir : str = card_dir
         
         self.__check_madgraph_installation()
         
@@ -77,7 +79,10 @@ class MadGraphLocalRunner(IMadGraphRunner):
     
     def __card_path(self):
         ASSETS_DIR = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "..", "Assets"))
-        card_path = os.path.join(ASSETS_DIR, "MadGraph", "MadGraphTemp")
+        if self.card_dir!="":
+            card_path = os.path.join(ASSETS_DIR, "MadGraph", self.card_dir)
+        else:
+            card_path = os.path.join(ASSETS_DIR, "MadGraph", "MadGraphTemp")
         return card_path
     
     def __check_madgraph_installation(self) -> None:
