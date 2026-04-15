@@ -10,7 +10,7 @@ class MadGraphLocalRunner(IMadGraphRunner):
         else :
             self.madgraph_path : str = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "..", "..", "External_Integration", "MadGraph", "MG5_aMC_v3_5_8"))
 
-         self.card_dir : str = card_dir
+        self.card_dir : str = card_dir
         
         self.__check_madgraph_installation()
         

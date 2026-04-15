@@ -1,6 +1,3 @@
-import os
-import docker
-import subprocess
 from SetAnubis.core.MadGraph.ports.output.IMadGraphRunner import IMadGraphRunner
 
 class MadGraphManager:
