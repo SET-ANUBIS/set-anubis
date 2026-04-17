@@ -5,7 +5,7 @@ from typing import Iterable, Sequence, Tuple
 import numpy as np
 import plotly.graph_objects as go
 
-from defineGeometry import ATLASCavern
+from SetAnubis.HepMCGUI.defineGeometry import ATLASCavern
 
 EDGE_COLOR = "rgba(226,232,240,0.55)"
 ATLAS_COLOR = "rgba(96,165,250,0.55)"

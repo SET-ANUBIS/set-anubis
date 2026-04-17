@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 
-from defineGeometry import ATLASCavern
+from SetAnubis.HepMCGUI.defineGeometry import ATLASCavern
 
 
 def _norm_phi(phi: np.ndarray) -> np.ndarray:

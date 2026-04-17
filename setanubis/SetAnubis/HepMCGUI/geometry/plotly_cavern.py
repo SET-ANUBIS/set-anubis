@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 CAVERN_LINE_COLOR = "rgba(226,232,240,0.70)"  # light slate
 CAVERN_SOFT_FILL = "rgba(148,163,184,0.10)"
 
-from defineGeometry import ATLASCavern
+from SetAnubis.HepMCGUI.defineGeometry import ATLASCavern
 
 @dataclass(frozen=True)
 class CavernFigureFactory:

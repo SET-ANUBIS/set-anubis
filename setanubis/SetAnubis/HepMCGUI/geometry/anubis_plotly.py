@@ -6,7 +6,7 @@ from typing import Dict, Optional, Sequence, Tuple, Any, List
 import numpy as np
 import plotly.graph_objects as go
 
-from defineGeometry import ATLASCavern
+from SetAnubis.HepMCGUI.defineGeometry import ATLASCavern
 
 
 def _norm_phi(phi: np.ndarray) -> np.ndarray:

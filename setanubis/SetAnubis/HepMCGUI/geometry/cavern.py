@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
-from defineGeometry import ATLASCavern
+from SetAnubis.HepMCGUI.defineGeometry import ATLASCavern
 
 @dataclass(frozen=True)
 class CavernTransform:

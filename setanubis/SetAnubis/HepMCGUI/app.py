@@ -16,20 +16,20 @@ px.defaults.color_discrete_sequence = px.colors.qualitative.Set2
 from dash import Dash, dcc, html, Input, Output, State, no_update
 from dash import dash_table
 
-from defineGeometry import ATLASCavern
+from SetAnubis.HepMCGUI.defineGeometry import ATLASCavern
 
-from bsm_analysis.sources import HepMCFileSource
-from bsm_analysis.extractor import ParticleExtractor, ExtractionConfig
-from bsm_analysis.filters import ParticleFilterSpec, Range, apply_filters
-from bsm_analysis.event_reader import load_event_from_hepmc
-from bsm_analysis.track_builder import TrackBuildConfig, build_event_tracks, TrackSegment
-from bsm_analysis.lifetime import add_lifetime_columns, lifetime_column_for_mode, event_lifetime_column_for_mode, lifetime_label_for_mode
+from SetAnubis.HepMCGUI.bsm_analysis.sources import HepMCFileSource
+from SetAnubis.HepMCGUI.bsm_analysis.extractor import ParticleExtractor, ExtractionConfig
+from SetAnubis.HepMCGUI.bsm_analysis.filters import ParticleFilterSpec, Range, apply_filters
+from SetAnubis.HepMCGUI.bsm_analysis.event_reader import load_event_from_hepmc
+from SetAnubis.HepMCGUI.bsm_analysis.track_builder import TrackBuildConfig, build_event_tracks, TrackSegment
+from SetAnubis.HepMCGUI.bsm_analysis.lifetime import add_lifetime_columns, lifetime_column_for_mode, event_lifetime_column_for_mode, lifetime_label_for_mode
 
-from geometry.cavern import CavernTransform
-from geometry.plotly_cavern import CavernFigureFactory
-from geometry.plotly_cavern_3d import Cavern3DFigureFactory
-from geometry.anubis_plotly import AnubisOverlayFactory
-from geometry.region_classifier import RegionClassifier
+from SetAnubis.HepMCGUI.geometry.cavern import CavernTransform
+from SetAnubis.HepMCGUI.geometry.plotly_cavern import CavernFigureFactory
+from SetAnubis.HepMCGUI.geometry.plotly_cavern_3d import Cavern3DFigureFactory
+from SetAnubis.HepMCGUI.geometry.anubis_plotly import AnubisOverlayFactory
+from SetAnubis.HepMCGUI.geometry.region_classifier import RegionClassifier
 
 
 def _int_or_none(v: Any) -> Optional[int]:
