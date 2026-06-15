@@ -592,27 +592,46 @@ def event_page() -> html.Div:
                         className="card",
                         children=[
                             html.Div(className="card-title", children=[html.H2("Event-by-event"), html.Span("select an event to draw full topology")]),
+                            html.Div(
+                                className="event-table-toolbar",
+                                children=[
+                                    html.Div("quick event filter", className="label"),
+                                    dcc.Input(
+                                        id="event-number-filter",
+                                        type="text",
+                                        value="",
+                                        placeholder="type 20, 2, cavern…",
+                                        debounce=False,
+                                        style={"width": "100%"},
+                                    ),
+                                ],
+                            ),
                             html.Div(id="event-help", style={"fontSize": "12px", "opacity": 0.85, "marginBottom": "8px"}),
                             dash_table.DataTable(
                                 id="events-table",
                                 columns=[
-                                    {"name": "event", "id": "event"},
-                                    {"name": "region", "id": "region"},
-                                    {"name": "n_bsm", "id": "n_bsm"},
-                                    {"name": "HNL lifetime [ns]", "id": "hnl_lifetime_ns"},
-                                    {"name": "MET", "id": "met"},
-                                    {"name": "pT max", "id": "pt_max"},
-                                    {"name": "E max", "id": "E_max"},
+                                    {"name": "event", "id": "event", "type": "numeric"},
+                                    {"name": "region", "id": "region", "type": "text"},
+                                    {"name": "n_bsm", "id": "n_bsm", "type": "numeric"},
+                                    {"name": "HNL lifetime [ns]", "id": "hnl_lifetime_ns", "type": "numeric"},
+                                    {"name": "MET", "id": "met", "type": "numeric"},
+                                    {"name": "pT max", "id": "pt_max", "type": "numeric"},
+                                    {"name": "E max", "id": "E_max", "type": "numeric"},
                                 ],
                                 data=[],
-                                page_size=12,
+                                page_action="native",
+                                page_current=0,
+                                page_size=9,
                                 sort_action="native",
                                 filter_action="native",
+                                filter_options={"case": "insensitive"},
                                 row_selectable="single",
+                                selected_row_ids=[],
                                 style_cell={"fontFamily": "ui-monospace, Menlo, Consolas, monospace", "fontSize": 12, "padding": "8px"},
-                                style_table={"height": "360px", "overflowY": "auto"},
+                                style_table={"overflowX": "auto"},
                             ),
                             html.Div(id="event-summary", className="status", style={"marginTop": "10px"}),
+                            html.Div(id="event-decay-tree", className="decay-tree"),
                         ],
                     ),
 
@@ -635,15 +654,17 @@ def event_page() -> html.Div:
 
                             html.Hr(),
                             html.Div("Tracks options (event view)", className="label"),
-                            html.Div(className="row", children=[html.Div("depth", className="label"), dcc.Input(id="event-depth", type="text", value="2")]),
-                            html.Div(className="row", children=[html.Div("extend [m]", className="label"), dcc.Input(id="event-extend", type="text", value="30")]),
+                            html.Div(className="row", children=[html.Div("depth", className="label"), dcc.Input(id="event-depth", type="text", value="2", debounce=True)]),
+                            html.Div(className="row", children=[html.Div("extend [m]", className="label"), dcc.Input(id="event-extend", type="text", value="30", debounce=True)]),
+                            html.Button("Apply tracks", id="apply-event-tracks", n_clicks=0, className="secondary-btn"),
+                            html.Div("After changing depth or extend, click Apply tracks or press Enter in the field.", className="hint"),
                             dcc.Checklist(
                                 id="event-track-options",
                                 options=[
                                     {"label": "show labels", "value": "labels"},
                                     {"label": "show only charged", "value": "charged_only"},
                                 ],
-                                value=[],
+                                value=["labels"],
                                 className="checklist",
                             ),
                         ],
@@ -987,7 +1008,9 @@ def update_dashboard_figures(
 
     if ("tree" in (tree_opts or [])) and (allowed_events is not None) and (len(allowed_events) > 0):
         max_ev = _int_or_none(tree_max_events) or 40
-        depth = _int_or_none(tree_depth) or 2
+        depth = _int_or_none(tree_depth)
+        if depth is None:
+            depth = 2
         bounds = (-18, 18, -18, 25, -30, 30)
 
         try:
@@ -1068,31 +1091,95 @@ def _dash_safe_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
     return records
 
 
+def _segment_charge_label(seg: Dict[str, Any]) -> str:
+    if seg.get("is_root"):
+        return "root/BSM"
+    if seg.get("charged") is True:
+        return "charged"
+    if seg.get("charged") is False:
+        return "neutral"
+    return "charge unknown"
+
+
+def _decay_tree_text(segs: List[Dict[str, Any]]) -> str:
+    if not segs:
+        return "Decay tree: no visible tracks for this event."
+
+    by_parent: Dict[Optional[int], List[Dict[str, Any]]] = {}
+    for s in sorted(segs, key=lambda x: (int(x.get("depth", 0)), int(x.get("node_id", 0)))):
+        parent = s.get("parent_id")
+        by_parent.setdefault(parent, []).append(s)
+
+    def _line_label(s: Dict[str, Any]) -> str:
+        decay = "decays" if s.get("has_decay_vertex") else "extrapolated/stable"
+        copies = s.get("copy_count", 0)
+        copy_txt = f", collapsed copies={copies}" if copies else ""
+        return (
+            f'{s.get("name", "particle")} (PDG {s.get("pid")}) '
+            f'[depth={s.get("depth")}, {_segment_charge_label(s)}, {decay}{copy_txt}]'
+        )
+
+    roots = by_parent.get(None, [])
+    if not roots:
+        roots = [s for s in segs if s.get("is_root")]
+    if not roots:
+        roots = [segs[0]]
+
+    lines = ["Decay tree:"]
+
+    def render(node: Dict[str, Any], prefix: str, is_last: bool):
+        connector = "└─ " if is_last else "├─ "
+        lines.append(prefix + connector + _line_label(node))
+        children = by_parent.get(node.get("node_id"), [])
+        next_prefix = prefix + ("   " if is_last else "│  ")
+        for i, child in enumerate(children):
+            render(child, next_prefix, i == len(children) - 1)
+
+    for i, root in enumerate(roots):
+        render(root, "", i == len(roots) - 1)
+
+    return "\n".join(lines)
+
+
 @app.callback(
     Output("events-table", "data"),
+    Output("events-table", "page_current"),
+    Output("events-table", "selected_row_ids"),
     Output("event-help", "children"),
     Input("events-store", "data"),
     Input("cfg-store", "data"),
     Input("event-region-filter", "value"),
     Input("lifetime-mode", "value"),
+    Input("event-number-filter", "value"),
 )
-def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode: str):
+def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode: str, event_filter: str):
     if not events_json:
-        return [], "Run extraction to populate the event list."
+        return [], 0, [], "Run extraction to populate the event list."
 
     events = pd.read_json(StringIO(events_json), orient="split")
     if events.empty:
-        return [], "No BSM events found."
+        return [], 0, [], "No BSM events found."
 
     if region_filter == "anubis":
         events = events[events["region"] == "anubis"]
     elif region_filter == "outside_atlas":
         events = events[events["region"].isin(["cavern", "outside", "stable"])]
 
+    event_filter = str(event_filter or "").strip()
+    if event_filter:
+        event_as_text = pd.to_numeric(events["event"], errors="coerce").astype("Int64").astype(str)
+        region_as_text = events.get("region", pd.Series("", index=events.index)).astype(str)
+        q = event_filter.lower()
+        events = events[
+            event_as_text.str.contains(q, regex=False, na=False)
+            | region_as_text.str.lower().str.contains(q, regex=False, na=False)
+        ]
+
     out = events.copy()
 
     if "event" in out.columns:
         out["event"] = pd.to_numeric(out["event"], errors="coerce").astype("Int64")
+        out["id"] = out["event"].astype(str)
     if "n_bsm" in out.columns:
         out["n_bsm"] = pd.to_numeric(out["n_bsm"], errors="coerce").astype("Int64")
     if "region" in out.columns:
@@ -1105,48 +1192,75 @@ def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode:
         if col in out.columns:
             out[col] = pd.to_numeric(out[col], errors="coerce").round(3)
 
-    return _dash_safe_records(out), f"{len(out)} events shown (filter: {region_filter}, lifetime mode: {lifetime_mode}). Select one row."
+    help_txt = (
+        f"{len(out)} events shown (region filter: {region_filter}, lifetime mode: {lifetime_mode}). "
+        "Use the quick event filter for simple numbers; the column filters still support Dash syntax."
+    )
+    return _dash_safe_records(out), 0, [], help_txt
 
 @app.callback(
     Output("tracks-store", "data"),
     Output("event-summary", "children"),
+    Output("event-decay-tree", "children"),
+    Input("events-table", "selected_row_ids"),
     Input("events-table", "selected_rows"),
+    Input("apply-event-tracks", "n_clicks"),
+    Input("event-depth", "n_submit"),
+    Input("event-extend", "n_submit"),
     State("events-table", "data"),
     State("cfg-store", "data"),
     State("event-depth", "value"),
     State("event-extend", "value"),
 )
-def compute_event_tracks(selected_rows, table_data, cfg_json, depth, extend_m):
+def compute_event_tracks(selected_row_ids, selected_rows, _apply_clicks, _depth_submit, _extend_submit, table_data, cfg_json, depth, extend_m):
     if not table_data or not cfg_json:
-        return None, "No event selected."
+        return None, "No event selected.", ""
 
-    if not selected_rows:
-        return None, "Select an event in the table."
+    event_id: Optional[int] = None
+    if selected_row_ids:
+        try:
+            event_id = int(str(selected_row_ids[0]))
+        except Exception:
+            event_id = None
+
+    if event_id is None and selected_rows:
+        try:
+            event_id = int(table_data[selected_rows[0]]["event"])
+        except Exception:
+            event_id = None
+
+    if event_id is None:
+        return None, "Select an event in the table.", ""
 
     try:
         cfg = json.loads(cfg_json)
     except Exception:
-        return None, "Invalid config store."
+        return None, "Invalid config store.", ""
 
     hepmc_path = cfg.get("hepmc_path")
     pdg_id = int(cfg.get("pdg_id"))
     pos_ip = bool(cfg.get("pos_ip"))
 
     if not hepmc_path or not os.path.exists(hepmc_path):
-        return None, "HepMC path missing or not found."
+        return None, "HepMC path missing or not found.", ""
 
-    row = table_data[selected_rows[0]]
-    event_id = int(row["event"])
+    row = next((r for r in table_data if str(r.get("event")) == str(event_id)), None)
+    if row is None:
+        return None, f"Event {event_id} is not visible in the current table filter.", ""
 
     cav_transform = CavernTransform(cavern=cav, hepmc_positions_are_ip_relative=pos_ip)
 
     try:
         event = load_event_from_hepmc(hepmc_path, event_id)
     except Exception as e:
-        return None, f"Failed to load event {event_id}: {e}"
+        return None, f"Failed to load event {event_id}: {e}", ""
 
-    depth_i = _int_or_none(depth) or 2
-    extend_f = _float_or_none(extend_m) or 30.0
+    depth_i = _int_or_none(depth)
+    if depth_i is None:
+        depth_i = 2
+    extend_f = _float_or_none(extend_m)
+    if extend_f is None:
+        extend_f = 30.0
 
     tb_cfg = TrackBuildConfig(
         root_pdg=pdg_id,
@@ -1170,6 +1284,9 @@ def compute_event_tracks(selected_rows, table_data, cfg_json, depth, extend_m):
             "x0": s.x0, "y0": s.y0, "z0": s.z0,
             "x1": s.x1, "y1": s.y1, "z1": s.z1,
             "has_decay_vertex": s.has_decay_vertex,
+            "node_id": getattr(s, "node_id", None),
+            "parent_id": getattr(s, "parent_id", None),
+            "copy_count": getattr(s, "copy_count", 0),
             "color": _seg_color(s),
         })
 
@@ -1185,7 +1302,7 @@ def compute_event_tracks(selected_rows, table_data, cfg_json, depth, extend_m):
         f"HNL lifetime={row.get('hnl_lifetime_ns')} ns | MET={row.get('met')} | pTmax={row.get('pt_max')} | Emax={row.get('E_max')}",
     ])
 
-    return json.dumps({"event": event_id, "segments": ser}), summary
+    return json.dumps({"event": event_id, "segments": ser}), summary, _decay_tree_text(ser)
 
 
 @app.callback(

@@ -345,6 +345,11 @@ class TrackSegment:
 
     has_decay_vertex: bool
 
+    # Decay-tree metadata used by the UI to build an explanatory tree.
+    node_id: int = -1
+    parent_id: Optional[int] = None
+    copy_count: int = 0
+
 
 @dataclass(frozen=True)
 class TrackBuildConfig:
@@ -418,22 +423,72 @@ def build_event_tracks(event: "hp.GenEvent", cfg: TrackBuildConfig) -> List[Trac
         return p
 
     segs: List[TrackSegment] = []
+    next_node_id = 0
 
-    def make_segment(p: "hp.GenParticle", depth: int, is_root: bool, start_override: Optional[np.ndarray] = None) -> Optional[TrackSegment]:
-        """Build one track segment for a particle.
+    def _same_pid(a: "hp.GenParticle", b: "hp.GenParticle") -> bool:
+        try:
+            return int(a.pid) == int(b.pid)
+        except Exception:
+            return False
 
-        Args:
-            p: HepMC particle.
-            depth: Depth of the particle in the decay tree.
-            is_root: Whether the particle is a selected root particle.
-            start_override: Optional start position overriding the particle
-                production vertex.
+    def _particle_seen_key(p: "hp.GenParticle") -> int:
+        # Object identity is stable enough for a single in-memory event and
+        # avoids relying on binding-specific barcode/id attributes.
+        return id(p)
 
-        Returns:
-            A ``TrackSegment`` if a valid start position can be established,
-            otherwise ``None``.
+    def collapse_self_copies(p: "hp.GenParticle", max_links: int = 128) -> Tuple["hp.GenParticle", int]:
+        """Follow status/self-copy links without consuming display depth.
+
+        Generators often represent propagation with chains like LLP -> LLP ->
+        LLP before the actual decay. Drawing each copy makes the `depth` control
+        look ineffective and can stop the tree before the visible daughters.
+        We collapse only pure self-copy vertices, i.e. vertices whose outgoing
+        particles contain same-PDG copies and no non-self decay products.
         """
-        pv = start_override if start_override is not None else convert_pos(_vertex_xyz(_production_vertex(p)))
+        current = p
+        seen = {_particle_seen_key(current)}
+        n_copies = 0
+
+        for _ in range(max_links):
+            children = _get_children(current)
+            if not children:
+                break
+
+            same_children = [ch for ch in children if _same_pid(ch, current)]
+            non_same_children = [ch for ch in children if not _same_pid(ch, current)]
+
+            # A real decay vertex should expose non-self products. Stop there.
+            if non_same_children or not same_children:
+                break
+
+            nxt = same_children[0]
+            key = _particle_seen_key(nxt)
+            if key in seen:
+                break
+            seen.add(key)
+            current = nxt
+            n_copies += 1
+
+        return current, n_copies
+
+    def make_segment(
+        p: "hp.GenParticle",
+        depth: int,
+        is_root: bool,
+        node_id: int,
+        parent_id: Optional[int],
+        start_override: Optional[np.ndarray] = None,
+        source_particle: Optional["hp.GenParticle"] = None,
+        copy_count: int = 0,
+    ) -> Optional[TrackSegment]:
+        """Build one visible track segment for a particle.
+
+        `source_particle` is used for the production vertex. This lets a
+        collapsed LLP/self-copy chain be drawn from its original creation point
+        to the terminal decay vertex of the last copy.
+        """
+        source = source_particle if source_particle is not None else p
+        pv = start_override if start_override is not None else convert_pos(_vertex_xyz(_production_vertex(source)))
         if pv is None:
             pv = convert_pos(_vertex_xyz(_production_vertex(p)))
         if pv is None:
@@ -441,9 +496,6 @@ def build_event_tracks(event: "hp.GenEvent", cfg: TrackBuildConfig) -> List[Trac
 
         ev_xyz = _vertex_xyz(_end_vertex(p))
         ev = convert_pos(ev_xyz)
-
-        px, py, pz = _momentum_xyz(p)
-        d = _normalize(np.array([px, py, pz], dtype=float))
 
         has_decay = ev is not None
         if ev is None:
@@ -456,7 +508,7 @@ def build_event_tracks(event: "hp.GenEvent", cfg: TrackBuildConfig) -> List[Trac
             )
 
         pid = int(getattr(p, "pid", 0))
-        
+
         return TrackSegment(
             pid=pid,
             name=particle_display_name(pid),
@@ -466,55 +518,94 @@ def build_event_tracks(event: "hp.GenEvent", cfg: TrackBuildConfig) -> List[Trac
             x0=float(pv[0]), y0=float(pv[1]), z0=float(pv[2]),
             x1=float(ev[0]), y1=float(ev[1]), z1=float(ev[2]),
             has_decay_vertex=has_decay,
+            node_id=node_id,
+            parent_id=parent_id,
+            copy_count=copy_count,
         )
 
-    def walk(p: "hp.GenParticle", depth: int, is_root: bool, start_override: Optional[np.ndarray] = None):
-        """Recursively traverse descendants and collect track segments.
+    def walk(
+        p: "hp.GenParticle",
+        depth: int,
+        is_root: bool,
+        start_override: Optional[np.ndarray] = None,
+        parent_id: Optional[int] = None,
+        source_particle: Optional["hp.GenParticle"] = None,
+    ):
+        """Recursively traverse descendants and collect visible track segments."""
+        nonlocal next_node_id
 
-        Args:
-            p: Current HepMC particle.
-            depth: Current decay-tree depth.
-            is_root: Whether the current particle is a selected root.
-            start_override: Optional start position to force for the current
-                particle.
-        """
         if depth > cfg.max_depth:
             return
-        seg = make_segment(p, depth=depth, is_root=is_root, start_override=start_override)
+
+        visible_particle, copy_count = collapse_self_copies(p)
+        node_id = next_node_id
+        next_node_id += 1
+
+        seg = make_segment(
+            visible_particle,
+            depth=depth,
+            is_root=is_root,
+            node_id=node_id,
+            parent_id=parent_id,
+            start_override=start_override,
+            source_particle=source_particle or p,
+            copy_count=copy_count,
+        )
+
+        this_parent_id = parent_id
         if seg is not None:
             segs.append(seg)
+            this_parent_id = node_id
+
         if depth == cfg.max_depth:
             return
 
-        children = _get_children(p)
+        children = _get_children(visible_particle)
 
-        parent_end = convert_pos(_vertex_xyz(_end_vertex(p)))
+        parent_end = convert_pos(_vertex_xyz(_end_vertex(visible_particle)))
         parent_start = None
         if seg is not None:
             parent_start = np.array([seg.x0, seg.y0, seg.z0], dtype=float)
 
         for ch in children:
-            try:
-                if int(ch.pid) == int(p.pid):
-                    continue
-            except Exception:
-                pass
+            # Same-PDG children that still exist here are display copies; do not
+            # consume a new depth level for them. Follow them at the same depth.
+            if _same_pid(ch, visible_particle):
+                walk(
+                    ch,
+                    depth=depth,
+                    is_root=is_root,
+                    start_override=start_override,
+                    parent_id=parent_id,
+                    source_particle=source_particle or p,
+                )
+                continue
 
             # Priority:
             # 1) daughter's own production vertex
-            # 2) parent's end vertex
+            # 2) parent's terminal end vertex
             # 3) parent's start vertex
             child_pv = convert_pos(_vertex_xyz(_production_vertex(ch)))
             child_start = child_pv if child_pv is not None else parent_end
             if child_start is None:
                 child_start = parent_start
 
-            walk(ch, depth + 1, is_root=False, start_override=child_start)
+            walk(ch, depth + 1, is_root=False, start_override=child_start, parent_id=this_parent_id)
 
     for p in event.particles:
         try:
             if int(p.pid) == int(cfg.root_pdg):
-                walk(p, depth=0, is_root=True, start_override=None)
+                # Draw only physical roots. If the same-PDG particle is itself
+                # produced by a pure self-copy vertex, it will be reached by the
+                # first root's collapsed chain.
+                parents = []
+                try:
+                    parents = list(getattr(p, "parents", []))
+                except Exception:
+                    parents = []
+                if any(_same_pid(parent, p) for parent in parents):
+                    continue
+                walk(p, depth=0, is_root=True, start_override=None, parent_id=None, source_particle=p)
         except Exception:
             continue
 

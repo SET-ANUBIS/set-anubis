@@ -456,3 +456,40 @@ input[type=number]{ -moz-appearance: textfield; }
 .dash-table-container .dash-cell.selected{
   background: rgba(96,165,250,0.16) !important;
 }
+
+/* ---------- Event view fixes / decay tree ---------- */
+.event-table-toolbar{
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin: 4px 0 10px 0;
+}
+.event-table-toolbar .label{
+  margin-bottom: 0;
+}
+.secondary-btn{
+  margin: 4px 0 6px 0;
+  padding: 10px 12px;
+}
+.hint{
+  font-size: 12px;
+  color: rgba(229,231,235,0.58);
+  margin: 0 0 8px 0;
+}
+.decay-tree{
+  margin-top: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(229,231,235,0.86);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background: rgba(3, 7, 18, 0.42);
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.dash-table-container .dash-filter input{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+}
