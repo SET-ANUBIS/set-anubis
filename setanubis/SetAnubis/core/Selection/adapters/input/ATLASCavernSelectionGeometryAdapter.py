@@ -156,6 +156,81 @@ def _maybe_float_from_row(row: pd.Series, candidates: tuple[str, ...]) -> float 
                 pass
     return None
 
+def _safe_notna_scalar(value: Any) -> bool:
+    """Return a scalar not-na check even for list/array-like values."""
+    try:
+        out = pd.notna(value)
+    except Exception:
+        return False
+
+    if isinstance(out, (bool, np.bool_)):
+        return bool(out)
+
+    try:
+        return bool(np.asarray(out).all())
+    except Exception:
+        return False
+
+
+def _row_is_final_state(row: pd.Series) -> bool:
+    """Final-state particles have no finite endpoint and should be projected onward."""
+    for col, expected in (("nChildren", 0), ("status", 1)):
+        if col not in row.index or pd.isna(row[col]):
+            continue
+        try:
+            if int(row[col]) == expected:
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def _is_missing_decay_vertex_value(value: Any) -> bool:
+    """Recognise the HEPMC convention used in the legacy code for stable particles."""
+    if not _safe_notna_scalar(value):
+        return True
+
+    try:
+        x, y, z = _as_xyz(value)
+    except Exception:
+        return True
+
+    return bool(
+        np.isclose(x, -1.0)
+        and np.isclose(y, -1.0)
+        and np.isclose(z, -1.0)
+    )
+
+
+def _has_finite_decay_vertex(row: pd.Series, decay_vertex_col: str) -> bool:
+    """
+    True only when the track has a real endpoint.
+
+    Final-state particles, or rows carrying the legacy (-1,-1,-1,-1) decay
+    vertex placeholder, should not be bounded by decayVertex.  They are kept as
+    open tracks so they can propagate to the detector while preserving the new
+    bounded-segment logic for genuinely decaying intermediate particles.
+    """
+    if decay_vertex_col not in row.index:
+        return False
+
+    if _row_is_final_state(row):
+        return False
+
+    value = row[decay_vertex_col]
+    if _is_missing_decay_vertex_value(value):
+        return False
+
+    if "decayVertexDist" in row.index and pd.notna(row["decayVertexDist"]):
+        try:
+            if float(row["decayVertexDist"]) <= 0.0:
+                return False
+        except Exception:
+            pass
+
+    return True
+
+
 class ATLASCavernSelectionGeometryAdapter(ISelectionGeometry):
     """
     Concrete Selection-side adapter for ICavernGeometry / ATLASCavernGeometry.
@@ -287,7 +362,7 @@ class ATLASCavernSelectionGeometryAdapter(ISelectionGeometry):
                 continue
 
             stop_m = None
-            if has_decay_vertex and pd.notna(row[decayVertex]):
+            if has_decay_vertex and _has_finite_decay_vertex(row, decayVertex):
                 try:
                     stop_m = _mm_to_m_xyz(row[decayVertex])
                 except Exception:
@@ -439,7 +514,7 @@ class ATLASCavernSelectionGeometryAdapter(ISelectionGeometry):
                 continue
 
             stop_m = None
-            if has_decay_vertex and pd.notna(row[decayVertex]):
+            if has_decay_vertex and _has_finite_decay_vertex(row, decayVertex):
                 try:
                     stop_m = _mm_to_m_xyz(row[decayVertex])
                 except Exception:
