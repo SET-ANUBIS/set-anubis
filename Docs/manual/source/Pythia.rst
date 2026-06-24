@@ -3,129 +3,99 @@
 Pythia Simulation Interface
 ===========================
 
-The Pythia Simulation Interface provides a structured and modular way to configure and execute simulations for particle physics, particularly for Heavy Neutral Leptons (HNL) and Dark Photons. The interface relies on modular components and configuration files to handle particles, decays, and production processes.
+The Pythia interface provides two layers:
 
-It is composed of two main classes:
+- ``PythiaCMNDInterface`` builds ``.cmnd`` cards: particles, decays, production channels and generic Pythia settings.
+- ``PythiaRunInterface`` executes the C++/pybind11 Pythia runner and can apply runtime options, lifetimes, widths and event-level hard cuts.
 
-- `PythiaCMNDInterface`: To generate `.cmnd` config files for Pythia.
-- `PythiaRunInterface`: To execute Pythia simulations based on those `.cmnd` files.
-
-.. contents:: Contents
-   :local:
-   :depth: 2
-
+The interface is particle-agnostic: every configurable method takes a PDG id and does not assume HNL ``9900012``.
 
 CMND File Generation
 --------------------
 
-.. autoclass:: NeoSetAnubis.core.Pythia.adapters.input.pythia_cmnd_interface.PythiaCMNDInterface
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-This interface builds Pythia-compatible CMND cards based on model parameters, particle decays, and production channels. It connects directly to `NeoSetAnubisInterface` and `DecayInterface`, which provide access to internal particle definitions and decay data.
-
-
-Example Usage:
+Example:
 
 .. code-block:: python
 
-    from SetAnubis.core.Pythia.adapters.input.pythia_cmnd_interface import PythiaCMNDInterface
+    from SetAnubis.core.Pythia.adapters.input.PythiaCMNDInterface import PythiaCMNDInterface
 
+    pid = 9900012  # replace with any BSM/modified particle PDG id
     interface = PythiaCMNDInterface(master_interface, decay_interface)
-    interface.add_new_particles([9900012])
-    interface.add_hard_production(hard_production_enum)
-    card_str = interface.serialize()
-    with open("hnl.cmnd", "w") as f:
-        f.write(card_str)
 
+    interface.add_pythia_setting("PhaseSpace:pTHatMin", 20)
+    interface.add_hard_production("HardQCD:hardbbbar")
 
-Simulation Execution
---------------------
+    interface.set_particle_lifetime(pid, tau0_mm=1000.0)
+    interface.set_particle_options(
+        pid,
+        mayDecay=True,
+        isVisible=False,
+        doForceWidth=True,
+        extra_settings={"onMode": "on"},
+    )
+    interface.add_new_particles([pid])
+    interface.add_decay_to_bsm_particles(pid)
+    interface.add_decay_from_bsm_particles(pid)
 
-.. autoclass:: NeoSetAnubis.core.Pythia.adapters.input.pythia_run_interface.PythiaRunInterface
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    with open("model.cmnd", "w") as f:
+        f.write(interface.serialize())
 
-Once CMND cards are created, simulations can be executed with this interface. It takes care of directory management, output naming, and file generation.
+Runtime Generation Options
+--------------------------
 
-Example:
-
-.. code-block:: python
-
-    from SetAnubis.core.Pythia.adapters.input.pythia_run_interface import PythiaRunInterface
-
-    runner = PythiaRunInterface("outputs/")
-    runner.ensure_directories(["lhe", "hepmc"])
-    runner.process_file("hnl.cmnd", "outputs/lhe", "outputs/hepmc", 10000, suffix="scan1", include_time=True)
-
-
-Command-Line Simulation Example
--------------------------------
-
-You can use a CLI tool to configure and run simulations. Supported arguments:
-
-.. code-block:: bash
-
-    usage: Pythia Simulation
-           [-h] [--model MODEL] [--particle PARTICLE] [--mass MASS]
-           [--coupling COUPLING [COUPLING ...]] [--process PROCESS]
-           [--may_decay MAY_DECAY] [--epsilon EPSILON]
-           [--MesonMother MESONMOTHER]
-
-    optional arguments:
-      -h, --help
-      --model MODEL
-      --particle PARTICLE
-      --mass MASS
-      --coupling COUPLING ...
-      --process PROCESS
-      --may_decay MAY_DECAY
-      --epsilon EPSILON
-      --MesonMother MESONMOTHER
-
-
-Scan Mode (Multi-CMND Interface)
---------------------------------
-
-This module includes a flexible **multi-CMND generation** interface to scan over a grid of parameter values (mass, couplings, etc.) and generate `.cmnd` files with appropriate naming.
-
-The key features of the scan system include:
-
-- **Automatic naming** of `.cmnd` files based on the parameter values (e.g. `cmnd_mass1.0_coup1e-9.cmnd`)
-- **Custom sweep logic**: select the parameters and ranges you want
-- **Folder organization**: Output directories can be structured by parameter set
-- **Integration with `PythiaRunInterface`** for batch simulations
-
-
-Example:
+``PythiaRunInterface`` exposes runtime settings without requiring a new CMND card.
+Hard cuts are applied after event generation and before writing LHE/HepMC outputs.
 
 .. code-block:: python
 
-    # Assuming you have a scan manager (WIP interface)
-    scan_manager = CMNDScanManager(base_dir="scan_outputs/")
+    from SetAnubis.core.Pythia.adapters.input.PythiaRunInterface import PythiaRunInterface
+
+    pid = 9900012
+    runner = PythiaRunInterface(
+        "outputs",
+        new_particles=[pid],
+        pythia_settings=["PhaseSpace:pTHatMin = 20"],
+        lifetimes={pid: 1000.0},      # tau0 in mm
+        widths={pid: 1e-12},          # mWidth in GeV
+        hard_cuts=[{
+            "pdg_id": pid,
+            "min_pt": 30.0,
+            "max_eta": 2.5,
+            "min_count": 1,
+            "use_abs_id": True,
+            "final_only": False,
+        }],
+        max_trials=1_000_000,
+    )
+
+    runner.ensure_directories(["lhe", "hepmc", "text"])
+    runner.process_file(
+        "model.cmnd",
+        "outputs/lhe",
+        "outputs/hepmc",
+        "outputs/text",
+        num_events=10000,
+        suffix="scan1",
+    )
+
+You can add cuts incrementally:
+
+.. code-block:: python
+
+    runner.add_hard_cut(pdg_id=13, min_pt=10.0, final_only=True, min_count=2)
+    runner.set_lifetime(13, 1e20)
+    runner.add_pythia_setting("ParticleDecays:tau0Max = 1e6")
+
+Scan Mode
+---------
+
+``CMNDScanManager`` can now store the same particle options and generic settings before generating all cards:
+
+.. code-block:: python
+
     scan_manager.register_scan("mass", [0.5, 1.0, 2.0])
     scan_manager.register_scan("coupling", [1e-9, 5e-9])
+    scan_manager.set_new_particle(pid)
+    scan_manager.set_particle_lifetime(pid, 1000.0)
+    scan_manager.add_pythia_setting("PhaseSpace:pTHatMin", 20)
     scan_manager.generate_all_cmnds()
-
-    runner = PythiaRunInterface("scan_outputs/")
-    runner.batch_run_from_folder("scan_outputs/configs", "scan_outputs/lhe", "scan_outputs/hepmc", num_events=10000)
-
-This system is ideal for running multiple simulations for sensitivity studies or large-scale parameter exploration.
-
----
-
-Particle Configuration Registration
------------------------------------
-
-Custom particle configurations can be added via the `register_config` decorator.
-
-.. code-block:: python
-
-    from Pythia_conf import register_config
-
-    @register_config("MyNewParticle")
-    class MyNewParticleConfig:
-        # Your implementation here
-        pass

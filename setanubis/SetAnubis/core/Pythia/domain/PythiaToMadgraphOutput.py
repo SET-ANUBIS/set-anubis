@@ -1,17 +1,8 @@
+import logging
 import re
 import shutil
-import logging
 from pathlib import Path
-from typing import Optional
-
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-
-
-import re
-import shutil
-import logging
-from pathlib import Path
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -25,7 +16,7 @@ class ScanProcessor:
         param_names: list[str],
         param_info_func: Callable[[str], tuple[str, str]],
         scan_filename: str = "scan_run_output.txt",
-        particle_id: str = "9900012"
+        particle_id: Optional[str | int] = None,
     ):
         self.text_dir = text_dir
         self.hepmc_dir = hepmc_dir
@@ -33,7 +24,7 @@ class ScanProcessor:
         self.param_names = param_names
         self.param_info_func = param_info_func
         self.scan_filename = scan_filename
-        self.particle_id = particle_id
+        self.particle_id = str(particle_id) if particle_id is not None else None
         self.scan_path = self.output_dir / self.scan_filename
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -44,9 +35,8 @@ class ScanProcessor:
         for param in self.param_names:
             label, unit = self.param_info_func(param)
             parts.append(f"{label}#{unit}")
-        parts.extend([
-            "cross", f"width#{self.particle_id}"
-        ])
+        width_label = f"width#{self.particle_id}" if self.particle_id else "width#first_DECAY"
+        parts.extend(["cross", width_label])
         header = "#run_name            " + "    ".join(f"{p:<20}" for p in parts) + "\n"
         self.scan_path.write_text(header)
         logging.info(f"Fichier de scan initialisé : {self.scan_path}")
@@ -78,12 +68,22 @@ class ScanProcessor:
         cross = 0.0
         width = 0.0
 
+        decay_pattern = (
+            rf"^\s*DECAY\s+{re.escape(self.particle_id)}\s+([\deE\+\-\.]+)"
+            if self.particle_id
+            else r"^\s*DECAY\s+[-]?\d+\s+([\deE\+\-\.]+)"
+        )
+
         try:
             for line in filepath.read_text().splitlines():
                 if "Integrated weight" in line:
                     cross = float(line.split(":")[1].strip())
-                if match := re.match(rf"^\s*DECAY\s+{self.particle_id}\s+([\deE\+\-\.]+)", line):
+                elif "Pythia sigmaGen" in line and cross == 0.0:
+                    cross = float(line.split(":")[1].strip())
+                if match := re.match(decay_pattern, line):
                     width = float(match.group(1))
+                    if self.particle_id is None:
+                        break
         except Exception as e:
             logging.error(f"Erreur lecture fichier {filepath}: {e}")
         return cross, width
@@ -124,24 +124,10 @@ class ScanProcessor:
 
         logging.info(f"Conversion terminée. Fichiers disponibles dans : {self.output_dir}")
 
-def truc(param: str) -> tuple[str, str]:
-    # Simule un dictionnaire d'étiquettes et unités
+
+def example_param_info(param: str) -> tuple[str, str]:
     mapping = {
-        "mN1": ("mass", "9900012"),
-        "VeN1": ("numixing", "1"),
-        "UN1": ("universal", "arb")
+        "mass": ("mass", "particle"),
+        "coupling": ("coupling", "arb"),
     }
     return mapping.get(param, (param, "?"))
-
-
-if __name__ == "__main__":
-    processor = ScanProcessor(
-        text_dir=Path("/home/theo/.../text"),
-        hepmc_dir=Path("/home/theo/.../hepmc"),
-        output_dir=Path("SS_output"),
-        param_names=["mN1", "VeN1"],  # ou ["mN1", "VeN1", "UN1"]
-        param_info_func=truc,
-        scan_filename="scan_run_output.txt",
-        particle_id="9900012"
-    )
-    processor.process_all()

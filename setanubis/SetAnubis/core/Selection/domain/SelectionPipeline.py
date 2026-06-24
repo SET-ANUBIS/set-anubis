@@ -125,7 +125,15 @@ class SelectionPipeline:
         cfs  = out.get("chargedFinalStates", pd.DataFrame())
         nfs  = out.get("neutralFinalStates", pd.DataFrame())
 
-        if self.options.add_jets:
+        # Database bundles can now be stored after JetBuilder.  In that case we
+        # must not rebuild jets from a pruned bundle, because neutralFinalStates
+        # is intentionally absent and rebuilding would silently overwrite the
+        # correct finalStatePromptJets with charged-only jets.
+        have_prebuilt_jets = (
+            "finalStatePromptJets" in out
+            and isinstance(out.get("finalStatePromptJets"), pd.DataFrame)
+        )
+        if self.options.add_jets and not have_prebuilt_jets:
             if not cfs.empty or not nfs.empty:
                 ev = np.unique(np.concatenate([
                     cfs["eventNumber"].to_numpy(dtype=int, copy=False) if not cfs.empty else np.array([], dtype=int),
@@ -133,7 +141,15 @@ class SelectionPipeline:
                 ]))
                 out["finalStatePromptJets"] = createJetDF(ev, cfs, nfs)
 
-        if self.options.compute_isolation and not LLPs.empty:
+        # Same idea for isolation: selection-ready DB bundles already have
+        # minDeltaR_Jets/minDeltaR_Tracks attached to LLPs.  Do not overwrite
+        # them unless the columns are absent.
+        have_precomputed_iso = (
+            not LLPs.empty
+            and "minDeltaR_Jets" in LLPs.columns
+            and "minDeltaR_Tracks" in LLPs.columns
+        )
+        if self.options.compute_isolation and not LLPs.empty and not have_precomputed_iso:
             iso = IsolationComputer(selection=sel_cfg)
             out["LLPs"] = iso.attach_min_delta_r(out)
 

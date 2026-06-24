@@ -1,13 +1,16 @@
+from __future__ import annotations
 import itertools
 import os
-from typing import List, Dict, Any, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 from pathlib import Path
 from SetAnubis.core.Pythia.adapters.input.PythiaCMNDInterface import PythiaCMNDInterface
 from SetAnubis.core.Pythia.infrastructure.enums import AbstractEnumProduction
-from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import DecayInterface
-from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
 from SetAnubis.core.Pythia.domain.SpecialCases import Specials, GeneralParams, GeneralType
-from SetAnubis.core.Common.MultiSet import MultiSet
+
+if TYPE_CHECKING:
+    from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import DecayInterface
+    from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
+
 
 class CMNDScanManager:
     """
@@ -26,6 +29,8 @@ class CMNDScanManager:
         self.production_channel: AbstractEnumProduction = None
         self.specials : Dict[Specials,Dict[Any, Any]] = {}
         self.general_modif : Dict[Tuple[GeneralType, GeneralParams],Any] = {}
+        self.particle_options: Dict[int, Dict[str, Any]] = {}
+        self.pythia_settings: List[Tuple[str, Any]] = []
 
     def register_scan(self, param: str, values: List[float]):
         self.scan_params[param] = values
@@ -51,6 +56,16 @@ class CMNDScanManager:
     def general_changes(self, generaltype : GeneralType, generalparam : GeneralParams, value):
         self.general_modif[(generaltype, generalparam)] = value
 
+    def set_particle_options(self, particle: int, **options):
+        current = self.particle_options.setdefault(int(particle), {})
+        current.update({k: v for k, v in options.items() if v is not None})
+
+    def set_particle_lifetime(self, particle: int, tau0_mm: float):
+        self.set_particle_options(particle, tau0=float(tau0_mm), tauCalc=False)
+
+    def add_pythia_setting(self, key: str, value: Any = None):
+        self.pythia_settings.append((key, value))
+
     def generate_all_cmnds(self):
         os.makedirs(self.output_dir, exist_ok=True)
         keys = list(self.scan_params.keys())
@@ -73,8 +88,14 @@ class CMNDScanManager:
             for (gentype, genparam), val in self.general_modif.items():
                 interface.add_general_changes(gentype, genparam, val)
 
+            for key, val in self.pythia_settings:
+                interface.add_pythia_setting(key, val)
+
             for spec, val in self.specials.items():
                 interface.special_change(spec, val)
+
+            for pdg, options in self.particle_options.items():
+                interface.set_particle_options(pdg, **options)
 
             for pdg in self.new_particles:
                 interface.add_new_particles([pdg])
@@ -91,4 +112,4 @@ class CMNDScanManager:
             with open(cmnd_path, "w") as f:
                 f.write(interface.serialize())
 
-        print(f"✅ CMND generation complete. Files in: {self.output_dir}")
+        print(f"CMND generation complete. Files in: {self.output_dir}")

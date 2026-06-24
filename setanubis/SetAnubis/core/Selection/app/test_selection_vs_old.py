@@ -110,7 +110,7 @@ def main():
     from SetAnubis.core.Selection.domain.SelectionEngine import (
         SelectionEngine, SelectionConfig, RunConfig, MinThresholds, MinDR
     )
-    from write_and_load_selection_dict import load_bundle
+    from SetAnubis.core.DataBase.adapters.FileCopyBuilder import load_bundle
     from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import SelectionGeometryAdapter
     from SetAnubis.core.Geometry.adapters.selection_adapter import GeometrySelectionAdapter
     from SetAnubis.core.Selection.domain.JetBuilder import createJetDF
@@ -172,7 +172,7 @@ def main():
 
     iso = IsolationComputer(selection=sel_cfg)
     SDFs["LLPs"] = iso.attach_min_delta_r(SDFs)
-
+    
     run_config_dict = {
         "reweightLifetime": True,
         "plotTrajectory": False,
