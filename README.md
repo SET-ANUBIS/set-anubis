@@ -1,88 +1,203 @@
-# SEnsitivity sTudies for ANUBIS: SET-ANUBIS
-This repository contains a lightweight framework for the purpose of performing sensitivity studies of the ANUBIS experiment in the different potential geometry configurations (i.e. Shaft and ceiling) for a variety of LLP models.
+# SET-ANUBIS
 
-The general framework will be composed of three main aspects:
-- Event Generation:
-  - item Different LLP models will be simulated in the ATLAS LHC environment.
-  - There are benefits to different MC generators and so this will be set up such that the output of each of these is a common input to the next section. 
-  - Currently planned for inclusion: MadGraph and Pythia8.
-- Acceptance and selection:
-  - This will take the output of the simulated events, and apply geometric acceptance cuts based on the work of Toby Satterthwaite to represent the possible detection of an LLP event within different geometric configurations of ANUBIS.
-  - There will also be the ability to apply loose selection cuts here as appropriate e.g. number of layers of RPCs with hits, opening angles etc.
-- Sensitivity determination:
-  - Use the simulated events that pass the acceptance and selection criteria to determine ANUBIS' projected sensitivity to the specified LLP model. 
-  - Create a set of plots with this sensitivity, which can include limits from other experiments where appropriate or possible, in a common style. 
+[![CI](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/ci.yml/badge.svg)](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/ci.yml)
+[![Docs](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/docs.yml/badge.svg)](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/docs.yml)
+[![PyPI](https://img.shields.io/pypi/v/SetAnubis.svg)](https://pypi.org/project/SetAnubis/)
+[![Python](https://img.shields.io/pypi/pyversions/SetAnubis.svg)](https://pypi.org/project/SetAnubis/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![DOI / citation](https://img.shields.io/badge/cite-arXiv%3A2512.14942-b31b1b.svg)](https://arxiv.org/abs/2512.14942)
 
+**SET-ANUBIS** — *Simulation, accEptance and sensiTivity studies framework for
+ANUBIS* — is a modular Python/C++ toolkit for long-lived-particle (LLP)
+sensitivity studies for the proposed ANUBIS detector.
 
-Note: The framework is named for the Egyptian god, Set, in line with ANUBIS' namesake. Set is commonly considered the god of deserts, storms, and disorder. This is somewhat fitting for this framework as in sensitivity studies you are exploring a vast desert of parameter space that can feel quite disordered but we aim to map that desert and bring order to it. 
+It connects model input, decay-width and branching-ratio calculations, event
+generation, event storage, ATLAS-cavern/ANUBIS geometry, selection cutflows and
+sensitivity projections through small domain APIs and replaceable adapters.
 
+<p align="center">
+  <img src="Docs/assets/set-anubis-architecture.png" alt="SET-ANUBIS architecture" width="900">
+</p>
+
+## Highlights
+
+- **Model-agnostic UFO interface** for particle content, parameters, masses,
+  widths and MadGraph-compatible cards.
+- **Branching-ratio and lifetime layer** with Python, file-interpolation,
+  MadGraph and MARTY-oriented adapters.
+- **Event-generation adapters** for Pythia8 and MadGraph5_aMC@NLO.
+- **Optional compiled Pythia/HepMC3 Python binding** that is disabled by default
+  and can be built explicitly during `pip install`.
+- **Geometry and selection pipeline** for ATLAS cavern / ANUBIS RPC acceptance,
+  cutflows, isolation, jets and lifetime reweighting.
+- **Content-addressed event database** for reproducible scans and storage-aware
+  regeneration/audit workflows.
+- **Dash inspection tools** for HepMC event visualisation and database auditing.
 
 ## Installation
 
-### Python package only
+### Python-only install
 
 ```bash
-python -m pip install .
+python -m pip install SetAnubis
+```
+
+From a local checkout:
+
+```bash
+git clone https://github.com/SET-ANUBIS/set-anubis.git
+cd set-anubis
+python -m pip install -e .
 setanubis-pythia-smoke
 ```
 
-The default install is pure Python.  It lets you use the Python APIs and generate
-Pythia CMND cards without requiring Pythia8/HepMC3 on the machine.
+The default install is pure Python. It supports the public APIs, UFO/card
+manipulation and Pythia CMND generation without requiring Pythia8 or HepMC3 on
+the machine.
 
 ### Optional Pythia/HepMC3 runtime
 
-To run Pythia from Python, compile the optional `pythia_sim` binding during
-installation by passing the external dependency paths explicitly:
+To run Pythia from Python, install or build Pythia8 and HepMC3, then compile the
+optional binding explicitly:
 
 ```bash
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
-SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
-python -m pip install .[pythia]
+SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
 ```
 
-For a local developer install of HepMC3 + Pythia8 first:
+For a local developer checkout you can use the bundled external-install helper:
 
 ```bash
 ./External_Integration/install.sh HepMC3 Pythia
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
-SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
-python -m pip install .[pythia]
+SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install python -m pip install -e ".[pythia]"
 ```
 
-Check the runtime with:
+Validate the runtime with:
 
 ```bash
 setanubis-pythia-check
 ```
 
-When installing from a published PyPI wheel, pip will not compile native code.
-To compile the optional binding from a published source distribution, use
-`--no-binary SetAnubis` together with the same environment variables.
+See [`PYTHIA_PACKAGING.md`](PYTHIA_PACKAGING.md) for the full packaging and
+native-extension policy.
 
-See `PYTHIA_PACKAGING.md` for details and PyPI/TestPyPI guidance.
+## Quick start
 
-## Generating the docs
+The 1.0.0 release exposes a short public API. Prefer `from setanubis import ...`
+for user scripts and notebooks.
 
-If you want to have the docs in a local directory, you can follow this tutorial : 
+```python
+from setanubis import SetAnubisInterface, PythiaRunInterface, ufo_path
 
+model = SetAnubisInterface(ufo_path("UFO_HNL"))
+
+runner = PythiaRunInterface(
+    "outputs",
+    new_particles=[9900012],
+    pythia_settings=["PhaseSpace:pTHatMin = 20"],
+    lifetimes={9900012: 1000.0},
+    hard_cuts=[{
+        "pdg_id": 9900012,
+        "min_pt": 30.0,
+        "max_eta": 2.5,
+        "min_count": 1,
+        "use_abs_id": True,
+    }],
+)
+
+print(runner.check_runtime())
 ```
-cd Docs/manual
-make html
-xdg-open build/html/index.html
+
+Generate a generic Pythia CMND file without a compiled binding:
+
+```bash
+setanubis-pythia-smoke --pid 42 --out pythia_smoke_outputs
 ```
 
-## Use the Branching Ratio calculator
+Run the optional native runtime once the binding is compiled:
 
-Using the BRCalculator can be done in two ways. Either by using **python function** (you need to define function to calculate all the DecayWidths), or by using
-the **file method**, where you put equation in a file (for example for channel (3,3), model HNl, particle N1, file db/HNL/N1/3_3.txt) and the equation will be evaluated.
+```bash
+setanubis-pythia-smoke --run-pythia --no-hard-cut --events 5
+```
 
-If you're using the file method, you need to set the BR you want to use in "on" mode. This mean that in (for our last example) the db/HNL/Decays_brs/DecaySelection.conf you can put to on/off the BR channels you're interested in.
+## Repository layout
 
-## Authors and acknowledgment
-Sofie Erner
-Anna Mullin
-Théo Reymermier
-Toby Satterthwaite 
-Paul Swallow
+```text
+setanubis/SetAnubis/core/
+├── ModelCore/        # UFO/model-facing interface and parameter services
+├── BranchingRatio/   # decay-width, BR and lifetime calculation layer
+├── DataBase/         # event metadata, CAS bundles, card generation, UFO parsing
+├── Pythia/           # CMND generation and optional C++/pybind11 runner
+├── MadGraph/         # MadGraph card/running adapters
+├── Geometry/         # ATLAS cavern and ANUBIS geometry models
+└── Selection/        # HepMC/dataframe selection, cutflows, isolation, jets
+```
+
+## Documentation
+
+- [Installation guide](INSTALL.md)
+- [Pythia packaging guide](PYTHIA_PACKAGING.md)
+- [Sphinx manual source](Docs/manual/source/index.rst)
+- [Examples](setanubis/SetAnubis/examples/README.md)
+- [Release process](RELEASE.md)
+
+Build the local manual with:
+
+```bash
+python -m pip install -e ".[docs]"
+sphinx-build -b html Docs/manual/source Docs/manual/build/html
+```
+
+## Dash interfaces
+
+The GUI apps are optional and live inside the Python package tree:
+
+- [`SetAnubis.HepMCGUI`](setanubis/SetAnubis/HepMCGUI/README.md): event and
+  geometry visualisation.
+- [`SetAnubis.SetAnubisDBDashboard`](setanubis/SetAnubis/SetAnubisDBDashboard/README.md):
+  database and storage inspection.
+
+Install GUI dependencies with:
+
+```bash
+python -m pip install "SetAnubis[app]"
+```
+
+## Development
+
+```bash
+git clone https://github.com/SET-ANUBIS/set-anubis.git
+cd set-anubis
+python -m pip install -e ".[dev,docs]"
+python -m pytest -q setanubis/tests
+python -m build
+```
+
+Native Pythia builds are covered by a separate workflow because Pythia8/HepMC3
+are large external C++ dependencies.
+
+## Citation
+
+If SET-ANUBIS contributes to a study or publication, please cite the project and
+the associated preprint placeholder:
+
+```bibtex
+@misc{setanubis2025,
+  title  = {SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies},
+  url    = {https://arxiv.org/abs/2512.14942},
+  year   = {2025}
+}
+```
+
+A structured citation is provided in [`CITATION.cff`](CITATION.cff).
+
+## Community and governance
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Support policy](SUPPORT.md)
+- [Changelog](CHANGELOG.md)
+
+## License
+
+SET-ANUBIS is distributed under the MIT License. See [`LICENSE`](LICENSE).

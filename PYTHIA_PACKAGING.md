@@ -1,108 +1,82 @@
-# Pythia/HepMC3 packaging and installation
+# Pythia/HepMC3 packaging policy
 
-SetAnubis now treats the Pythia runtime as an **optional native extension**.
-The pure-Python package can be installed without Pythia8/HepMC3, which is the
-right default for PyPI.  CMND-card generation remains usable in this mode.
+The SET-ANUBIS Python package is installable without Pythia8 or HepMC3.  The
+native `pythia_sim` extension is compiled only when explicitly requested.
 
-The C++/pybind11 extension is compiled only when explicitly requested.
+## Why opt-in?
 
-## 1. Python-only install
+Pythia8 and HepMC3 are external C++ packages. They are large, system-dependent
+and often installed by an experiment software stack, CVMFS, a local prefix or a
+container. Silent downloads during `pip install` make builds fragile and are not
+appropriate for a clean PyPI release.
 
-```bash
-python -m pip install .
-setanubis-pythia-check
-setanubis-pythia-smoke
-```
+## Build modes
 
-`setanubis-pythia-check` should report that the Python binding is missing, but
-this is expected for a Python-only install.
-
-## 2. Use existing Pythia8/HepMC3 installations
-
-If Pythia8 and HepMC3 are already installed, point the build at their prefixes:
+### Pure Python, default
 
 ```bash
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
-SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
-python -m pip install .[pythia]
+python -m pip install SetAnubis
 ```
 
-Optional overrides are also supported:
+This installs the public Python API and CMND-generation tooling. It does not
+compile or import `pythia_sim` at install time.
+
+### Native Pythia runtime
 
 ```bash
-SETANUBIS_PYTHIA8_INCLUDE=/path/to/pythia8/include
-SETANUBIS_PYTHIA8_LIB=/path/to/pythia8/lib
-SETANUBIS_HEPMC3_INCLUDE=/path/to/hepmc3/include
-SETANUBIS_HEPMC3_LIB=/path/to/hepmc3/lib
+SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
 ```
 
-After installation:
+For editable development:
 
 ```bash
-setanubis-pythia-check
-setanubis-pythia-smoke --run-pythia --cmnd path/to/card.cmnd --events 10
+SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install python -m pip install -e ".[pythia]"
 ```
 
+## Environment variables
 
-### Important note about published wheels
+| Variable | Meaning |
+| --- | --- |
+| `SETANUBIS_BUILD_PYTHIA=1` | Force compilation of the optional extension. |
+| `SETANUBIS_BUILD_PYTHIA=auto` | Compile only if all dependencies are detected. |
+| `SETANUBIS_PYTHIA8_DIR` | Pythia8 install prefix. |
+| `SETANUBIS_PYTHIA8_INCLUDE` | Pythia8 include directory override. |
+| `SETANUBIS_PYTHIA8_LIB` | Pythia8 library directory override. |
+| `SETANUBIS_HEPMC3_DIR` | HepMC3 install prefix. |
+| `SETANUBIS_HEPMC3_INCLUDE` | HepMC3 include directory override. |
+| `SETANUBIS_HEPMC3_LIB` | HepMC3 library directory override. |
 
-If a pure-Python wheel is published on PyPI, `pip install SetAnubis[pythia]` will
-prefer that wheel and will **not** compile `pythia_sim`.  Users who want to
-compile the binding from the published source distribution must force a source
-build, for example:
+The build also checks `pythia8-config --prefix` and `HepMC3-config --prefix` if
+those commands are on `PATH`.
 
-```bash
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
-SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
-python -m pip install --no-binary SetAnubis SetAnubis[pythia]
-```
+## TestPyPI and PyPI release flow
 
-From a git checkout, `python -m pip install .[pythia]` already builds from
-source, so `--no-binary` is not needed.
+1. Update `pyproject.toml`, `SetAnubis/_version.py`, `CHANGELOG.md` and
+   `CITATION.cff`.
+2. Run local checks:
 
-## 3. Install bundled external dependencies first
+   ```bash
+   python -m pip install -e ".[dev,docs]"
+   python -m pytest -q setanubis/tests
+   python -m build
+   twine check dist/*
+   ```
 
-For development machines where Pythia8/HepMC3 are not installed, use the
-external integration scripts explicitly, then build the Python extension:
+3. Use the `Release` GitHub workflow with `repository=testpypi`.
+4. Install from TestPyPI in a clean environment.
+5. Tag the release:
 
-```bash
-./External_Integration/install.sh HepMC3 Pythia
+   ```bash
+   git tag -a v1.0.0 -m "SetAnubis 1.0.0"
+   git push origin v1.0.0
+   ```
 
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
-SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
-python -m pip install .[pythia]
-```
+The tag publishes to PyPI through Trusted Publishing once the PyPI project has a
+matching trusted publisher configured for this repository and workflow.
 
-The dependency installers are intentionally not run automatically by `pip`.
-They download and compile large external projects, may require system build
-tools, and are not appropriate as hidden side effects of PyPI installation.
+## Wheel policy
 
-## 4. Editable development workflow
-
-```bash
-python -m pip install -e .[dev,pythia]
-./External_Integration/install.sh HepMC3 Pythia
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
-SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
-python -m pip install -e .[pythia]
-pytest -q setanubis/tests/unit/pythia
-```
-
-## 5. TestPyPI/PyPI recommendation
-
-Publish the default wheel as Python-only first.  Users who need event generation
-can either compile from source with `SETANUBIS_BUILD_PYTHIA=1`, or you can later
-publish platform-specific wheels built in CI against a controlled Pythia/HepMC3
-stack.
-
-The recommended project policy is:
-
-- PyPI default: no native Pythia dependency, no downloads during install.
-- Source install with explicit paths: supported.
-- In-repo dependency bootstrap scripts: supported for developers, explicit only.
-- Binary wheels with bundled/linked native libraries: future CI work, with
-  license and auditwheel/delocate checks.
+Official PyPI wheels are Python-only by default. Users needing the native Pythia
+runtime should install from source with `--no-binary SetAnubis` and explicit
+external dependency paths. This avoids distributing wheels tied to a particular
+Pythia/HepMC3 ABI.

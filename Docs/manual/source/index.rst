@@ -1,51 +1,48 @@
-.. index:: Set-Anubis Manual
+SET-ANUBIS documentation
+========================
 
+SET-ANUBIS is a modular Python/C++ framework for ANUBIS long-lived-particle
+sensitivity studies.  It provides an end-to-end pipeline for model handling,
+branching ratios and lifetimes, event generation, geometry, selection and
+reproducible event storage.
 
-
-Set-Anubis User Manual
-===================
-
-**These pages constitute the Set-Anubis manual.**
-
-Set-Anubis is a public tool for making sensitivity prediction on the Anubis Detector.
-
-It can calculate Branching Ratio (BR) of any Beyond The Standard Model (BSM) model. It can also use Pythia or MadGraph
-To generate events of pp collision. These events can then be analysed and classified (cuts) to make sensitivity prediction.
-
-  * Branching Ratio calculation
-  * Event Generation
-  * Cuts
-  * Anubis Geomtry
-  * Sensitivity calculation
-
-
-.. image:: images/images.jpeg
-   :width: 60%
-
+.. image:: images/set-anubis-architecture.png
+   :width: 95%
+   :alt: SET-ANUBIS architecture
 
 Contents
 --------
 
 .. toctree::
-   :maxdepth: 1
-     
-   ReleaseUpdate  
+   :maxdepth: 2
+
    Installation
    BranchingRatioCalculation
    Pythia
-   
+   ReleaseUpdate
+   api/modules
 
+Public API
+----------
+
+For user scripts, prefer short imports:
+
+.. code-block:: python
+
+   from setanubis import SetAnubisInterface, PythiaRunInterface, ufo_path
+
+The internal ``SetAnubis.core`` paths remain available for advanced use, but the
+short API is the stable public entry point for examples and documentation.
+
+Citation
+--------
+
+Please cite the software and the associated preprint placeholder:
+https://arxiv.org/abs/2512.14942
 
 Indices and tables
 ------------------
 
 * :ref:`genindex`
+* :ref:`modindex`
 * :ref:`search`
-
-API Reference
-=============
-
-.. toctree::
-   :maxdepth: 2
-
-   api/modules

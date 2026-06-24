@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If SET-ANUBIS contributes to your work, please cite the software and the associated article/preprint."
+title: "SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies"
+version: "1.0.0"
+date-released: "2026-06-24"
+license: MIT
+repository-code: "https://github.com/SET-ANUBIS/set-anubis"
+url: "https://arxiv.org/abs/2512.14942"
+authors:
+  - family-names: Erner
+    given-names: Sofie
+  - family-names: Mullin
+    given-names: Anna
+  - family-names: Reymermier
+    given-names: Théo
+  - family-names: Satterthwaite
+    given-names: Toby
+  - family-names: Swallow
+    given-names: Paul
+preferred-citation:
+  type: article
+  title: "SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies"
+  authors:
+    - family-names: Erner
+      given-names: Sofie
+    - family-names: Mullin
+      given-names: Anna
+    - family-names: Reymermier
+      given-names: Théo
+    - family-names: Satterthwaite
+      given-names: Toby
+    - family-names: Swallow
+      given-names: Paul
+  year: 2025
+  url: "https://arxiv.org/abs/2512.14942"

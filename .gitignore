@@ -238,3 +238,26 @@ Logs/
 db/EventsStorage
 setanubis/SetAnubis/core/MadGraph/app/TestFiles/tag_1_pythia8_events.hepmc
 
+
+
+# SET-ANUBIS local outputs
+*.db
+*.sqlite
+*.sqlite3
+*.hepmc
+*.hepmc.gz
+*.lhe
+*.lhe.gz
+*.root
+*.pkl
+*.pkl.gz
+pythia_smoke_outputs/
+.ci-pythia-smoke/
+.ci-pythia-runtime/
+Docs/manual/build/
+
+# macOS resource forks
+._*
+**/._*
+.DS_Store
+**/.DS_Store

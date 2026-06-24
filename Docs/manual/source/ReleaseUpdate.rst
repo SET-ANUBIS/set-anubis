@@ -1,15 +1,14 @@
-.. index!! What's New
+Release process
+===============
 
-What's New
-==========
+The release process is documented in ``RELEASE.md`` at the repository root.
 
-Major changes:
+Summary
+-------
 
-New in Version 1.1.0:
-^^^^^^^^^^^^^^^^^^^^^
-
-  * Marty Integration
-  * Automatic python function creation
-  * More options
-  * Anubis Geometry
-
+1. Update version metadata in ``pyproject.toml``, ``SetAnubis/_version.py`` and
+   ``CITATION.cff``.
+2. Update ``CHANGELOG.md``.
+3. Run tests and package checks locally.
+4. Publish to TestPyPI with the GitHub ``Release`` workflow.
+5. Push a version tag such as ``v1.0.0`` to publish to PyPI.

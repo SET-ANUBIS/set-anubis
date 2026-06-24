@@ -1,69 +1,100 @@
-# Installation Guide
+# Installation
+
+SET-ANUBIS supports two installation modes:
+
+1. **Python-only**: the default, portable install for model/card handling,
+   branching-ratio interfaces, geometry, selection utilities and CMND generation.
+2. **Python + native Pythia binding**: an explicit build that links against
+   external Pythia8 and HepMC3 installations.
+
+## Requirements
+
+- Python 3.10, 3.11 or 3.12
+- Linux or WSL for the full event-generation stack
+- C++ compiler, CMake, Make and `gfortran` for optional external tools
+- Optional: Docker for MadGraph workflows that use containers
 
 ## Python-only install
 
-This is the recommended default for PyPI/TestPyPI and for users who only need
-SetAnubis Python APIs or CMND-card generation:
+```bash
+python -m pip install SetAnubis
+```
+
+From a checkout:
 
 ```bash
-python -m pip install .
+git clone https://github.com/SET-ANUBIS/set-anubis.git
+cd set-anubis
+python -m pip install -e .
 setanubis-pythia-smoke
 ```
 
-No Pythia8 or HepMC3 installation is required for this mode.
-
-## Optional Pythia/HepMC3 runtime
-
-Running Pythia from Python requires the optional native extension
-`SetAnubis.core.Pythia.bindings.pythia_sim`.  Build it explicitly during
-installation:
+## Developer install
 
 ```bash
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
-SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
-python -m pip install .[pythia]
+python -m pip install -e ".[dev,docs]"
+python -m pytest -q setanubis/tests
+sphinx-build -b html Docs/manual/source Docs/manual/build/html
 ```
 
-Then verify:
+## Optional Pythia/HepMC3 binding
+
+The binding is intentionally opt-in. This keeps normal PyPI installs fast and
+avoids silently compiling large C++ packages on user machines.
+
+### Use external installations
+
+```bash
+SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
+```
+
+When installing from a local checkout, use `python -m pip install -e ".[pythia]"`
+instead of the PyPI package name.
+
+### Build local external tools from the checkout
+
+```bash
+./External_Integration/install.sh HepMC3 Pythia
+SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install python -m pip install -e ".[pythia]"
+```
+
+### Diagnostics
 
 ```bash
 setanubis-pythia-check
 ```
 
-## Installing local external dependencies
+This reports whether the Python binding is importable and where Pythia8/HepMC3
+were found.
 
-If Pythia8/HepMC3 are not already installed, use the explicit developer helper
-scripts first:
+## MadGraph
 
-```bash
-./External_Integration/install.sh HepMC3 Pythia
-
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
-SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
-python -m pip install .[pythia]
-```
-
-Required system tools for the external builds are usually:
-
-- `cmake`
-- `make`
-- `gcc`, `g++`, `gfortran`
-- `curl` or `wget`
-- `tar`
-
-## Developer install
+MadGraph can be installed through the external helper or used via a local path /
+Docker runner depending on your workflow:
 
 ```bash
-python -m pip install -e .[dev]
-pytest -q setanubis/tests/unit/pythia
+./External_Integration/install.sh MadGraph
+python -m pip install -e ".[madgraph]"
 ```
 
-For the optional runtime tests, compile the Pythia extension first and then run:
+## GUI extras
 
 ```bash
-setanubis-pythia-smoke --run-pythia --cmnd path/to/card.cmnd --events 10
+python -m pip install "SetAnubis[app]"
 ```
 
-See `PYTHIA_PACKAGING.md` for the full native-extension packaging policy.
+Then see the GUI-specific READMEs:
+
+- `setanubis/SetAnubis/HepMCGUI/README.md`
+- `setanubis/SetAnubis/SetAnubisDBDashboard/README.md`
+
+## Troubleshooting
+
+- `ModuleNotFoundError: pythia_sim`: the optional native binding was not built.
+  Run `setanubis-pythia-check` and rebuild with `SETANUBIS_BUILD_PYTHIA=1`.
+- `Pythia8/Pythia.h` not found: set `SETANUBIS_PYTHIA8_DIR` or
+  `SETANUBIS_PYTHIA8_INCLUDE`.
+- `HepMC3/GenEvent.h` not found: set `SETANUBIS_HEPMC3_DIR` or
+  `SETANUBIS_HEPMC3_INCLUDE`.
+- Large assets are not shipped inside the wheel. Use absolute paths or set
+  `SETANUBIS_ASSETS_DIR=/path/to/Assets` for private UFOs and samples.

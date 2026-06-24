@@ -1,0 +1,35 @@
+include LICENSE
+include README.md
+include INSTALL.md
+include CHANGELOG.md
+include CITATION.cff
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include SECURITY.md
+include SUPPORT.md
+include PYTHIA_PACKAGING.md
+include RELEASE.md
+include AUTHORS.md
+
+graft Docs
+graft setanubis/SetAnubis/assets
+
+graft External_Integration/Pythia
+graft External_Integration/HepMC3
+graft External_Integration/MadGraph
+graft External_Integration/Marty
+
+prune Assets/Test
+prune Assets/MARTY/MartyTemp
+prune Assets/MadGraph/MadGraphTemp
+prune External_Integration/Pythia/pythia8312
+prune External_Integration/Pythia/pythia8315
+prune External_Integration/HepMC3/HepMC3-3.2.6
+prune External_Integration/HepMC3/hepmc3-build
+prune External_Integration/HepMC3/hepmc3-install
+prune External_Integration/MadGraph/MG5_aMC_v2_9_20
+prune External_Integration/MadGraph/MG5_aMC_v3_5_8
+prune External_Integration/Marty/MARTY_INSTALL
+prune External_Integration/Marty/src
+
+recursive-exclude * __pycache__ *.py[cod] .DS_Store ._*

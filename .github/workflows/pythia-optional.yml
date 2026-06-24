@@ -1,0 +1,43 @@
+name: Optional Pythia binding
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "External_Integration/Pythia/**"
+      - "External_Integration/HepMC3/**"
+      - "setup.py"
+      - "pyproject.toml"
+      - "setanubis/SetAnubis/core/Pythia/**"
+      - ".github/workflows/pythia-optional.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-pythia-binding:
+    name: Build optional C++ binding
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install system build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake gfortran zlib1g-dev
+      - name: Install HepMC3 and Pythia8 locally
+        run: ./External_Integration/install.sh HepMC3 Pythia
+      - name: Build SetAnubis with optional Pythia binding
+        run: |
+          python -m pip install --upgrade pip
+          SETANUBIS_BUILD_PYTHIA=1           SETANUBIS_PYTHIA8_DIR="$PWD/External_Integration/Pythia/pythia8315"           SETANUBIS_HEPMC3_DIR="$PWD/External_Integration/HepMC3/hepmc3-install"           python -m pip install -e ".[pythia,dev]"
+      - name: Diagnostics
+        run: setanubis-pythia-check
+      - name: Runtime smoke test
+        run: setanubis-pythia-smoke --run-pythia --no-hard-cut --events 3 --out .ci-pythia-runtime

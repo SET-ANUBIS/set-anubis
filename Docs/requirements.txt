@@ -1,4 +1,2 @@
-sphinx
-sphinx_rtd_theme
-particle
-particles
+sphinx>=7
+sphinx-rtd-theme

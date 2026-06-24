@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible problem in SetAnubis
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve SetAnubis. Please include enough information for us to reproduce the issue.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Commands, scripts, cards, or inputs needed to reproduce the issue.
+      render: bash
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - ModelCore/UFO
+        - BranchingRatio
+        - Pythia
+        - MadGraph
+        - Geometry
+        - Selection
+        - DataBase
+        - Packaging/CI
+        - Dash interfaces
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SetAnubis version
+      placeholder: "1.0.0, commit SHA, or editable checkout"
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, Pythia/HepMC3/MadGraph paths if relevant.
+      render: text
