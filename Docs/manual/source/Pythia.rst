@@ -1,56 +1,42 @@
-Pythia interface
-================
+Optional Pythia support
+=======================
 
-SET-ANUBIS exposes two Pythia layers:
+Pythia is a supporting generation backend in the release documentation. The
+MadGraph workflow is the primary public example; Pythia is kept available for
+standalone samples, showering tests and cross-checks.
+
+Two layers are exposed:
 
 * ``PythiaCMNDInterface`` builds ``.cmnd`` cards for particles, decays,
   production channels and generic Pythia settings.
 * ``PythiaRunInterface`` executes the optional C++/pybind11 runtime and supports
   particle-specific lifetimes, widths and hard cuts.
 
-The interface is particle-agnostic. Methods accept a PDG id and do not assume a
-specific HNL id.
+CMND generation works in the Python-only wheel. Runtime generation requires the
+native binding compiled against Pythia8 and HepMC3.
 
-CMND generation
+CMND smoke test
 ---------------
 
-.. code-block:: python
+.. code-block:: bash
 
-   from setanubis import PythiaCMNDInterface
+   setanubis-pythia-smoke --pid 42 --out pythia_smoke_outputs
 
-   pid = 9900012
-   interface = PythiaCMNDInterface(master_interface, decay_interface)
-   interface.add_pythia_setting("PhaseSpace:pTHatMin", 20)
-   interface.add_hard_production("HardQCD:hardbbbar")
-   interface.set_particle_lifetime(pid, tau0_mm=1000.0)
-   interface.set_particle_options(pid, mayDecay=True, isVisible=False)
-   interface.add_new_particles([pid])
-
-Runtime generation
+Runtime diagnostic
 ------------------
 
-.. code-block:: python
+.. code-block:: bash
 
-   from setanubis import PythiaRunInterface
+   setanubis-pythia-check
 
-   pid = 9900012
-   runner = PythiaRunInterface(
-       "outputs",
-       new_particles=[pid],
-       pythia_settings=["PhaseSpace:pTHatMin = 20"],
-       lifetimes={pid: 1000.0},
-       widths={pid: 1e-12},
-       hard_cuts=[{
-           "pdg_id": pid,
-           "min_pt": 30.0,
-           "max_eta": 2.5,
-           "min_count": 1,
-           "use_abs_id": True,
-       }],
-       max_trials=1_000_000,
-   )
+Native build
+------------
 
-   print(runner.check_runtime())
+.. code-block:: bash
 
-The runtime requires the optional binding. See ``PYTHIA_PACKAGING.md`` for build
-instructions.
+   SETANUBIS_BUILD_PYTHIA=1 \
+   SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
+   SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
+   python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
+
+See ``PYTHIA_PACKAGING.md`` for the full policy and troubleshooting notes.

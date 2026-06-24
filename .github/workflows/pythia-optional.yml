@@ -21,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -36,7 +36,10 @@ jobs:
       - name: Build SetAnubis with optional Pythia binding
         run: |
           python -m pip install --upgrade pip
-          SETANUBIS_BUILD_PYTHIA=1           SETANUBIS_PYTHIA8_DIR="$PWD/External_Integration/Pythia/pythia8315"           SETANUBIS_HEPMC3_DIR="$PWD/External_Integration/HepMC3/hepmc3-install"           python -m pip install -e ".[pythia,dev]"
+          SETANUBIS_BUILD_PYTHIA=1 \
+          SETANUBIS_PYTHIA8_DIR="$PWD/External_Integration/Pythia/pythia8315" \
+          SETANUBIS_HEPMC3_DIR="$PWD/External_Integration/HepMC3/hepmc3-install" \
+          python -m pip install -e ".[pythia,dev]"
       - name: Diagnostics
         run: setanubis-pythia-check
       - name: Runtime smoke test

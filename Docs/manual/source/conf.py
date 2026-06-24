@@ -30,7 +30,14 @@ except Exception:
 master_doc = "index"
 source_suffix = ".rst"
 templates_path = ["_templates"]
-exclude_patterns = ["api/test.rst"]
+exclude_patterns = [
+    "_build",
+    "api/core*.rst",
+    "api/examples.rst",
+    "api/modules.rst",
+    "api/test.rst",
+    "dependencies.rst",
+]
 pygments_style = "sphinx"
 html_static_path = ["_static"]
 html_title = "SET-ANUBIS documentation"

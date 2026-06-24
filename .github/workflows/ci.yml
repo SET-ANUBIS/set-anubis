@@ -25,10 +25,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -42,20 +42,20 @@ jobs:
           python -m pip install -e ".[dev]"
 
       - name: Compile Python sources
-        run: python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py
+        run: python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
 
-      - name: Run Pythia Python smoke test
+      - name: Run Pythia CMND smoke test
         run: setanubis-pythia-smoke --out .ci-pythia-smoke
 
-      - name: Run unit and integration tests
+      - name: Run unit tests
         run: python -m pytest -q setanubis/tests
 
   packaging:
     name: Packaging smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -65,17 +65,21 @@ jobs:
           python -m pip install --upgrade pip build twine
           python -m build
           twine check dist/*
-      - name: Test wheel install
+      - name: Test wheel install without source-tree shadowing
         run: |
+          tmpdir=$(mktemp -d)
           python -m pip install --force-reinstall --no-deps dist/*.whl
+          cd "$tmpdir"
           python - <<'PY'
           import setanubis
-          from setanubis import SetAnubisInterface, asset_path
-          print("SetAnubis", setanubis.__version__)
+          from setanubis import __version__, asset_path
+          assert __version__ == "1.0.0", __version__
+          assert "SetAnubisInterface" in dir(setanubis)
+          print("SetAnubis", __version__)
           print(asset_path("particles", "particleData.json"))
           PY
       - name: Upload distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: setanubis-dist
           path: dist/*

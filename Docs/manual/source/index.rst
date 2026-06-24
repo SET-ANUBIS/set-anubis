@@ -2,9 +2,9 @@ SET-ANUBIS documentation
 ========================
 
 SET-ANUBIS is a modular Python/C++ framework for ANUBIS long-lived-particle
-sensitivity studies.  It provides an end-to-end pipeline for model handling,
-branching ratios and lifetimes, event generation, geometry, selection and
-reproducible event storage.
+sensitivity studies. The release documentation follows the main analysis
+workflow: model/UFO input, MadGraph generation, database ingestion, geometry,
+selection, branching ratios and optional Pythia support.
 
 .. image:: images/set-anubis-architecture.png
    :width: 95%
@@ -17,19 +17,30 @@ Contents
    :maxdepth: 2
 
    Installation
+   MadGraphGeneration
+   SelectionWorkflow
    BranchingRatioCalculation
-   Pythia
+   CIAndDocs
    ReleaseUpdate
-   api/modules
+   Pythia
+   api/public_api
 
 Public API
 ----------
 
-For user scripts, prefer short imports:
+For user scripts and notebooks, prefer short imports:
 
 .. code-block:: python
 
-   from setanubis import SetAnubisInterface, PythiaRunInterface, ufo_path
+   from setanubis import (
+       SetAnubisInterface,
+       MadGraphCommandConfig,
+       GeneralCardInterface,
+       SelectionConfig,
+       SelectionPipelineBuilder,
+       DecayInterface,
+       ufo_path,
+   )
 
 The internal ``SetAnubis.core`` paths remain available for advanced use, but the
 short API is the stable public entry point for examples and documentation.

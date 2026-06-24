@@ -17,7 +17,7 @@ from typing import Any
 from SetAnubis._version import __version__
 from SetAnubis.resources import asset_path, assets_dir, repository_root, ufo_path
 
-_EXPORTS: dict[str, str] = {
+_EXPORTS: dict[str, str | tuple[str, str]] = {
     # Model core
     "SetAnubisInterface": "SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface",
     "SetAnubisManager": "SetAnubis.core.ModelCore.domain.SetAnubisManager",
@@ -58,7 +58,15 @@ _EXPORTS: dict[str, str] = {
 
     # MadGraph
     "MadgraphInterface": "SetAnubis.core.MadGraph.adapters.input.MadGraphInterface",
+    "MadGraphInterface": ("SetAnubis.core.MadGraph.adapters.input.MadGraphInterface", "MadgraphInterface"),
     "MadGraphManager": "SetAnubis.core.MadGraph.domain.MadGraphManager",
+    "GeneralCardInterface": "SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface",
+    "JobScriptBuilder": "SetAnubis.core.MadGraph.adapters.input.JobscriptBuilder",
+    "RunCardBuilder": "SetAnubis.core.MadGraph.adapters.input.RunCardBuilder",
+    "ParamCardBuilder": "SetAnubis.core.MadGraph.adapters.input.ParamCardBuilder",
+    "PythiaCardBuilder": "SetAnubis.core.MadGraph.adapters.input.PythiaCardBuilder",
+    "MadSpinCardAdapter": "SetAnubis.core.MadGraph.adapters.input.MadspinCardBuilder",
+    "MadGraphHepmcAnalyzer": "SetAnubis.core.MadGraph.adapters.input.MadGraphHepmcAnalyzer",
     "MadGraphDockerRunner": "SetAnubis.core.MadGraph.adapters.output.MadGraphDockerRunner",
     "MadGraphLocalRunner": "SetAnubis.core.MadGraph.adapters.output.MadGraphLocalRunner",
     "MadGraphCommandCard": "SetAnubis.core.MadGraph.domain.MadGraphCommandCard",
@@ -82,10 +90,13 @@ _EXPORTS: dict[str, str] = {
     "LLPAnalyzer": "SetAnubis.core.Selection.domain.LLPAnalyzer",
     "SelectionEngine": "SetAnubis.core.Selection.domain.SelectionEngine",
     "SelectionConfig": "SetAnubis.core.Selection.domain.SelectionEngine",
+    "SelectionGeometryAdapter": "SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter",
     "RunConfig": "SetAnubis.core.Selection.domain.SelectionEngine",
     "MinThresholds": "SetAnubis.core.Selection.domain.SelectionEngine",
     "MinDR": "SetAnubis.core.Selection.domain.SelectionEngine",
     "SelectionPipelineBuilder": "SetAnubis.core.Selection.domain.SelectionPipeline",
+    "FileCache": "SetAnubis.core.Selection.domain.SelectionPipeline",
+    "IDataSource": "SetAnubis.core.Selection.domain.SelectionPipeline",
     "SelectionManager": "SetAnubis.core.Selection.domain.SelectionManager",
     "DatasetSpec": "SetAnubis.core.Selection.domain.SelectionManager",
     "EventsBundleSource": "SetAnubis.core.Selection.domain.DatasetSource",
@@ -109,11 +120,15 @@ __all__ = [
 
 
 def __getattr__(name: str) -> Any:
-    module_name = _EXPORTS.get(name)
-    if module_name is None:
+    target = _EXPORTS.get(name)
+    if target is None:
         raise AttributeError(f"module 'SetAnubis' has no attribute {name!r}")
+    if isinstance(target, tuple):
+        module_name, attr_name = target
+    else:
+        module_name, attr_name = target, name
     module = import_module(module_name)
-    value = getattr(module, name)
+    value = getattr(module, attr_name)
     globals()[name] = value
     return value
 

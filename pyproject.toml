@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SetAnubis"
-version = "0.0.1"
+version = "1.0.0"
 description = "Physics-simulation toolkit for ANUBIS LLP sensitivity studies"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["physics", "anubis", "llp", "pythia", "hepmc", "madgraph"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
@@ -49,22 +49,24 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/theoreymermier/set-anubis"
-Repository = "https://github.com/theoreymermier/set-anubis"
-Documentation = "https://github.com/theoreymermier/set-anubis/tree/main/Docs"
-Issues = "https://github.com/theoreymermier/set-anubis/issues"
+Homepage = "https://github.com/SET-ANUBIS/set-anubis"
+Repository = "https://github.com/SET-ANUBIS/set-anubis"
+Documentation = "https://set-anubis.github.io/set-anubis/"
+Issues = "https://github.com/SET-ANUBIS/set-anubis/issues"
 
 [project.scripts]
 setanubis-pythia-check = "SetAnubis.core.Pythia.tools.check_install:main"
 setanubis-pythia-smoke = "SetAnubis.examples.Pythia.main_test_pythia_refactor:main"
+setanubis-docs = "SetAnubis.tools.docs:main"
 
 [tool.setuptools]
 package-dir = {"" = "setanubis"}
+py-modules = ["setanubis"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["setanubis"]
-namespaces = false
+namespaces = true
 exclude = [
   "tests", "tests.*",
   "SetAnubis.HepMCGUI", "SetAnubis.HepMCGUI.*",
