@@ -1,56 +1,63 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-if [[ -r /etc/os-release ]]; then
-    . /etc/os-release
-    echo "Detected distribution : $NAME ($ID $VERSION_ID)"
-else
-    echo "Impossible to determine distribution (pas de /etc/os-release)."
-    ID=""
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./install.sh                      # install SetAnubis Python package
+  ./install.sh --editable            # editable Python install
+  ./install.sh --with-external HepMC3 Pythia
+
+For the optional Pythia Python binding, install external dependencies first and
+then run pip with SETANUBIS_BUILD_PYTHIA=1. See PYTHIA_PACKAGING.md.
+EOF
+}
+
+editable=0
+with_external=0
+external_args=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --editable|-e)
+      editable=1
+      shift
+      ;;
+    --with-external)
+      with_external=1
+      shift
+      external_args=("$@")
+      break
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "$with_external" -eq 1 ]]; then
+  "$ROOT_DIR/External_Integration/install.sh" "${external_args[@]}"
 fi
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-export PYTHONPATH="$PYTHONPATH:$script_dir"
-echo "Added $script_dir to PYTHONPATH."
-
-if ! grep -q "PYTHONPATH.*$script_dir" ~/.bashrc; then
-    echo "PYTHONPATH is not in ~/.bashrc, adding it now..."
-    echo "export PYTHONPATH=\$PYTHONPATH:$script_dir" >> ~/.bashrc
-    echo "PYTHONPATH updated in ~/.bashrc."
-    echo "Sourcing ~/.bashrc..."
-    source ~/.bashrc
+if [[ "$editable" -eq 1 ]]; then
+  python -m pip install -e "$ROOT_DIR"
 else
-    echo "PYTHONPATH is already set in ~/.bashrc."
+  python -m pip install "$ROOT_DIR"
 fi
 
-if [[ -f "$script_dir/requirements.txt" ]]; then
-    echo "Installing Python requirements..."
+cat <<EOF
 
-    PIP_EXTRA_OPTS=()
-    if [[ "$ID" == "ubuntu" ]]; then
-        echo "Ubuntu detected, uses of --break-system-packages with pip."
-        PIP_EXTRA_OPTS+=(--break-system-packages)
-    fi
+SetAnubis Python package installed.
+Run diagnostics with:
+  setanubis-pythia-check
 
-    pip install -r "$script_dir/requirements.txt" "${PIP_EXTRA_OPTS[@]}"
-    if [[ $? -ne 0 ]]; then
-        echo "Error during installation of Python requirements."
-        exit 1
-    fi
-    echo "Python requirements installed successfully."
-else
-    echo "No requirements.txt file found. Skipping Python requirements installation."
-fi
-
-if [[ $# -gt 0 ]]; then
-    software_to_install="$@"
-    ./External_Integration/install.sh $software_to_install
-    if [[ $? -eq 0 ]]; then
-        echo "Installation completed successfully."
-    else
-        echo "Error during software installation."
-        exit 1
-    fi
-else
-    echo "No software specified for installation."
-fi
+For native Pythia builds, see PYTHIA_PACKAGING.md.
+EOF

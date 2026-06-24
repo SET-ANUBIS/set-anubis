@@ -1,75 +1,69 @@
 # Installation Guide
 
-Follow the steps below to set up the environment and install the required software.
+## Python-only install
 
----
+This is the recommended default for PyPI/TestPyPI and for users who only need
+SetAnubis Python APIs or CMND-card generation:
 
-## Prerequisites
-
-Ensure the following tools are installed on your system:
-- **Bash**
-- **Python 3** with `pip`
-- System tools: `cmake`, `gcc`, `gfortran`, `g++`
-
-If missing, the script will guide you to install them using:
-- `dnf` for AlmaLinux
-- `apt` for Ubuntu
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://gitlab.dur.scotgrid.ac.uk/anubis_sensitivity/neo-set-anubis.git
-   cd neo-set-anubis
-
-2. **Run the main installation script**:
-   Execute the main script to install the required software and configure the environment:
-   ```bash
-   ./install.sh [software...]
-   ```
-   - Example: Install specific software in the correct order:
-     ```bash
-     ./install.sh HepMC3 Pythia
-     ```
-   - If no arguments are provided, the script will guide you.
-
-   - For now, HepMC3, Pythia and MadGraph are the three software available.
-
-3. **Install Python dependencies**:
-   If a `requirements.txt` file exists, the script will install the dependencies automatically using:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Environment Setup**:
-   The script adds the current directory to your `PYTHONPATH`. If this is not already configured in `~/.bashrc`, the script will update it.
-
----
-
-## Features
-
-- **System Tools Check**: Verifies the presence of essential tools like `cmake`, `gcc`, `gfortran`, and `g++`.
-- **Dependency Management**: Automatically determines the correct order for software installation based on dependencies.
-- **Customizable Installation**: Allows you to specify which software to install.
-
----
-
-## Example Command
-
-To install specific software:
 ```bash
-./install.sh Pythia HepMC3 MadGraph
+python -m pip install .
+setanubis-pythia-smoke
 ```
-The script will reorder the installation based on the dependencies (e.g., `HepMC3` is installed before `Pythia`).
 
----
+No Pythia8 or HepMC3 installation is required for this mode.
 
-## Final Messages
+## Optional Pythia/HepMC3 runtime
 
-- On success: `Installation completed successfully.`
-- On error: The script will stop and display the issue.
+Running Pythia from Python requires the optional native extension
+`SetAnubis.core.Pythia.bindings.pythia_sim`.  Build it explicitly during
+installation:
 
----
+```bash
+SETANUBIS_BUILD_PYTHIA=1 \
+SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
+SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
+python -m pip install .[pythia]
+```
 
-## Notes
+Then verify:
 
-- Update `requirements.txt` to add or modify Python dependencies.
-- Ensure necessary permissions (e.g., `sudo`) to install system tools if prompted.
+```bash
+setanubis-pythia-check
+```
+
+## Installing local external dependencies
+
+If Pythia8/HepMC3 are not already installed, use the explicit developer helper
+scripts first:
+
+```bash
+./External_Integration/install.sh HepMC3 Pythia
+
+SETANUBIS_BUILD_PYTHIA=1 \
+SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
+SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
+python -m pip install .[pythia]
+```
+
+Required system tools for the external builds are usually:
+
+- `cmake`
+- `make`
+- `gcc`, `g++`, `gfortran`
+- `curl` or `wget`
+- `tar`
+
+## Developer install
+
+```bash
+python -m pip install -e .[dev]
+pytest -q setanubis/tests/unit/pythia
+```
+
+For the optional runtime tests, compile the Pythia extension first and then run:
+
+```bash
+setanubis-pythia-smoke --run-pythia --cmnd path/to/card.cmnd --events 10
+```
+
+See `PYTHIA_PACKAGING.md` for the full native-extension packaging policy.

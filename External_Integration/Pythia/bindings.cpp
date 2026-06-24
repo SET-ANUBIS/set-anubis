@@ -1,11 +1,29 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <map>
+#include <string>
 #include "EventGeneratorFactory.h"
 
 namespace py = pybind11;
 
+#ifndef SETANUBIS_PYTHIA8_PREFIX
+#define SETANUBIS_PYTHIA8_PREFIX "unknown"
+#endif
+#ifndef SETANUBIS_HEPMC3_PREFIX
+#define SETANUBIS_HEPMC3_PREFIX "unknown"
+#endif
+
+
 PYBIND11_MODULE(pythia_sim, m) {
-    m.doc() = "Pythia Simulation Module";
+    m.doc() = "SetAnubis optional Pythia8/HepMC3 simulation binding";
+
+    m.def("get_build_info", []() {
+        return std::map<std::string, std::string>{
+            {"pythia8_prefix", SETANUBIS_PYTHIA8_PREFIX},
+            {"hepmc3_prefix", SETANUBIS_HEPMC3_PREFIX},
+            {"cxx_standard", "C++14"}
+        };
+    }, "Return build-time paths for the optional native binding");
 
     py::class_<ParticleHardCut>(m, "ParticleHardCut")
         .def(py::init<>())

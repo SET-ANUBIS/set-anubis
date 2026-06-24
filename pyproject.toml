@@ -1,14 +1,29 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68", "wheel", "pybind11>=2.12"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "SetAnubis"
 version = "0.0.1"
-description = "SetAnubis physics simulation toolkit"
+description = "Physics-simulation toolkit for ANUBIS LLP sensitivity studies"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
+authors = [
+  {name = "The SetAnubis contributors"},
+]
+keywords = ["physics", "anubis", "llp", "pythia", "hepmc", "madgraph"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: C++",
+  "Topic :: Scientific/Engineering :: Physics",
+]
 dependencies = [
   "numpy",
   "pandas",
@@ -21,17 +36,27 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-pythia = ["pybind11", "pyhepmc"]
+pythia = ["pybind11>=2.12", "pyhepmc"]
 selection = ["pyhepmc", "fastjet", "awkward"]
 madgraph = ["docker"]
-app = ["streamlit", "dash", "plotly", "requests", "python-dotenv", "python-multipart"]
+app = ["dash", "plotly", "requests", "python-dotenv", "python-multipart"]
 docs = ["sphinx", "sphinx_rtd_theme"]
-dev = ["pytest", "build", "twine"]
+dev = ["pytest", "build", "twine", "ruff"]
 all = [
-  "pybind11", "pyhepmc", "fastjet", "awkward", "docker",
-  "streamlit", "dash", "plotly", "requests", "python-dotenv", "python-multipart",
-  "sphinx", "sphinx_rtd_theme", "pytest", "build", "twine",
+  "pybind11>=2.12", "pyhepmc", "fastjet", "awkward", "docker",
+  "dash", "plotly", "requests", "python-dotenv", "python-multipart",
+  "sphinx", "sphinx_rtd_theme", "pytest", "build", "twine", "ruff",
 ]
+
+[project.urls]
+Homepage = "https://github.com/theoreymermier/set-anubis"
+Repository = "https://github.com/theoreymermier/set-anubis"
+Documentation = "https://github.com/theoreymermier/set-anubis/tree/main/Docs"
+Issues = "https://github.com/theoreymermier/set-anubis/issues"
+
+[project.scripts]
+setanubis-pythia-check = "SetAnubis.core.Pythia.tools.check_install:main"
+setanubis-pythia-smoke = "SetAnubis.examples.Pythia.main_test_pythia_refactor:main"
 
 [tool.setuptools]
 package-dir = {"" = "setanubis"}
@@ -39,8 +64,32 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["setanubis"]
-exclude = ["tests", "tests.*"]
+namespaces = false
+exclude = [
+  "tests", "tests.*",
+  "SetAnubis.HepMCGUI", "SetAnubis.HepMCGUI.*",
+  "SetAnubis.SetAnubisDBDashboard", "SetAnubis.SetAnubisDBDashboard.*",
+]
 
 [tool.setuptools.package-data]
+"SetAnubis" = ["py.typed", "**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt"]
 "SetAnubis.core.Pythia.bindings" = ["*.so", "*.pyd", "*.dylib"]
-"SetAnubis" = ["**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt", "**/*.cmnd"]
+
+[tool.setuptools.exclude-package-data]
+"SetAnubis" = [
+  "core/Pythia/app/scan_cmnd_files*/*",
+  "core/Pythia/app/scan_cmnd_files*",
+  "HepMCGUI/*",
+  "HepMCGUI/**/*",
+  "SetAnubisDBDashboard/*",
+  "SetAnubisDBDashboard/**/*",
+  "**/._*",
+  "**/.DS_Store",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["setanubis/tests"]
+pythonpath = ["setanubis"]
+markers = [
+  "pythia: tests requiring compiled Pythia/HepMC3 binding",
+]

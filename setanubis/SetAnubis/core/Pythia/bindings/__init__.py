@@ -1,6 +1,7 @@
 """Optional compiled Pythia bindings for SetAnubis.
 
-The pybind11 extension module is expected to be named ``pythia_sim``.  It may be
-installed either as a top-level module (``import pythia_sim``) or copied here as
-``SetAnubis.core.Pythia.bindings.pythia_sim`` for source-tree development.
+The wheel/``pip install`` path installs the pybind11 extension as
+``SetAnubis.core.Pythia.bindings.pythia_sim`` when
+``SETANUBIS_BUILD_PYTHIA=1`` is set at build time.  A legacy top-level
+``pythia_sim`` module is still supported for local Makefile workflows.
 """

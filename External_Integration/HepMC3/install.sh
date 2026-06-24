@@ -1,38 +1,62 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-command -v cmake >/dev/null 2>&1 || { echo >&2 "CMake is not installed. Stop."; exit 1; }
-command -v wget >/dev/null 2>&1 || { echo >&2 "wget is not installed. Stop."; exit 1; }
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION="${HEPMC3_VERSION:-3.2.6}"
+PREFIX="${HEPMC3_PREFIX:-$SCRIPT_DIR/hepmc3-install}"
+SRC_ARCHIVE="$SCRIPT_DIR/HepMC3-$VERSION.tar.gz"
+SRC_DIR="$SCRIPT_DIR/HepMC3-$VERSION"
+BUILD_DIR="$SCRIPT_DIR/hepmc3-build"
+URL="${HEPMC3_URL:-https://hepmc.web.cern.ch/hepmc/releases/HepMC3-$VERSION.tar.gz}"
+JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 
-echo "Downloading of HepMC3..."
-wget -O HepMC3-3.2.6.tar.gz http://hepmc.web.cern.ch/hepmc/releases/HepMC3-3.2.6.tar.gz
+need() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Missing required tool: $1" >&2
+    exit 1
+  }
+}
 
-echo "Extraction of HepMC3..."
-tar -xzf HepMC3-3.2.6.tar.gz
+download() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -L "$URL" -o "$SRC_ARCHIVE"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -O "$SRC_ARCHIVE" "$URL"
+  else
+    echo "Missing curl or wget" >&2
+    exit 1
+  fi
+}
 
-# Création du répertoire de build
-mkdir -p hepmc3-build
-cd hepmc3-build
+need cmake
+need make
+need tar
 
-# Configuration et build
-echo "Configuration of HepMC3..."
-cmake -DCMAKE_INSTALL_PREFIX=../hepmc3-install \
-      -DHEPMC3_ENABLE_ROOTIO:BOOL=OFF \
-      -DHEPMC3_ENABLE_PROTOBUFIO:BOOL=OFF \
-      -DHEPMC3_ENABLE_TEST:BOOL=OFF \
-      -DHEPMC3_INSTALL_INTERFACES:BOOL=ON \
-      -DHEPMC3_BUILD_STATIC_LIBS:BOOL=OFF \
-      -DHEPMC3_BUILD_DOCS:BOOL=OFF \
-      -DHEPMC3_ENABLE_PYTHON:BOOL=ON \
-      -DHEPMC3_PYTHON_VERSIONS=3.12 \
-      -DHEPMC3_Python_SITEARCH312=../hepmc3-install/lib/python3.12/site-packages \
-      ../HepMC3-3.2.6
+echo "Installing HepMC3 $VERSION into $PREFIX"
+mkdir -p "$SCRIPT_DIR"
 
-# Compilation
-echo "Compilation of HepMC3..."
-make
+if [[ ! -f "$SRC_ARCHIVE" ]]; then
+  echo "Downloading $URL"
+  download
+fi
 
-# Installation
-echo "Installation of HepMC3..."
-make install
+if [[ ! -d "$SRC_DIR" ]]; then
+  echo "Extracting $SRC_ARCHIVE"
+  tar -xzf "$SRC_ARCHIVE" -C "$SCRIPT_DIR"
+fi
 
-echo "HepMC3 installed with success."
+cmake -S "$SRC_DIR" -B "$BUILD_DIR" \
+  -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+  -DHEPMC3_ENABLE_ROOTIO:BOOL=OFF \
+  -DHEPMC3_ENABLE_PROTOBUFIO:BOOL=OFF \
+  -DHEPMC3_ENABLE_TEST:BOOL=OFF \
+  -DHEPMC3_INSTALL_INTERFACES:BOOL=ON \
+  -DHEPMC3_BUILD_STATIC_LIBS:BOOL=OFF \
+  -DHEPMC3_BUILD_DOCS:BOOL=OFF \
+  -DHEPMC3_ENABLE_PYTHON:BOOL=OFF
+
+cmake --build "$BUILD_DIR" --parallel "$JOBS"
+cmake --install "$BUILD_DIR"
+
+echo "HepMC3 installed successfully at $PREFIX"
+echo "For SetAnubis builds, use: export SETANUBIS_HEPMC3_DIR=$PREFIX"

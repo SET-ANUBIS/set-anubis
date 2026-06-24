@@ -1,135 +1,58 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION="${PYTHIA8_VERSION:-8315}"
+PREFIX="${PYTHIA8_PREFIX:-$SCRIPT_DIR/pythia$VERSION}"
+HEPMC3_PREFIX="${HEPMC3_PREFIX:-$SCRIPT_DIR/../HepMC3/hepmc3-install}"
+ARCHIVE="$SCRIPT_DIR/pythia$VERSION.tgz"
+SRC_DIR="$SCRIPT_DIR/pythia$VERSION-src"
+URL="${PYTHIA8_URL:-https://pythia.org/download/pythia83/pythia$VERSION.tgz}"
+JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "Missing required tool: $1" >&2
+    exit 1
+  }
 }
 
-get_package_manager() {
-    if command_exists dnf; then
-        echo "dnf"
-    elif command_exists apt; then
-        echo "apt"
-    else
-        echo "unknown"
-    fi
+download() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -L "$URL" -o "$ARCHIVE"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -O "$ARCHIVE" "$URL"
+  else
+    echo "Missing curl or wget" >&2
+    exit 1
+  fi
 }
 
-required_tools=("cmake" "gcc" "gfortran" "g++")
+need make
+need tar
+need g++
 
-verify_tools() {
-    local package_manager=$(get_package_manager)
+echo "Installing Pythia8 $VERSION into $PREFIX"
+if [[ ! -d "$HEPMC3_PREFIX" ]]; then
+  echo "HepMC3 prefix not found: $HEPMC3_PREFIX" >&2
+  echo "Install HepMC3 first, or set HEPMC3_PREFIX=/path/to/hepmc3." >&2
+  exit 1
+fi
 
-    for tool in "${required_tools[@]}"; do
-        if ! command_exists $tool; then
-            echo "$tool is not installed. Please install it using the following command:"
-            case $package_manager in
-                "dnf")
-                    echo "sudo dnf install $tool"
-                    ;;
-                "apt")
-                    echo "sudo apt install $tool"
-                    ;;
-                "unknown")
-                    echo "Package manager not detected. Please install $tool manually."
-                    ;;
-            esac
-            exit 1
-        fi
-    done
-}
+if [[ ! -f "$ARCHIVE" ]]; then
+  echo "Downloading $URL"
+  download
+fi
 
-# Call the verification function
-verify_tools
+rm -rf "$SRC_DIR"
+mkdir -p "$SRC_DIR"
+tar -xzf "$ARCHIVE" -C "$SRC_DIR" --strip-components=1
 
-declare -A software_dependencies
-software_dependencies=(
-    ["Pythia"]="HepMC3"
-    ["HepMC3"]=""
-    ["MadGraph"]=""
-    ["Marty"]=""
-)
+pushd "$SRC_DIR" >/dev/null
+./configure --prefix="$PREFIX" --with-hepmc3="$HEPMC3_PREFIX"
+make -j"$JOBS"
+make install
+popd >/dev/null
 
-installed_software=()
-cd External_Integration
-
-check_dependencies() {
-    local software=$1
-    local dependencies=${software_dependencies[$software]}
-
-    if [[ -n "$dependencies" ]]; then
-        for dep in $dependencies; do
-            if [[ ! " ${installed_software[@]} " =~ " ${dep} " ]]; then
-                echo "Error: $software needs $dep which is not installed."
-                exit 1
-            fi
-        done
-    fi
-}
-
-resolve_install_order() {
-    local to_install=("$@")
-    local resolved=()
-    local unresolved=()
-
-    for software in "${to_install[@]}"; do
-        resolve_dependencies "$software" resolved unresolved
-    done
-
-    echo "${resolved[@]}"
-}
-
-resolve_dependencies() {
-    local software=$1
-    local dependencies=${software_dependencies[$software]}
-    local resolved_ref=$2
-    local unresolved_ref=$3
-
-    if [[ " ${!resolved_ref} " =~ " ${software} " ]]; then
-        return
-    fi
-
-    if [[ " ${!unresolved_ref} " =~ " ${software} " ]]; then
-        echo "Error: Circular dependency detected for $software"
-        exit 1
-    fi
-
-    eval "$unresolved_ref+=(\"$software\")"
-
-    if [[ -n "$dependencies" ]]; then
-        for dep in $dependencies; do
-            resolve_dependencies "$dep" "$resolved_ref" "$unresolved_ref"
-        done
-    fi
-
-    eval "$resolved_ref+=(\"$software\")"
-    eval "$unresolved_ref=(\"${!unresolved_ref[@]/$software}\")"
-}
-
-install_software() {
-    local software=$1
-    echo $software/install.sh
-    echo "Installation of $software..."
-
-    check_dependencies $software
-
-    if [[ -f $software/install.sh ]]; then
-        (cd $software && ./install.sh)
-        if [[ $? -ne 0 ]]; then
-            echo "Error during installation of $software."
-            exit 1
-        fi
-        installed_software+=($software)
-    else
-        echo "Installation script for $software not found."
-        exit 1
-    fi
-}
-
-software_to_install=$(resolve_install_order "$@")
-for software in $software_to_install; do
-    install_software $software
-done
-
-echo "Installation ended with success for: ${installed_software[@]}"
-
-cd ..
+echo "Pythia8 installed successfully at $PREFIX"
+echo "For SetAnubis builds, use: export SETANUBIS_PYTHIA8_DIR=$PREFIX"

@@ -11,28 +11,30 @@ class PythiaBindingError(RuntimeError):
 def _load_pythia_sim():
     """Import the optional ``pythia_sim`` extension with a useful error message.
 
-    The binding can be installed either as a top-level module or as a package-local
-    extension under ``SetAnubis.core.Pythia.bindings``.  Keeping the import lazy
-    lets users import the Python API and generate CMND cards even on machines
-    where Pythia/HepMC3 are not installed.
+    The binding is expected to be package-local when installed from a wheel, but
+    the legacy top-level module name is still accepted for editable/check-out
+    workflows.  The import is intentionally lazy so users can generate CMND cards
+    without Pythia8/HepMC3 installed.
     """
     candidates = (
-        "pythia_sim",
         "SetAnubis.core.Pythia.bindings.pythia_sim",
+        "pythia_sim",
     )
     errors = []
     for module_name in candidates:
         try:
             return importlib.import_module(module_name)
-        except ModuleNotFoundError as exc:
+        except (ModuleNotFoundError, ImportError, OSError) as exc:
             errors.append(f"{module_name}: {exc}")
 
     raise PythiaBindingError(
         "The optional SetAnubis Pythia binding 'pythia_sim' is not importable. "
-        "You can still generate CMND cards, but running Pythia requires compiling "
-        "External_Integration/Pythia against Pythia8, HepMC3 and pybind11. "
-        "Try `make -C External_Integration/Pythia check-env all install-python-module` "
-        "or ensure the compiled pythia_sim extension is on PYTHONPATH. "
+        "Pure-Python CMND generation still works, but running Pythia requires a "
+        "compiled binding linked against Pythia8 and HepMC3. Build it during pip "
+        "install with, for example: "
+        "`SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 "
+        "SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 python -m pip install .[pythia]`. "
+        "After installation, run `setanubis-pythia-check` for diagnostics. "
         "Import attempts: " + "; ".join(errors)
     )
 
