@@ -37,6 +37,10 @@ class PythiaRunInterface:
             fix_decay_masses=fix_decay_masses,
         )
 
+    def check_runtime(self) -> dict:
+        """Return diagnostics for the optional C++ Pythia binding."""
+        return self.manager.check_runtime()
+
     def ensure_directories(self, sub_dirs) -> list:
         return self.manager.ensure_directories(sub_dirs)
 

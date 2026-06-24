@@ -1,50 +1,135 @@
 #!/bin/bash
 
-command -v cmake >/dev/null 2>&1 || { echo >&2 "CMake is not installed. Stop."; exit 1; }
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
 
+get_package_manager() {
+    if command_exists dnf; then
+        echo "dnf"
+    elif command_exists apt; then
+        echo "apt"
+    else
+        echo "unknown"
+    fi
+}
 
-HEPMC3_DIR="../HepMC3/hepmc3-install"
+required_tools=("cmake" "gcc" "gfortran" "g++")
 
-if [[ ! -d "$HEPMC3_DIR" ]]; then
-    echo "HepMC3 must be installed before Pythia. Stop."
-    exit 1
-fi
+verify_tools() {
+    local package_manager=$(get_package_manager)
 
-PYTHIA_SOURCE_DIR="pythia8315"
+    for tool in "${required_tools[@]}"; do
+        if ! command_exists $tool; then
+            echo "$tool is not installed. Please install it using the following command:"
+            case $package_manager in
+                "dnf")
+                    echo "sudo dnf install $tool"
+                    ;;
+                "apt")
+                    echo "sudo apt install $tool"
+                    ;;
+                "unknown")
+                    echo "Package manager not detected. Please install $tool manually."
+                    ;;
+            esac
+            exit 1
+        fi
+    done
+}
 
-echo "Downloading Pythia..."
-wget -O pythia8315.tar.gz https://www.pythia.org/download/pythia83/pythia8315.tgz
+# Call the verification function
+verify_tools
 
-echo "Extraction of Pythia..."
-tar -xzf pythia8315.tar.gz
+declare -A software_dependencies
+software_dependencies=(
+    ["Pythia"]="HepMC3"
+    ["HepMC3"]=""
+    ["MadGraph"]=""
+    ["Marty"]=""
+)
 
-cd pythia8315
+installed_software=()
+cd External_Integration
 
-echo "Configuration of Pythia..."
-./configure --with-hepmc3=$HEPMC3_DIR \
-    #   --with-python \
+check_dependencies() {
+    local software=$1
+    local dependencies=${software_dependencies[$software]}
 
-echo "Compilation de Pythia..."
-make
+    if [[ -n "$dependencies" ]]; then
+        for dep in $dependencies; do
+            if [[ ! " ${installed_software[@]} " =~ " ${dep} " ]]; then
+                echo "Error: $software needs $dep which is not installed."
+                exit 1
+            fi
+        done
+    fi
+}
 
-echo "Installation of Pythia..."
-make install
+resolve_install_order() {
+    local to_install=("$@")
+    local resolved=()
+    local unresolved=()
 
+    for software in "${to_install[@]}"; do
+        resolve_dependencies "$software" resolved unresolved
+    done
 
-echo "Pythia installed with success."
+    echo "${resolved[@]}"
+}
+
+resolve_dependencies() {
+    local software=$1
+    local dependencies=${software_dependencies[$software]}
+    local resolved_ref=$2
+    local unresolved_ref=$3
+
+    if [[ " ${!resolved_ref} " =~ " ${software} " ]]; then
+        return
+    fi
+
+    if [[ " ${!unresolved_ref} " =~ " ${software} " ]]; then
+        echo "Error: Circular dependency detected for $software"
+        exit 1
+    fi
+
+    eval "$unresolved_ref+=(\"$software\")"
+
+    if [[ -n "$dependencies" ]]; then
+        for dep in $dependencies; do
+            resolve_dependencies "$dep" "$resolved_ref" "$unresolved_ref"
+        done
+    fi
+
+    eval "$resolved_ref+=(\"$software\")"
+    eval "$unresolved_ref=(\"${!unresolved_ref[@]/$software}\")"
+}
+
+install_software() {
+    local software=$1
+    echo $software/install.sh
+    echo "Installation of $software..."
+
+    check_dependencies $software
+
+    if [[ -f $software/install.sh ]]; then
+        (cd $software && ./install.sh)
+        if [[ $? -ne 0 ]]; then
+            echo "Error during installation of $software."
+            exit 1
+        fi
+        installed_software+=($software)
+    else
+        echo "Installation script for $software not found."
+        exit 1
+    fi
+}
+
+software_to_install=$(resolve_install_order "$@")
+for software in $software_to_install; do
+    install_software $software
+done
+
+echo "Installation ended with success for: ${installed_software[@]}"
 
 cd ..
-
-make
-
-TARGET_PATH="$(pwd)/build"
-
-BASHRC_FILE="$HOME/.bashrc"
-
-if ! grep -q "PYTHONPATH=.*$TARGET_PATH" "$BASHRC_FILE"; then
-    echo "Ajout de '$TARGET_PATH' à PYTHONPATH dans $BASHRC_FILE"
-    echo "export PYTHONPATH=\$PYTHONPATH:$TARGET_PATH" >> "$BASHRC_FILE"
-    source "$BASHRC_FILE"
-else
-    echo "'$TARGET_PATH' est déjà dans PYTHONPATH"
-fi

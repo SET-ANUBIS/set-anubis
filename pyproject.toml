@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SetAnubis"
+version = "0.0.1"
+description = "SetAnubis physics simulation toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = [
+  "numpy",
+  "pandas",
+  "sympy",
+  "matplotlib",
+  "scipy",
+  "pyyaml",
+  "particle",
+  "graphviz",
+]
+
+[project.optional-dependencies]
+pythia = ["pybind11", "pyhepmc"]
+selection = ["pyhepmc", "fastjet", "awkward"]
+madgraph = ["docker"]
+app = ["streamlit", "dash", "plotly", "requests", "python-dotenv", "python-multipart"]
+docs = ["sphinx", "sphinx_rtd_theme"]
+dev = ["pytest", "build", "twine"]
+all = [
+  "pybind11", "pyhepmc", "fastjet", "awkward", "docker",
+  "streamlit", "dash", "plotly", "requests", "python-dotenv", "python-multipart",
+  "sphinx", "sphinx_rtd_theme", "pytest", "build", "twine",
+]
+
+[tool.setuptools]
+package-dir = {"" = "setanubis"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["setanubis"]
+exclude = ["tests", "tests.*"]
+
+[tool.setuptools.package-data]
+"SetAnubis.core.Pythia.bindings" = ["*.so", "*.pyd", "*.dylib"]
+"SetAnubis" = ["**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt", "**/*.cmnd"]

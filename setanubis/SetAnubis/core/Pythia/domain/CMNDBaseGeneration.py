@@ -125,7 +125,7 @@ class CMNDGenerationManager:
     def _get_particle_info(self, particle: int) -> Dict[str, Any]:
         try:
             particles = self.master.get_all_particles()
-            if isinstance(particles, dict):
+            if isinstance(particles, dict) and particle in particles:
                 return particles[particle]
         except Exception:
             pass

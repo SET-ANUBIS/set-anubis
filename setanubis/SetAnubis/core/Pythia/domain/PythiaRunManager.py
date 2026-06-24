@@ -1,7 +1,54 @@
+import importlib
 import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-import pythia_sim
+
+
+class PythiaBindingError(RuntimeError):
+    """Raised when the optional C++/pybind11 Pythia binding is unavailable."""
+
+
+def _load_pythia_sim():
+    """Import the optional ``pythia_sim`` extension with a useful error message.
+
+    The binding can be installed either as a top-level module or as a package-local
+    extension under ``SetAnubis.core.Pythia.bindings``.  Keeping the import lazy
+    lets users import the Python API and generate CMND cards even on machines
+    where Pythia/HepMC3 are not installed.
+    """
+    candidates = (
+        "pythia_sim",
+        "SetAnubis.core.Pythia.bindings.pythia_sim",
+    )
+    errors = []
+    for module_name in candidates:
+        try:
+            return importlib.import_module(module_name)
+        except ModuleNotFoundError as exc:
+            errors.append(f"{module_name}: {exc}")
+
+    raise PythiaBindingError(
+        "The optional SetAnubis Pythia binding 'pythia_sim' is not importable. "
+        "You can still generate CMND cards, but running Pythia requires compiling "
+        "External_Integration/Pythia against Pythia8, HepMC3 and pybind11. "
+        "Try `make -C External_Integration/Pythia check-env all install-python-module` "
+        "or ensure the compiled pythia_sim extension is on PYTHONPATH. "
+        "Import attempts: " + "; ".join(errors)
+    )
+
+
+def check_pythia_binding() -> dict:
+    """Return a small diagnostic dict for the optional compiled Pythia binding."""
+    try:
+        module = _load_pythia_sim()
+    except PythiaBindingError as exc:
+        return {"available": False, "module": None, "path": None, "error": str(exc)}
+    return {
+        "available": True,
+        "module": module.__name__,
+        "path": getattr(module, "__file__", None),
+        "error": None,
+    }
 
 
 class PythiaSimulationManager:
@@ -34,6 +81,10 @@ class PythiaSimulationManager:
         self.require_all_cuts = require_all_cuts
         self.max_trials = int(max_trials)
         self.fix_decay_masses = fix_decay_masses
+
+    def check_runtime(self) -> dict:
+        """Return diagnostics for the optional C++ runtime required to run Pythia."""
+        return check_pythia_binding()
 
     def ensure_directories(self, sub_dirs) -> List[str]:
         """Create directories within the base output directory if needed."""
@@ -77,6 +128,7 @@ class PythiaSimulationManager:
         self.hard_cuts.clear()
 
     def _to_cpp_cut(self, cut: Any):
+        pythia_sim = _load_pythia_sim()
         if isinstance(cut, pythia_sim.ParticleHardCut):
             return cut
 
@@ -125,6 +177,7 @@ class PythiaSimulationManager:
         return cpp_cut
 
     def _build_run_options(self):
+        pythia_sim = _load_pythia_sim()
         options = pythia_sim.PythiaRunOptions()
         options.settings = list(self.pythia_settings)
         options.lifetimes = dict(self.lifetimes)
@@ -137,6 +190,7 @@ class PythiaSimulationManager:
 
     def create_generator(self, config_file: str, lhe_output: str, hepmc_output: str, text_output: str, num_events: int):
         """Create a Pythia event generator based on specified parameters."""
+        pythia_sim = _load_pythia_sim()
         return pythia_sim.create_pythia_generator(
             config_file, lhe_output, hepmc_output, text_output, "", num_events
         )
@@ -166,9 +220,14 @@ class PythiaSimulationManager:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             base_name = f"{timestamp}_{base_name}"
 
-        lhe_output = os.path.join(output_lhe_dir, f"{base_name}_{suffix}.lhe")
-        hepmc_output = os.path.join(output_hepmc_dir, f"{base_name}_{suffix}.hepmc")
-        txt_output = os.path.join(output_text_dir, f"{base_name}_{suffix}.txt")
+        os.makedirs(output_lhe_dir, exist_ok=True)
+        os.makedirs(output_hepmc_dir, exist_ok=True)
+        os.makedirs(output_text_dir, exist_ok=True)
+
+        suffix_part = f"_{suffix}" if suffix else ""
+        lhe_output = os.path.join(output_lhe_dir, f"{base_name}{suffix_part}.lhe")
+        hepmc_output = os.path.join(output_hepmc_dir, f"{base_name}{suffix_part}.hepmc")
+        txt_output = os.path.join(output_text_dir, f"{base_name}{suffix_part}.txt")
 
         generator = self.create_generator(config_file, lhe_output, hepmc_output, txt_output, num_events)
 
