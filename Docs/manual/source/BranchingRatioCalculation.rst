@@ -1,31 +1,57 @@
-Branching ratios and lifetimes
-==============================
+Branching ratios, widths and lifetimes
+======================================
 
-The branching-ratio layer provides a common interface for decay widths,
-branching ratios and lifetimes. It is designed to support multiple calculation
-strategies without forcing the rest of the pipeline to know whether a value came
-from a Python function, an interpolation table, a UFO/MadGraph calculation or a
-MARTY-oriented backend.
+The branching-ratio layer provides a common interface for quantities that enter
+both generation and sensitivity projections: partial widths, total widths,
+branching ratios and lifetimes.  In an LLP scan these values often depend on the
+same model parameters that control production kinematics, such as an HNL mass or
+mixing angle.
 
-Typical use cases are:
+Role in the analysis
+--------------------
 
-* filling MadSpin and analysis metadata with model-dependent widths;
-* producing branching-ratio tables for scans;
-* providing decay tables to optional Pythia ``.cmnd`` card generation;
-* validating toy models such as HNL benchmarks.
+The layer is used to:
 
-Minimal example
----------------
+* provide model-dependent widths to parameter cards or generator metadata;
+* tabulate branching ratios over scan parameters;
+* compute lifetimes for selection and optional decay-position reweighting;
+* prepare decay information for MadSpin or optional Pythia card generation;
+* compare calculation strategies during validation.
+
+Available strategies
+--------------------
+
+``CalculationDecayStrategy`` currently exposes:
+
+* ``PYTHON`` for user-defined formulas;
+* ``FILE_INTERPOLATION`` for tabulated widths or branching ratios;
+* ``UFO`` for UFO-based calculations;
+* ``MADGRAPH`` for generator-assisted width extraction;
+* ``MARTY`` for MARTY-oriented symbolic/numeric workflows.
+
+HNL-style example
+-----------------
 
 .. code-block:: python
 
-   from setanubis import SetAnubisInterface, DecayInterface, CalculationDecayStrategy, ufo_path
+   from setanubis import (
+       SetAnubisInterface,
+       DecayInterface,
+       CalculationDecayStrategy,
+       Unit,
+       ufo_path,
+   )
 
    model = SetAnubisInterface(str(ufo_path("UFO_HNL")))
-   br = DecayInterface(model)
+   model.set_leaf_param("mN1", 1.0)
+   model.set_leaf_param("VeN1", 1.0e-6)
 
-   br.add_decays(
-       [{"mother": 25, "daughters": [-13, 13]}],
+   decays = DecayInterface(model)
+   decays.add_decays(
+       [
+           {"mother": 25, "daughters": [-13, 13]},
+           {"mother": 25, "daughters": [22, 22]},
+       ],
        CalculationDecayStrategy.FILE_INTERPOLATION,
        {
            "file_path": "br_table.csv",
@@ -34,20 +60,17 @@ Minimal example
        },
    )
 
-   print(br.get_brs(25))
+   print(decays.get_brs(25))
+   print(decays.calculate_lifetime(25, Unit.S))
 
-Available strategies
---------------------
+The concrete test file used by the repository is
+``setanubis/SetAnubis/examples/BranchingRatio/example_BranchingRatioInterface_hnl.py``.
 
-``CalculationDecayStrategy`` currently exposes:
+Connection to generation
+------------------------
 
-* ``PYTHON`` for user-defined Python implementations;
-* ``FILE_INTERPOLATION`` for tabulated widths or branching ratios;
-* ``UFO`` for UFO-based calculations;
-* ``MADGRAPH`` for generator-assisted widths;
-* ``MARTY`` for symbolic/numeric calculations through MARTY workflows.
-
-Recommended examples
---------------------
-
-* ``setanubis/SetAnubis/examples/BranchingRatio/example_BranchingRatioInterface_hnl.py``
+For MadGraph/MadSpin studies the branching-ratio layer is not required to launch
+a process, but it is useful for keeping the scan metadata physically consistent:
+widths, decay tables and sensitivity factors can all be evaluated from the same
+model-parameter state.  For optional Pythia workflows the same information can be
+translated into ``.cmnd`` decay configuration.

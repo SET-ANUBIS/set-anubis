@@ -1,82 +1,60 @@
-# Pythia/HepMC3 packaging policy
+# Optional Pythia/HepMC3 packaging policy
 
-The SET-ANUBIS Python package is installable without Pythia8 or HepMC3.  The
-native `pythia_sim` extension is compiled only when explicitly requested.
+Pythia is a supporting backend in SET-ANUBIS.  The release documentation keeps
+MadGraph generation and geometry/selection as the main public workflow, while the
+Pythia layer remains available for standalone generation and cross-checks.
 
-## Why opt-in?
+## Why the binding is optional
 
-Pythia8 and HepMC3 are external C++ packages. They are large, system-dependent
-and often installed by an experiment software stack, CVMFS, a local prefix or a
-container. Silent downloads during `pip install` make builds fragile and are not
-appropriate for a clean PyPI release.
+Pythia8 and HepMC3 are external C++ projects.  Building them automatically during
+an ordinary `pip install SetAnubis` would make installation slow, platform
+sensitive and difficult to debug.  Therefore:
 
-## Build modes
+- the default wheel is Python-only;
+- `.cmnd` generation works without native Pythia;
+- runtime generation is compiled only when `SETANUBIS_BUILD_PYTHIA=1` is set.
 
-### Pure Python, default
-
-```bash
-python -m pip install SetAnubis
-```
-
-This installs the public Python API and CMND-generation tooling. It does not
-compile or import `pythia_sim` at install time.
-
-### Native Pythia runtime
+## Build with external installations
 
 ```bash
-SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
+SETANUBIS_BUILD_PYTHIA=1 \
+SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
+SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
+python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
 ```
 
-For editable development:
+`SETANUBIS_PYTHIA8_DIR` should point to a Pythia installation prefix containing
+`include/Pythia8/Pythia.h` and `lib/libpythia8.*`.  `SETANUBIS_HEPMC3_DIR` should
+point to a HepMC3 installation prefix containing `include/HepMC3/GenEvent.h` and
+`lib/libHepMC3.*`.
+
+## Build local external copies
 
 ```bash
-SETANUBIS_BUILD_PYTHIA=1 SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install python -m pip install -e ".[pythia]"
+./External_Integration/install.sh HepMC3 Pythia
+SETANUBIS_BUILD_PYTHIA=1 \
+SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
+SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
+python -m pip install -e ".[pythia]"
 ```
 
-## Environment variables
+## Diagnostics
 
-| Variable | Meaning |
-| --- | --- |
-| `SETANUBIS_BUILD_PYTHIA=1` | Force compilation of the optional extension. |
-| `SETANUBIS_BUILD_PYTHIA=auto` | Compile only if all dependencies are detected. |
-| `SETANUBIS_PYTHIA8_DIR` | Pythia8 install prefix. |
-| `SETANUBIS_PYTHIA8_INCLUDE` | Pythia8 include directory override. |
-| `SETANUBIS_PYTHIA8_LIB` | Pythia8 library directory override. |
-| `SETANUBIS_HEPMC3_DIR` | HepMC3 install prefix. |
-| `SETANUBIS_HEPMC3_INCLUDE` | HepMC3 include directory override. |
-| `SETANUBIS_HEPMC3_LIB` | HepMC3 library directory override. |
+```bash
+setanubis-pythia-check
+```
 
-The build also checks `pythia8-config --prefix` and `HepMC3-config --prefix` if
-those commands are on `PATH`.
+This command reports whether the binding can be imported and which Pythia/HepMC3
+paths are visible.
 
-## TestPyPI and PyPI release flow
+## Runtime notes
 
-1. Update `pyproject.toml`, `SetAnubis/_version.py`, `CHANGELOG.md` and
-   `CITATION.cff`.
-2. Run local checks:
+If the extension imports during build but fails at runtime, check the dynamic
+library path:
 
-   ```bash
-   python -m pip install -e ".[dev,docs]"
-   python -m pytest -q setanubis/tests
-   python -m build
-   twine check dist/*
-   ```
+```bash
+export LD_LIBRARY_PATH=/path/to/pythia8/lib:/path/to/hepmc3/lib:$LD_LIBRARY_PATH
+```
 
-3. Use the `Release` GitHub workflow with `repository=testpypi`.
-4. Install from TestPyPI in a clean environment.
-5. Tag the release:
-
-   ```bash
-   git tag -a v1.0.0 -m "SetAnubis 1.0.0"
-   git push origin v1.0.0
-   ```
-
-The tag publishes to PyPI through Trusted Publishing once the PyPI project has a
-matching trusted publisher configured for this repository and workflow.
-
-## Wheel policy
-
-Official PyPI wheels are Python-only by default. Users needing the native Pythia
-runtime should install from source with `--no-binary SetAnubis` and explicit
-external dependency paths. This avoids distributing wheels tied to a particular
-Pythia/HepMC3 ABI.
+On macOS use `DYLD_LIBRARY_PATH` instead, subject to the usual macOS SIP
+limitations.

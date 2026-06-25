@@ -12,69 +12,91 @@
 [![Citation](https://img.shields.io/badge/cite-arXiv%3A2512.14942-b31b1b.svg)](https://arxiv.org/abs/2512.14942)
 
 **SET-ANUBIS** (*Simulation, accEptance and sensiTivity studies framework for
-ANUBIS*) is a modular Python/C++ toolkit for long-lived-particle (LLP)
-sensitivity studies for the proposed ANUBIS detector.
+ANUBIS*) is a Python/C++ framework for projecting the sensitivity of the proposed
+**ANUBIS** detector to long-lived particles (LLPs).  The code follows the
+analysis strategy used in the SET-ANUBIS paper: describe a BSM model through UFO
+inputs, evaluate widths/branching ratios, generate signal samples, ingest the
+resulting HepMC events, propagate LLP decays through an ATLAS-cavern/ANUBIS
+geometry model, and apply the truth-level cutflow used to estimate geometric and
+kinematic acceptance.
 
-The package is organised around the physics workflow used in the paper:
-UFO/model input, branching ratios and lifetimes, MadGraph campaign generation,
-event storage, ATLAS cavern / ANUBIS geometry, selection cutflows and sensitivity
-projections. Pythia support is available, but it is treated as an optional
-generation backend rather than the centre of the public API.
+ANUBIS is a proposed transverse LLP detector at LHC Point 1, intended to
+instrument the ATLAS underground cavern with RPC tracking stations.  Its physics
+motivation is to recover LLP decays that can occur outside the main ATLAS
+detector but inside the cavern volume, where dedicated tracking layers could
+observe charged decay products.  For detector details and physics motivation see
+the original ANUBIS proposal, the recent ANUBIS detector/sensitivity paper, and
+the SET-ANUBIS software paper listed in [Citation](#citation).
+
+<p align="center">
+  <img src="Docs/assets/anubis-detector-concept.jpeg" alt="ANUBIS detector concept in the ATLAS cavern" width="520">
+</p>
+
+## Physics workflow
+
+SET-ANUBIS is organised around the analysis pipeline rather than around a single
+generator.  The main release examples focus on **MadGraph generation**,
+**branching-ratio/lifetime handling**, **geometry-aware selection**, and
+**sensitivity inputs**.  Pythia remains available as an optional backend for
+standalone generation, showering studies and cross-checks, but it is not the
+central public workflow.
 
 <p align="center">
   <img src="Docs/assets/set-anubis-architecture.jpg" alt="SET-ANUBIS architecture" width="900">
 </p>
 
-## What SET-ANUBIS does
+The principal components are:
 
-- **Model and UFO handling**: load UFO models, inspect particles and parameters,
-  generate parameter cards and keep model metadata reproducible.
-- **MadGraph-first generation workflow**: build job scripts, run cards, parameter
-  cards, MadSpin cards and shower cards for scan campaigns that produce the
-  standard `Events/run_*` layout.
-- **Event database and provenance**: ingest generated samples, scan summaries,
-  cards, banners and compact dataframe bundles into a SQLite + content-addressed
-  storage model.
-- **Geometry and selection**: apply ANUBIS/ATLAS-cavern truth-level acceptance,
-  charged-track requirements, isolation, jet and lifetime-reweighting cutflows.
+- **UFO and model interface**: load UFO models, expose model parameters and
+  particle content, and produce parameter cards suitable for generator scans.
 - **Branching ratios and lifetimes**: combine Python formulas, interpolation
-  tables, UFO/MadGraph and MARTY-oriented strategies for widths and BRs.
-- **Optional Pythia layer**: generate `.cmnd` files and, when explicitly built,
-  run a native Pythia8/HepMC3 binding for standalone samples or showering tests.
-- **Inspection tools**: optional Dash apps for HepMC event debugging and database
-  campaign auditing.
+  tables, UFO/MadGraph strategies and MARTY-oriented workflows to provide widths,
+  BRs and lifetimes to generation and sensitivity calculations.
+- **MadGraph campaign generation**: build MadGraph job scripts, run cards,
+  parameter cards, MadSpin cards and shower cards for HNL-like or generic BSM
+  scan points.
+- **Database and provenance**: store cards, banners, scan metadata, HepMC
+  references and compact selection-ready dataframe bundles with reproducible
+  metadata.
+- **ATLAS cavern and ANUBIS geometry**: model the cavern volume, the ATLAS
+  exclusion region, the PX14/PX16 shafts and configurable ANUBIS RPC tracking
+  layers.
+- **Selection cutflow**: first require the LLP decay to occur in the relevant
+  detector geometry, then require charged decay products to intersect ANUBIS
+  stations, and only afterwards apply MET and isolation cuts motivated by the
+  ATLAS-associated background rejection strategy.
+- **Sensitivity projections**: use acceptance values from the cutflow together
+  with luminosity, production cross sections, branching ratios and signal
+  efficiencies to compute expected LLP yields.
 
 ## Installation
-
-### Python package
 
 ```bash
 python -m pip install SetAnubis
 ```
 
-From a development checkout:
+For development:
 
 ```bash
 git clone https://github.com/SET-ANUBIS/set-anubis.git
 cd set-anubis
-python -m pip install -e ".[dev,docs]"
+python -m pip install -e ".[dev,docs,selection,madgraph]"
 python -m pytest -q setanubis/tests
 ```
 
-Useful extras:
+Useful optional extras:
 
 ```bash
-python -m pip install "SetAnubis[selection]"  # pyhepmc/awkward/fastjet tools
+python -m pip install "SetAnubis[selection]"  # pyhepmc / fastjet / awkward selection stack
 python -m pip install "SetAnubis[madgraph]"   # Docker runner integration
-python -m pip install "SetAnubis[app]"        # Dash inspection apps
-python -m pip install "SetAnubis[docs]"       # local documentation build
+python -m pip install "SetAnubis[app]"        # Dash event/database inspection tools
+python -m pip install "SetAnubis[docs]"       # local Sphinx documentation
 ```
 
 ### Optional Pythia/HepMC3 binding
 
-The default wheel is Python-only. This is intentional: Pythia8 and HepMC3 are
-large external C++ dependencies, so the native binding is built only when
-requested explicitly.
+The default wheel is Python-only.  The native Pythia8/HepMC3 extension is built
+only when explicitly requested:
 
 ```bash
 SETANUBIS_BUILD_PYTHIA=1 \
@@ -83,7 +105,7 @@ SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
 python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
 ```
 
-For a local checkout, the helper can first build local copies of HepMC3/Pythia8:
+For a local checkout, helpers are provided to build external copies first:
 
 ```bash
 ./External_Integration/install.sh HepMC3 Pythia
@@ -96,9 +118,10 @@ setanubis-pythia-check
 
 See [`PYTHIA_PACKAGING.md`](PYTHIA_PACKAGING.md) for the native-extension policy.
 
-## Public API
+## Official import layer
 
-Prefer the short import layer in scripts, notebooks and examples:
+The PyPI distribution is named **SetAnubis**, but the recommended user-facing
+Python import is the lower-case facade:
 
 ```python
 from setanubis import (
@@ -113,22 +136,30 @@ from setanubis import (
 )
 ```
 
-The internal `SetAnubis.core...` paths remain importable for advanced users, but
-new documentation should use `from setanubis import ...` where possible.
+This follows the usual Python convention for importable modules and is the API
+used in the public documentation.  The internal `SetAnubis.core...` package paths
+remain available for advanced users and backwards compatibility, but examples
+should prefer `from setanubis import ...`.
 
-## Quick start: MadGraph campaign cards
+## Example: HNL-oriented MadGraph card generation
 
-This example builds the core text artefacts for a scan campaign without launching
-MadGraph. The same strings can be executed through the Docker/local runner or
-submitted to a batch system.
+This example constructs the text artefacts needed for a Heavy Neutral Lepton
+(HNL) scan without launching MadGraph.  The same cards can be passed to the local
+or Docker runner once a MadGraph installation is configured.
 
 ```python
-from setanubis import SetAnubisInterface, MadGraphCommandConfig, GeneralCardInterface, ufo_path
+from setanubis import (
+    SetAnubisInterface,
+    MadGraphCommandConfig,
+    GeneralCardInterface,
+    ufo_path,
+)
 
 model = SetAnubisInterface(str(ufo_path("UFO_HNL")))
+
 config = MadGraphCommandConfig(
     neo_set_anubis=model,
-    model_in_madgraph="SM_HeavyN_CKM_AllMasses_LO",
+    model_in_madgraph="UFO_HNL",
     shower="py8",
     madspin="ON",
     cache=False,
@@ -136,12 +167,15 @@ config = MadGraphCommandConfig(
 
 cards = GeneralCardInterface(config)
 cards.run_card_builder.set("nevents", 2000)
+cards.run_card_builder.set("ebeam1", 6800)
+cards.run_card_builder.set("ebeam2", 6800)
+
 cards.madspin_builder.clear_decays()
 cards.madspin_builder.add_decay("decay n1 > ell ell vv")
 
 job = cards.jobscript_builder
 job.add_process("generate p p > n1 ell # [QCD]")
-job.set_output_launch("HNL_scan_demo")
+job.set_output_launch("HNL_ANUBIS_scan")
 job.configure_cards()
 job.add_parameter_scan("MN1", "[0.5, 1.0, 2.0]")
 job.add_parameter_scan("VeN1", "[1e-6, 1e-5]")
@@ -151,13 +185,19 @@ print(cards.run_card_builder.serialize())
 print(cards.madspin_builder.serialize())
 ```
 
-Full examples live in [`setanubis/SetAnubis/examples/MadGraph`](setanubis/SetAnubis/examples/MadGraph).
+More examples are in [`setanubis/SetAnubis/examples/MadGraph`](setanubis/SetAnubis/examples/MadGraph).
 
-## Quick start: selection cutflow
+## Example: selection configuration matching the nominal cutflow
 
-Selection starts from either a HepMC stream converted to dataframes or a compact
-bundle stored by the database layer. The key user-facing objects are a geometry
-adapter, a `SelectionConfig`, a `RunConfig` and a pipeline builder.
+The nominal selection follows the physics ordering described in the paper:
+
+1. keep decaying LLP candidates;
+2. require the decay vertex to be in the cavern or selected shaft geometry;
+3. reject decays inside the ATLAS detector volume;
+4. require the LLP trajectory and charged decay products to hit the ANUBIS RPC
+   stations;
+5. apply MET, by default `MET > 30 GeV`;
+6. apply jet/charged-track isolation using `Delta R` thresholds.
 
 ```python
 from setanubis import (
@@ -184,7 +224,7 @@ selection = SelectionConfig(
     minDR=MinDR(jet=0.4, chargedTrack=0.4, neutralTrack=0.4),
     nStations=2,
     nIntersections=2,
-    nTracks=1,
+    nTracks=2,
 )
 
 pipeline = (
@@ -192,113 +232,51 @@ pipeline = (
     .set_options(add_jets=True, compute_isolation=True, selection_mode="standard")
     .build()
 )
+
 source = EventsBundleSource.from_bundle_file("sample_bundle.pkl.gz")
-result = SelectionManager(pipeline).run_many(
-    named_sources=[("scan-point", source)],
+combined = SelectionManager(pipeline).run_many(
+    named_sources=[("HNL_scan_point", source)],
     sel_cfg=selection,
     run_cfg=RunConfig(reweightLifetime=False, plotTrajectory=False),
 )
-print(result.cutflow_sum)
-```
-
-Full examples live in [`setanubis/SetAnubis/examples/Selection`](setanubis/SetAnubis/examples/Selection).
-
-## Branching ratios and optional Pythia cards
-
-The branching-ratio layer feeds both MadGraph/MadSpin studies and optional Pythia
-`.cmnd` generation. Pythia is useful for standalone samples and cross-checks,
-but release examples keep it in this supporting role.
-
-```python
-from setanubis import SetAnubisInterface, DecayInterface, CalculationDecayStrategy, ufo_path
-
-model = SetAnubisInterface(str(ufo_path("UFO_HNL")))
-br = DecayInterface(model)
-br.add_decays(
-    [{"mother": 25, "daughters": [-13, 13]}],
-    CalculationDecayStrategy.FILE_INTERPOLATION,
-    {"file_path": "br_table.csv", "varying_params": ["mN1", "VeN1"], "format_type": "csv"},
-)
-print(br.get_brs(25))
-```
-
-Pythia CMND generation works without the native binding:
-
-```bash
-setanubis-pythia-smoke --pid 42 --out pythia_smoke_outputs
+print(combined.cutflow_sum)
 ```
 
 ## Documentation
 
-Build locally:
+Build locally with:
 
 ```bash
 python -m pip install -e ".[docs]"
 setanubis-docs --open
-# equivalent:
-sphinx-build -b html Docs/manual/source Docs/manual/build/html
 ```
 
-The docs workflow always builds and uploads an HTML artifact. It deploys to
-GitHub Pages only when Pages is enabled and either the repository variable
-`DEPLOY_GITHUB_PAGES=true` is set for pushes to `main`, or the workflow is run
-manually with `deploy_pages=true`.
-
-## Repository layout
+The hosted documentation is expected at:
 
 ```text
-setanubis/SetAnubis/core/
-├── ModelCore/        # UFO/model-facing interface and parameter services
-├── DataBase/         # card generation, event catalogue, CAS, campaign metadata
-├── BranchingRatio/   # decay-width, BR and lifetime calculation strategies
-├── MadGraph/         # MadGraph cards and execution adapters
-├── Selection/        # HepMC/dataframe selection, cutflows, isolation, jets
-├── Geometry/         # ATLAS cavern and ANUBIS geometry models
-└── Pythia/           # optional CMND generation and native runtime binding
+https://set-anubis.github.io/set-anubis/
 ```
 
-## Dash interfaces
+## Citation
 
-The GUI apps are optional inspection tools, not required for production scans:
-
-- [`SetAnubis.HepMCGUI`](setanubis/SetAnubis/HepMCGUI/README.md): HepMC event,
-  track and geometry visualisation.
-- [`SetAnubis.SetAnubisDBDashboard`](setanubis/SetAnubis/SetAnubisDBDashboard/README.md):
-  event database and campaign-provenance dashboard.
-
-Install GUI dependencies with:
-
-```bash
-python -m pip install "SetAnubis[app]"
-```
-
-## Release and citation
-
-The package version is `1.0.0`. Release notes are tracked in
-[`CHANGELOG.md`](CHANGELOG.md), and the release checklist is in
-[`RELEASE.md`](RELEASE.md).
-
-If SET-ANUBIS contributes to a study or publication, please cite the software and
-the associated preprint placeholder:
+If SET-ANUBIS contributes to your work, please cite the software preprint and the
+ANUBIS detector references relevant to your study:
 
 ```bibtex
-@misc{setanubis2025,
-  title  = {SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies},
-  url    = {https://arxiv.org/abs/2512.14942},
-  year   = {2025}
+@article{SETANUBIS2025,
+  title   = {SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies},
+  author  = {SET-ANUBIS contributors},
+  year    = {2025},
+  url     = {https://arxiv.org/abs/2512.14942}
 }
 ```
 
-A machine-readable citation is provided in [`CITATION.cff`](CITATION.cff).
+Recommended ANUBIS references:
 
-## Community and governance
-
-- [Contributing guide](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Security policy](SECURITY.md)
-- [Support policy](SUPPORT.md)
-- [Changelog](CHANGELOG.md)
+- M. Bauer, O. Brandt, L. Lee and C. Ohm, *ANUBIS: Proposal to search for long-lived neutral particles in CERN service shafts*, arXiv:1909.13022.
+- ANUBIS Collaboration, *The ANUBIS detector and its sensitivity to neutral long-lived particles*, arXiv:2510.26932.
+- T. Reymermier et al., *ANUBIS: Projected Sensitivities and Initial Results from the proANUBIS demonstrator with Run 3 LHC data*, arXiv:2512.14942.
 
 ## License
 
-SET-ANUBIS is distributed under the MIT License. See [`LICENSE`](LICENSE).
+SET-ANUBIS is distributed under the MIT License.  See [`LICENSE`](LICENSE).

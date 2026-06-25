@@ -1,19 +1,70 @@
-Selection workflow
-==================
+Geometry and selection workflow
+===============================
 
-After event generation, SET-ANUBIS converts HepMC events or compact database
-bundles into analysis-ready dataframes and applies geometry, kinematic,
-isolation, jet and lifetime-reweighting cutflows.
+The selection stage estimates whether a generated LLP decay would be observable
+in the ANUBIS detector concept.  It operates on selection-ready dataframe bundles
+created from HepMC events or loaded from the database.  The ordering of the
+cutflow is physics-motivated: geometry and tracking acceptance are evaluated
+before ATLAS-associated kinematic and isolation cuts.
 
-The core objects are:
+Event objects
+-------------
 
-* ``ATLASCavern`` and geometry adapters for ANUBIS/ATLAS-cavern acceptance;
-* ``SelectionConfig`` and ``RunConfig`` for thresholds and runtime behaviour;
-* ``SelectionPipelineBuilder`` for dataframe-to-cutflow processing;
-* ``SelectionManager`` for one or many samples.
+HepMC events are converted into dataframes and split into analysis objects:
 
-Minimal cutflow skeleton
-------------------------
+* LLP candidates, selected by PDG identifier;
+* recursively collected LLP decay products;
+* charged and neutral prompt final states not produced by the LLP;
+* anti-:math:`k_t` jet candidates built from prompt final-state particles;
+* event-level missing transverse energy, if available or computed from MET
+  components.
+
+The nominal prompt-object definitions used by the paper are configurable in the
+code.  They use final-state particles not produced by the LLP, require promptness
+with respect to the interaction point, and impose transverse-momentum thresholds
+before isolation and jet clustering are evaluated.
+
+Geometry model
+--------------
+
+The geometry layer represents the ATLAS UX1 cavern, the ATLAS exclusion region,
+the PX14/PX16 shaft regions and configurable ANUBIS tracking layers.  The nominal
+configuration described in the paper uses two tracking layers following the
+cavern ceiling, separated by about one metre, with the first layer close to the
+ceiling.  The number of stations, the number of RPCs per layer and the RPC
+efficiency are configurable through the geometry/selection configuration.
+
+The geometry cut is intentionally applied before MET or isolation cuts.  A signal
+candidate first has to decay in a region where ANUBIS can plausibly observe
+charged daughters; only then do the ATLAS-associated background rejection cuts
+become meaningful.
+
+Nominal cutflow
+---------------
+
+The current ``SelectionEngine`` applies the following standard LLP-level steps:
+
+1. ``nLLP_LLPdecay``: keep LLP candidates that decay rather than stable outgoing
+   particles.
+2. ``nLLP_InCavern`` or ``nLLP_InShaft``: require the decay vertex to lie in the
+   selected ANUBIS geometry mode.
+3. ``nLLP_NotInATLAS``: reject vertices inside the ATLAS detector volume.
+4. ``nLLP_Geometry``: require the LLP trajectory to intersect the required
+   number of ANUBIS stations.
+5. ``nLLP_Tracker``: require charged LLP decay products to produce the requested
+   number of track intersections in the RPC layers.
+6. ``nLLP_MET``: require missing transverse energy above the configured
+   threshold, nominally ``30 GeV``.
+7. ``nLLP_IsoJet`` / ``nLLP_IsoCharged`` / ``nLLP_IsoAll``: reject candidates too
+   close in :math:`\Delta R` to prompt jets or charged tracks.
+
+The MET and isolation requirements encode the strategy that ANUBIS can use
+information from the ATLAS event.  LLP decays missed by ATLAS can be associated
+with apparent missing energy, while cavern-going muons and punch-through jets can
+be reduced by isolation against prompt charged tracks and jets.
+
+Minimal configuration
+---------------------
 
 .. code-block:: python
 
@@ -41,7 +92,7 @@ Minimal cutflow skeleton
        minDR=MinDR(jet=0.4, chargedTrack=0.4, neutralTrack=0.4),
        nStations=2,
        nIntersections=2,
-       nTracks=1,
+       nTracks=2,
    )
 
    pipeline = (
@@ -51,20 +102,37 @@ Minimal cutflow skeleton
    )
 
    source = EventsBundleSource.from_bundle_file("sample_bundle.pkl.gz")
-   result = SelectionManager(pipeline).run_many(
-       named_sources=[("scan-point", source)],
+   combined = SelectionManager(pipeline).run_many(
+       named_sources=[("HNL_scan_point", source)],
        sel_cfg=selection,
        run_cfg=RunConfig(reweightLifetime=False, plotTrajectory=False),
    )
-   print(result.cutflow_sum)
 
-Database integration
+   print(combined.cutflow_sum)
+
+Lifetime reweighting
 --------------------
 
-The event database stores generation metadata, cards, banners, scan information
-and compact dataframe bundles. Selection can therefore work on lightweight,
-reproducible bundles while keeping a route back to the original HepMC run when a
-full event record is needed.
+For scans where the generated kinematics are reusable but the LLP lifetime
+changes, the pipeline can reweight decay positions instead of regenerating the
+full sample for every lifetime point.  This reduces CPU cost and storage while
+preserving a route back to the original generated event metadata.
+
+Sensitivity input
+-----------------
+
+The selection acceptance is the fraction of generated LLP candidates that pass
+the full cutflow.  It is intended to be combined with luminosity, production
+cross section, branching fraction and a signal efficiency assumption, for
+example
+
+.. math::
+
+   N_{LLP} = \mathcal{L}\,\sigma_{LLP}\,\mathrm{BR}_{LLP}\,\mathcal{A}\,\varepsilon_{sig}.
+
+The required event yield can be chosen by the user.  The paper discusses both a
+background-free style threshold and a more conservative threshold motivated by
+ANUBIS background estimates.
 
 Recommended examples
 --------------------

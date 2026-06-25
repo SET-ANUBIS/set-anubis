@@ -1,31 +1,45 @@
-# SetAnubisDBDashboard
+# SET-ANUBIS database dashboard
 
-Dash monitor for the SetAnubis `EventDatabaseManagerv3` database.
+The database dashboard is an optional Dash application for auditing generated
+campaigns and selection-ready event bundles.  It is designed to answer practical
+questions during a scan: which parameter points were generated, which cards and
+banners were stored, how much disk space was saved by dataframe bundles, and
+which samples are ready for selection.
 
-It uses the same dark Dash shell/style as the existing `HepMCGUI` app: sidebar controls, tabbed content, metric cards, Plotly graphs and Dash tables.
+## Physics role
+
+SET-ANUBIS stores generator provenance separately from the final acceptance
+calculation.  For a MadGraph scan this can include job scripts, run cards,
+parameter cards, MadSpin cards, shower cards, banners, scan metadata, HepMC
+references and compact `dict[str, DataFrame]` bundles.  The dashboard exposes
+that information without modifying the database schema or the selection logic.
 
 ## Features
 
-- Global database metrics: events, models, CAS blobs, stored bundles, HEPMC kept/removed.
-- Storage monitoring: original `run_XX + run_XX_decayed_1` size vs stored `dict[str, DataFrame]` bundle size.
-- Per-event storage plots and compression/savings ratios.
-- Models table and event table with native Dash sorting/filtering.
-- Bundle-frame summary from `bundle_metadata_json`.
-- Particle catalog from stored MadGraph banners: MASS, DECAY, QNUMBERS, branching channels.
-- Metadata explorer for storage, bundle, MadGraph cards/scan info.
-- Storage backfill button calling `refresh_storage_metadata_from_events_root`.
+- Global metrics for events, models, CAS blobs, bundles and retained/removed
+  HepMC records.
+- Per-run storage monitoring for original MadGraph event folders versus compact
+  dataframe bundles.
+- Model and event tables with Dash sorting/filtering.
+- Particle and decay-channel summaries extracted from stored banners.
+- Metadata browser for cards, scan points and bundle metadata.
+- Backfill helper for refreshing storage metadata from an existing events root.
 
-## Install
+## Installation
 
-From your repo root:
+From the repository root:
 
 ```bash
-pip install -r SetAnubisDBDashboard/requirements.txt
+python -m pip install -e ".[app]"
 ```
 
-Or add `dash`, `plotly` and `pandas` to your existing environment.
+or from PyPI:
 
-## Run
+```bash
+python -m pip install "SetAnubis[app]"
+```
+
+## Running
 
 ```bash
 python SetAnubisDBDashboard/run_db_dashboard.py \
@@ -39,20 +53,8 @@ python SetAnubisDBDashboard/run_db_dashboard.py \
 
 Then open the local Dash URL printed by Dash.
 
-## Import resolution
+## Notes
 
-The app tries to import `EventDatabaseManagerv3` from:
-
-1. `setanubis.SetAnubis.core.DataBase.domain.EventDatabaseManagerv3`
-2. `SetAnubis.core.DataBase.domain.EventDatabaseManagerv3`
-3. `EventDatabaseManagerv3`
-
-If needed, set:
-
-```bash
-export SETANUBIS_DB_MANAGER_PATH=/absolute/path/to/EventDatabaseManagerv3.py
-```
-
-## Font / branding
-
-The stylesheet keeps the same CSS variables as `HepMCGUI`. When you send the font later, add it in your own project assets and set `--font` in `assets/styles.css`. Do not commit proprietary font files unless you have the right to distribute them.
+The dashboard is an inspection layer only.  Selection definitions, geometry cuts,
+MET thresholds and isolation requirements are defined in the core selection code
+and should be version controlled alongside campaign outputs.

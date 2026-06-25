@@ -1,36 +1,50 @@
-MadGraph generation workflow
-============================
+MadGraph signal generation
+==========================
 
-MadGraph is the primary release-path example for SET-ANUBIS generation studies.
-The framework builds the text artefacts needed by MadGraph5_aMC@NLO campaigns:
-job scripts, parameter cards, run cards, MadSpin cards and Pythia shower cards.
-Those artefacts can then be run through the Docker/local adapters or submitted to
-a batch system such as HTCondor.
+MadGraph is the primary generation workflow documented for the release.  In a
+SET-ANUBIS analysis the generator stage is responsible for producing a sample of
+LLP events for a given model and parameter point.  The subsequent selection code
+assumes that generated events can be converted to HepMC/dataframe bundles, but it
+is deliberately agnostic about the exact generator backend once the event record
+exists.
 
-The expected output layout follows the usual MadGraph convention:
+Physics role
+------------
 
-.. code-block:: text
+For HNL-like benchmarks the relevant information is split between:
 
-   <output directory>/
-     Events/
-       run_01/
-         tag_1_pythia8_events.hepmc.gz
-         run_01_tag_1_banner.txt
-       run_02/
-         ...
-     scan_run_01.txt
+* the UFO model, which defines particles, parameters and interactions;
+* the MadGraph process definition, such as associated HNL production;
+* the parameter card, where masses, mixings and widths are set or scanned;
+* the run card, where collider conditions and event counts are configured;
+* the MadSpin card, which defines LLP decays at the parton level;
+* the shower card, which controls the optional shower/hadronisation step.
 
-Minimal card-generation example
--------------------------------
+SET-ANUBIS keeps these text artefacts explicit because they are part of the
+scientific provenance of a scan.  They can be written, inspected, stored in the
+database and later associated with selection outputs.
+
+HNL card-generation example
+---------------------------
+
+The example below constructs cards for a simple Heavy Neutral Lepton scan.  It is
+a dry-run card construction example: no MadGraph process is launched until the
+strings are handed to a local or Docker runner.
 
 .. code-block:: python
 
-   from setanubis import SetAnubisInterface, MadGraphCommandConfig, GeneralCardInterface, ufo_path
+   from setanubis import (
+       SetAnubisInterface,
+       MadGraphCommandConfig,
+       GeneralCardInterface,
+       ufo_path,
+   )
 
    model = SetAnubisInterface(str(ufo_path("UFO_HNL")))
+
    config = MadGraphCommandConfig(
        neo_set_anubis=model,
-       model_in_madgraph="SM_HeavyN_CKM_AllMasses_LO",
+       model_in_madgraph="UFO_HNL",
        shower="py8",
        madspin="ON",
        cache=False,
@@ -38,13 +52,15 @@ Minimal card-generation example
 
    cards = GeneralCardInterface(config)
    cards.run_card_builder.set("nevents", 2000)
+   cards.run_card_builder.set("ebeam1", 6800)
+   cards.run_card_builder.set("ebeam2", 6800)
 
    cards.madspin_builder.clear_decays()
    cards.madspin_builder.add_decay("decay n1 > ell ell vv")
 
    job = cards.jobscript_builder
    job.add_process("generate p p > n1 ell # [QCD]")
-   job.set_output_launch("HNL_scan_demo")
+   job.set_output_launch("HNL_ANUBIS_scan")
    job.configure_cards()
    job.add_parameter_scan("MN1", "[0.5, 1.0, 2.0]")
    job.add_parameter_scan("VeN1", "[1e-6, 1e-5]")
@@ -55,14 +71,42 @@ Minimal card-generation example
    madspin_card = cards.madspin_builder.serialize()
    pythia_card = cards.pythia_builder.serialize()
 
-Execution policy
+The output layout expected by the database layer follows the standard MadGraph
+convention:
+
+.. code-block:: text
+
+   <campaign>/
+     Events/
+       run_01/
+         tag_1_pythia8_events.hepmc.gz
+         run_01_tag_1_banner.txt
+       run_01_decayed_1/
+         tag_1_pythia8_events.hepmc.gz
+     scan_run_01.txt
+
+Running MadGraph
 ----------------
 
-The public examples default to dry-run card construction because production
-campaigns usually run on Docker, a local MadGraph installation or a batch system.
-When the execution backend is available, the same strings can be passed to
-``MadGraphInterface`` with either ``MadGraphDockerRunner`` or
-``MadGraphLocalRunner``.
+The public examples keep execution separate from card construction because
+production campaigns may run locally, inside Docker, or on a batch system.  Once
+the cards have been created, use the appropriate runner for your environment:
+
+.. code-block:: python
+
+   from setanubis import MadgraphInterface, MadGraphDockerRunner
+
+   runner = MadGraphDockerRunner()
+   mg = MadgraphInterface(
+       madgraph_runner=runner,
+       jobscript_str=jobscript,
+       param_card_str=param_card,
+       run_card_str=run_card,
+       pythia_card_str=pythia_card,
+       madspin_card_str=madspin_card,
+   )
+   mg.run()
+   mg.retrieve_events("db/Temp/madgraph/Events")
 
 Recommended examples
 --------------------

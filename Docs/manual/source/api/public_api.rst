@@ -1,50 +1,80 @@
 Public short-import API
 =======================
 
-The stable user-facing imports are exposed through ``setanubis`` and
-``SetAnubis``.  The modules use lazy imports so that optional integrations such
-as Pythia/HepMC3 are not imported until they are explicitly requested.
+The PyPI distribution is named ``SetAnubis``.  The recommended user-facing import
+module is the lower-case facade ``setanubis``:
 
-Recommended imports
--------------------
+.. code-block:: python
+
+   from setanubis import SetAnubisInterface, SelectionConfig, ufo_path
+
+This facade is intentionally lazy: optional integrations such as Pythia/HepMC3,
+Dash or Docker are not imported until the corresponding object is requested.
+Internal ``SetAnubis.core`` paths remain available for advanced development and
+backwards compatibility, but documentation and analysis notebooks should use
+``setanubis``.
+
+Recommended imports by workflow
+-------------------------------
+
+MadGraph generation
+~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
    from setanubis import (
        SetAnubisInterface,
-       MadGraphInterface,
        MadGraphCommandConfig,
        GeneralCardInterface,
-       SelectionConfig,
-       SelectionPipelineBuilder,
-       SelectionEngine,
-       DecayInterface,
-       CalculationDecayStrategy,
-       asset_path,
+       MadgraphInterface,
+       MadGraphDockerRunner,
+       MadGraphLocalRunner,
        ufo_path,
    )
 
-Core workflow objects
----------------------
-
-MadGraph generation
-   ``MadGraphInterface``, ``MadgraphInterface``, ``MadGraphCommandConfig``,
-   ``GeneralCardInterface``, ``RunCardBuilder``, ``ParamCardBuilder``,
-   ``JobScriptBuilder``, ``PythiaCardBuilder``, ``MadSpinCardAdapter``.
-
 Selection and geometry
-   ``SelectionConfig``, ``SelectionEngine``, ``SelectionPipelineBuilder``,
-   ``SelectionManager``, ``RunConfig``, ``MinThresholds``, ``MinDR``,
-   ``EventsBundleSource``, ``SelectionGeometryAdapter``,
-   ``GeometrySelectionAdapter``, ``ATLASCavern``, ``ATLASCavernGeometry``.
+~~~~~~~~~~~~~~~~~~~~~~
 
-Branching ratios and model input
-   ``SetAnubisInterface``, ``DecayInterface``, ``DecayBuilder``,
-   ``DecayChannel``, ``CalculationDecayStrategy``, ``PartialDecayChannel``.
+.. code-block:: python
+
+   from setanubis import (
+       ATLASCavern,
+       GeometrySelectionAdapter,
+       SelectionGeometryAdapter,
+       SelectionConfig,
+       RunConfig,
+       MinThresholds,
+       MinDR,
+       SelectionPipelineBuilder,
+       SelectionManager,
+       EventsBundleSource,
+   )
+
+Branching ratios and lifetimes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from setanubis import (
+       SetAnubisInterface,
+       DecayInterface,
+       CalculationDecayStrategy,
+       Unit,
+       ufo_path,
+   )
 
 Optional Pythia support
-   ``PythiaCMNDInterface``, ``PythiaRunInterface``, ``CMNDScanManager``,
-   ``HardProductionQCDList``, ``HardProductionElectroweakList``.
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from setanubis import (
+       PythiaCMNDInterface,
+       PythiaRunInterface,
+       CMNDScanManager,
+       HardProductionQCDList,
+       HardProductionElectroweakList,
+   )
 
 Resource helpers
 ----------------

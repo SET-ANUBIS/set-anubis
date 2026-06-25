@@ -1,34 +1,42 @@
 # Changelog
 
-All notable changes to SET-ANUBIS will be documented in this file.
+## 1.0.0 - 2026-06-24
 
-The project follows semantic versioning starting with the 1.0.0 release.
-
-## [1.0.0] - 2026-06-24
+First public release candidate for SET-ANUBIS.
 
 ### Added
 
-- Release-ready Python packaging metadata for PyPI/TestPyPI.
-- Optional Pythia/HepMC3 native-extension build controlled by
-  `SETANUBIS_BUILD_PYTHIA`.
-- Public short-import API through `import setanubis` and `import SetAnubis`.
-- Packaged lightweight assets and resource helpers (`asset_path`, `ufo_path`).
-- GitHub Actions workflows for CI, documentation, releases, CodeQL and optional
-  Pythia runtime builds.
-- Repository governance files: code of conduct, contributing guide, support
-  policy, security policy, citation file and release checklist.
-- Architecture figure and refreshed user/developer documentation.
+- Public lower-case import facade: `from setanubis import ...`.
+- Release documentation centred on the scientific workflow used in the paper:
+  UFO/model input, branching ratios and lifetimes, MadGraph signal generation,
+  event storage, ANUBIS geometry, selection cutflows and sensitivity inputs.
+- ANUBIS detector context and references in README and Sphinx documentation.
+- GitHub Actions workflows for CI, documentation, CodeQL, release publishing and
+  optional Pythia-native builds.
+- Optional Pythia8/HepMC3 native-extension build controlled by
+  `SETANUBIS_BUILD_PYTHIA=1`.
+- Resource helpers `asset_path()` and `ufo_path()` for checkout-independent and
+  wheel-safe asset lookup.
 
 ### Changed
 
-- Package version bumped to 1.0.0.
-- Repository URLs now target `https://github.com/SET-ANUBIS/set-anubis`.
-- Default installation is explicitly Python-only; native Pythia compilation is
-  opt-in and documented.
-- GUI README files now describe optional extras and package imports.
+- Public examples now use HNL-oriented MadGraph, branching-ratio and selection
+  configurations rather than Pythia-first examples.
+- Pythia documentation repositioned as an optional support layer.
+- Selection documentation now describes the nominal cut order: decaying LLP,
+  geometry, ATLAS-volume veto, ANUBIS station intersections, charged-track RPC
+  hits, MET and isolation.
+- `SetAnubisInterface` now uses packaged asset helpers instead of hard-coded
+  `Assets/...` paths for the particle catalogue.
 
-### Removed
+### Fixed
 
-- Stale Jenkins/Terraform/Ansible deployment placeholders.
-- Duplicate zipped GUI snapshots from the Python package tree.
-- macOS resource-fork files from UFO assets.
+- Public API export target for `MadGraphCommandConfig`.
+- Source-tree import shadowing around the `setanubis` facade.
+- Pythia C++ compatibility with Pythia versions returning smart pointers from
+  `particleDataEntryPtr`.
+
+### Notes
+
+- The repository license is MIT.  Older draft text in the paper mentioning GPLv2
+  should be updated before article submission.
