@@ -64,7 +64,7 @@ if __name__ == "__main__":
     pythia_str = card_interface.pythia_builder.serialize()
 
     
-    jobcard = card_interface.josbscript_builder
+    jobcard = card_interface.jobscript_builder
     jobcard.add_process("generate p p > n1 ell # [QCD]")
     jobcard.set_output_launch("HNL_Condor_CCDY_qqe")
     jobcard.configure_cards()

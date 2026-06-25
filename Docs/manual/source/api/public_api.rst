@@ -54,7 +54,7 @@ Resource helpers
    from setanubis import asset_path, ufo_path
 
    particle_database = asset_path("particles", "particleData.json")
-   hnl_model = ufo_path("SM_HeavyN_NLO")
+   hnl_model = ufo_path("UFO_HNL")
 
 These helpers resolve packaged assets after ``pip install`` and should be
 preferred over hard-coded repository-relative paths.

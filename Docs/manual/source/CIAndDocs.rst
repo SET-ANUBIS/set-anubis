@@ -43,10 +43,12 @@ GitHub Pages deployment
 -----------------------
 
 The documentation workflow always builds HTML and uploads it as an Actions
-artifact. Deployment to Pages is intentionally gated to avoid failing on fresh
-repositories where Pages has not yet been enabled.
+artifact named ``setanubis-docs-html``.  This means contributors can review the
+HTML output from the workflow artifacts even before the public Pages site is
+enabled.
 
-To enable deployment:
+Deployment to Pages is intentionally gated to avoid failing on fresh repositories
+where Pages has not yet been enabled. To enable public deployment:
 
 1. Open repository settings on GitHub.
 2. Go to **Pages**.
@@ -55,4 +57,16 @@ To enable deployment:
    ``true``.
 5. Re-run the ``Docs`` workflow or push to ``main``.
 
-You can also run ``Docs`` manually and set ``deploy_pages=true``.
+After the deploy job succeeds, the public URL appears in the workflow summary and
+in the ``github-pages`` deployment environment. For this repository the expected
+URL is::
+
+   https://set-anubis.github.io/set-anubis/
+
+If the deploy job reports ``HttpError: Not Found`` while creating a Pages
+deployment, Pages is not enabled for the repository or the Source is not set to
+GitHub Actions yet. The build artifact is still valid; only the deployment step
+needs the repository-side setting.
+
+You can also run ``Docs`` manually and set ``deploy_pages=true`` after enabling
+Pages.

@@ -261,3 +261,6 @@ Docs/manual/build/
 **/._*
 .DS_Store
 **/.DS_Store
+External_Integration/Pythia/pythia8315.tgz
+External_Integration/Pythia/pythia*.tgz
+External_Integration/Pythia/pythia*-src

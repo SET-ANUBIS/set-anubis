@@ -40,7 +40,21 @@ jobs:
           SETANUBIS_PYTHIA8_DIR="$PWD/External_Integration/Pythia/pythia8315" \
           SETANUBIS_HEPMC3_DIR="$PWD/External_Integration/HepMC3/hepmc3-install" \
           python -m pip install -e ".[pythia,dev]"
+      - name: Import native binding
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/External_Integration/Pythia/pythia8315/lib:${{ github.workspace }}/External_Integration/HepMC3/hepmc3-install/lib:${{ env.LD_LIBRARY_PATH }}
+        run: |
+          python - <<'PY'
+          from SetAnubis.core.Pythia.domain.PythiaRunManager import check_pythia_binding
+          report = check_pythia_binding()
+          print(report)
+          assert report["available"], report
+          PY
       - name: Diagnostics
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/External_Integration/Pythia/pythia8315/lib:${{ github.workspace }}/External_Integration/HepMC3/hepmc3-install/lib:${{ env.LD_LIBRARY_PATH }}
         run: setanubis-pythia-check
       - name: Runtime smoke test
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/External_Integration/Pythia/pythia8315/lib:${{ github.workspace }}/External_Integration/HepMC3/hepmc3-install/lib:${{ env.LD_LIBRARY_PATH }}
         run: setanubis-pythia-smoke --run-pythia --no-hard-cut --events 3 --out .ci-pythia-runtime

@@ -1,71 +1,80 @@
+"""Small YAML-driven MadGraph card-generation helper.
+
+This module is intentionally dry-run first: it builds and prints the cards by
+default, and only runs MadGraph when ``dry_run=False`` is passed by a caller.
+"""
+
+from __future__ import annotations
+
 from pathlib import Path
+from typing import Any
+
 import yaml
-from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
-from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphDockerInterface
 
-def run_madgraph(config_path, dry_run=True):
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
+from SetAnubis.core.interfaces import SetAnubisInterface
+from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import GeneralCardInterface
+from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphInterface
+from SetAnubis.core.MadGraph.adapters.output.MadGraphDockerRunner import MadGraphDockerRunner
+from SetAnubis.core.MadGraph.domain.MadGraphCommandConfig import MadGraphCommandConfig
 
+
+def run_madgraph(config_path: str | Path, dry_run: bool = True) -> dict[str, Any]:
+    """Build MadGraph cards from a compact YAML configuration.
+
+    Expected keys include ``ufo_path``, ``model_in_madgraph``, ``output_name``,
+    ``processes``, ``decays`` and ``parameter_scans``.  The function returns the
+    generated card strings so it can be unit-tested without Docker/MadGraph.
+    """
+    with Path(config_path).open("r", encoding="utf-8") as handle:
+        config = yaml.safe_load(handle) or {}
+
+    model = SetAnubisInterface(str(Path(config["ufo_path"])))
     mg_config = MadGraphCommandConfig(
-        ufo_path=Path(config["ufo_path"]),
-        cards_path=Path(config["cards_path"]),
-        cache=False,
-        model_in_madgraph=config["model_in_madgraph"],
+        neo_set_anubis=model,
+        cache=bool(config.get("cache", False)),
+        model_in_madgraph=config.get("model_in_madgraph", Path(config["ufo_path"]).name),
         shower=config.get("shower", "py8"),
-        madspin=config.get("madspin", "ON")
+        madspin=config.get("madspin", "ON"),
     )
 
-    card_interface = GeneralCardInterface(mg_config)
+    cards = GeneralCardInterface(mg_config)
+    cards.run_card_builder.set("nevents", config.get("nevents", 2000))
 
-    # param_card
-    param_card = card_interface.param_card
-
-    # run_card
-    run_card_builder = card_interface.run_card_builder
-    run_card_builder.set("nevents", config.get("nevents", 2000))
-    runcard_str = run_card_builder.serialize()
-
-    # madspin
-    madspin_builder = card_interface.madspin_builder
+    cards.madspin_builder.clear_decays()
     for decay in config.get("decays", []):
-        madspin_builder.add_decay(decay)
-    madspin_str = madspin_builder.serialize()
+        cards.madspin_builder.add_decay(decay)
 
-    # pythia
-    pythia_str = card_interface.pythia_card
+    job = cards.jobscript_builder
+    for process in config.get("processes", []):
+        job.add_process(process)
+    job.set_output_launch(config["output_name"])
+    job.configure_cards()
+    for parameter, scan_range in config.get("parameter_scans", {}).items():
+        job.add_parameter_scan(parameter, scan_range)
 
-    # job script
-    jobcard = card_interface.josbscript_builder
-    for proc in config.get("processes", []):
-        jobcard.add_process(proc)
-    jobcard.set_output_launch(config["output_name"])
-    jobcard.configure_cards()
+    generated = {
+        "jobscript": job.serialize(),
+        "madspin": cards.madspin_builder.serialize(),
+        "pythia": cards.pythia_builder.serialize(),
+        "run_card": cards.run_card_builder.serialize(),
+        "param_card": cards.param_card,
+    }
 
-    for param, scan_range in config.get("parameter_scans", {}).items():
-        jobcard.add_parameter_scan(param, scan_range)
-
-    jobscript_str = jobcard.serialize()
-
-    print("------------------------------------------------------------------------------------------")
-    print("💼 JOBSCRIPT:\n", jobscript_str)
-    print("------------------------------------------------------------------------------------------")
-    print("🎯 MADSPIN:\n", madspin_str)
-    print("------------------------------------------------------------------------------------------")
-    print("🌀 PYTHIA:\n", pythia_str)
-    print("------------------------------------------------------------------------------------------")
-    print("📊 RUN CARD:\n", runcard_str)
-    print("------------------------------------------------------------------------------------------")
-    print("🧬 PARAM CARD:\n", param_card)
-    print("------------------------------------------------------------------------------------------")
+    for title, content in generated.items():
+        print("-" * 90)
+        print(f"{title.upper()}:\n{content}")
 
     if not dry_run:
-        mg = MadgraphDockerInterface(
-            jobscript_str=jobscript_str,
-            param_card_str=param_card,
-            run_card_str=runcard_str,
-            pythia_card_str=pythia_str,
-            madspin_card_str=madspin_str
+        runner = MadGraphDockerRunner()
+        mg = MadgraphInterface(
+            madgraph_runner=runner,
+            jobscript_str=generated["jobscript"],
+            param_card_str=generated["param_card"],
+            run_card_str=generated["run_card"],
+            pythia_card_str=generated["pythia"],
+            madspin_card_str=generated["madspin"],
         )
         mg.run()
-        mg.retrieve_events()
+        mg.retrieve_events(config.get("events_output", "db/Temp/madgraph/Events"))
+
+    return generated

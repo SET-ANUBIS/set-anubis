@@ -127,7 +127,7 @@ private:
     }
 
     double branchingRatioSum(Pythia8::Pythia& pythia, int pid) const {
-        auto* entry = pythia.particleData.particleDataEntryPtr(pid);
+        auto entry = pythia.particleData.particleDataEntryPtr(pid);
         if (!entry) return 0.0;
 
         double totalBR = 0.0;
@@ -153,7 +153,7 @@ private:
 
         std::map<int, double> originalMasses;
         for (int pid : particleIDs) {
-            auto* entry = pythia.particleData.particleDataEntryPtr(pid);
+            auto entry = pythia.particleData.particleDataEntryPtr(pid);
             if (entry) originalMasses[pid] = entry->m0();
         }
 

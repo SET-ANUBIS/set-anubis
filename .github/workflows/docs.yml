@@ -54,6 +54,11 @@ jobs:
         with:
           name: setanubis-docs-html
           path: Docs/manual/build/html
+      - name: Configure GitHub Pages
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_GITHUB_PAGES == 'true' ||
+          github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true
+        uses: actions/configure-pages@v6
       - name: Upload Pages artifact
         if: >-
           github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_GITHUB_PAGES == 'true' ||

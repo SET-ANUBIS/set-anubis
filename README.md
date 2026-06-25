@@ -139,7 +139,7 @@ cards.run_card_builder.set("nevents", 2000)
 cards.madspin_builder.clear_decays()
 cards.madspin_builder.add_decay("decay n1 > ell ell vv")
 
-job = cards.josbscript_builder
+job = cards.jobscript_builder
 job.add_process("generate p p > n1 ell # [QCD]")
 job.set_output_launch("HNL_scan_demo")
 job.configure_cards()

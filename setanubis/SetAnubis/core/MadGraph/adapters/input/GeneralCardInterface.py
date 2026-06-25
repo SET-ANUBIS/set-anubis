@@ -7,9 +7,12 @@ from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, Car
 from pathlib import Path
 
 class GeneralCardInterface:
-    def __init__(self, config : MadGraphCommandConfig):
-        self.josbscript_builder : JobScriptBuilder = JobScriptBuilder(config)
-        self.madspin_builder : MadSpinCardAdapter = MadSpinCardAdapter()
-        self.param_card : ParamCardBuilder = ParamCardBuilder(Path(config.neo_set_anubis.get_ufo_path()) / 'write_param_card.py').serialize()
-        self.run_card_builder : RunCardBuilder = RunCardBuilder() 
-        self.pythia_builder : PythiaCardBuilder = PythiaCardBuilder()
+    def __init__(self, config: MadGraphCommandConfig):
+        # Historical typo kept as an alias for backward compatibility.
+        # New examples and documentation should use `jobscript_builder`.
+        self.jobscript_builder: JobScriptBuilder = JobScriptBuilder(config)
+        self.josbscript_builder: JobScriptBuilder = self.jobscript_builder
+        self.madspin_builder: MadSpinCardAdapter = MadSpinCardAdapter()
+        self.param_card: str = ParamCardBuilder(Path(config.neo_set_anubis.get_ufo_path()) / 'write_param_card.py').serialize()
+        self.run_card_builder: RunCardBuilder = RunCardBuilder()
+        self.pythia_builder: PythiaCardBuilder = PythiaCardBuilder()
