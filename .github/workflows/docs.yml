@@ -20,7 +20,7 @@ on:
       deploy_pages:
         description: "Deploy to GitHub Pages after building"
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
