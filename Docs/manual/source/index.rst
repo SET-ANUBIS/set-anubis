@@ -3,7 +3,7 @@ SET-ANUBIS documentation
 
 SET-ANUBIS is a modular Python/C++ framework for ANUBIS long-lived-particle
 sensitivity studies. The release documentation follows the main analysis
-workflow: model/UFO input, MadGraph generation, database ingestion, geometry,
+workflow: model/UFO input, MadGraph generation, database ingestion, geometry cuts,
 selection pipeline, branching ratios and optional Pythia support.
 
 .. image:: images/set-anubis-architecture.jpg
