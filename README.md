@@ -22,7 +22,7 @@ projections. Pythia support is available, but it is treated as an optional
 generation backend rather than the centre of the public API.
 
 <p align="center">
-  <img src="Docs/assets/set-anubis-architecture.pdf" alt="SET-ANUBIS architecture" width="900">
+  <img src="Docs/assets/set-anubis-architecture.jpg" alt="SET-ANUBIS architecture" width="900">
 </p>
 
 ## What SET-ANUBIS does

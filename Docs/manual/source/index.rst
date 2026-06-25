@@ -6,7 +6,7 @@ sensitivity studies. The release documentation follows the main analysis
 workflow: model/UFO input, MadGraph generation, database ingestion, geometry,
 selection, branching ratios and optional Pythia support.
 
-.. image:: images/set-anubis-architecture.pdf
+.. image:: images/set-anubis-architecture.jpg
    :width: 95%
    :alt: SET-ANUBIS architecture
 
