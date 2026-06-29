@@ -1,5 +1,6 @@
 from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import DecayInterface, CalculationDecayStrategy
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
+from SetAnubis import assets_dir
 import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -7,13 +8,14 @@ PY_SCRIPT_PATH = os.path.join(CURRENT_DIR, "TestFiles", "test_BR.py")
 CSV_FILE_PATH  = os.path.join(CURRENT_DIR, "TestFiles", "test_BR.csv")
 
 if __name__ == "__main__":
-    neosetanubis = SetAnubisInterface("db/HNL/UFO_HNL")
+
+    setanubis = SetAnubisInterface(os.path.join(assets_dir(),"UFO","UFO_HNL"))
     
-    neosetanubis.set_leaf_param("ZERO", 0)
-    all_particles = neosetanubis.get_all_particles()
-    all_params = neosetanubis.get_all_parameters()
+    setanubis.set_leaf_param("ZERO", 0)
+    all_particles = setanubis.get_all_particles()
+    all_params = setanubis.get_all_parameters()
     
-    br = DecayInterface(neosetanubis)
+    br = DecayInterface(setanubis)
     br.add_decays([{"mother" : 25, "daughters" : [24,-24]}], CalculationDecayStrategy.PYTHON, config={"script_path" : PY_SCRIPT_PATH})
     
     decay_list = [
