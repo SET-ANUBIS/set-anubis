@@ -3,6 +3,7 @@ from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisI
 from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import DecayInterface
 from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import CalculationDecayStrategy
 from SetAnubis.core.Pythia.infrastructure.enums import HardProductionQCDList
+from SetAnubis.resources import ufo_path
 import os
 from pathlib import Path
 
@@ -12,7 +13,7 @@ PY_SCRIPT_PRODUCTION_PATH = os.path.join(CURRENT_DIR, "TestFiles", "production_e
 
 if __name__ == "__main__":
     
-    nsa = SetAnubisInterface("db/HNL/UFO_HNL")
+    nsa = SetAnubisInterface(ufo_path("UFO_HNL"))
     nsa.set_leaf_param("mN1", 1.0)
     
     dm = DecayInterface(nsa)

@@ -5,8 +5,10 @@ In order to get a simpler importation, every interfaces can be found in the NeoS
 The Enums will also be available in the NeoSetAnubis.core.enums part.
 """
 from SetAnubis.core.interfaces import SetAnubisInterface
-
+from SetAnubis.resources import ufo_path
 if __name__ == "__main__":
+    
+    hnl_ufo_path = ufo_path("UFO_HNL")
     
     """
     NeoSetAnubisInterface is the main interface of the neo-set-anubis pipeline. Its contain all the informations on a Given model.
@@ -17,7 +19,7 @@ if __name__ == "__main__":
     
     Multiples API calls are available to check the parsing of the UFO, like the get_all_parameters() and get_all_particles() to check if all the parameters and the particles have the right attributes (charge, spin, etc.).
     """
-    man = SetAnubisInterface("db/HNL/UFO_HNL")
+    man = SetAnubisInterface(hnl_ufo_path)
     
     """
     The get_all_parameters API return a dictionnary with all the parameters and their attributes : value, lhablock (if given) and lhacode (if given)

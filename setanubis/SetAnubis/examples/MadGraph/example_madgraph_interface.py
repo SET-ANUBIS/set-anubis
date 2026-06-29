@@ -1,20 +1,23 @@
 from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
 from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphInterface
 from SetAnubis.core.interfaces import SetAnubisInterface
+from SetAnubis.resources import ufo_path
 
 if __name__ == "__main__":
+
+    hnl_ufo_path = ufo_path("UFO_HNL")
 
     """
     Paramater use to choose if we want to produce the card only (True) or run madgraph on docker.
     """
-    dry_run = False
+    dry_run = True
     
     """
     General interface of the neo-set-anubis pipeline. Need the path to the UFO as an input.
     
     Everything concerning this interface is available in the ModelCore.exampleNeoSetAnubisInterface.py example.
     """
-    neo = SetAnubisInterface("Assets/UFO/UFO_HNL")
+    neo = SetAnubisInterface(hnl_ufo_path)
     print(neo.get_all_parameters())
     """
     Configuration for the MagraphInterface (for writing cards). Few inputs are needed :

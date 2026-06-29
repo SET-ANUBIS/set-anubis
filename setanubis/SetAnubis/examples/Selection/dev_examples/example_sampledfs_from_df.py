@@ -1,8 +1,11 @@
 from SetAnubis.core.Selection.domain.LLPAnalyzer import LLPAnalyzer
+from SetAnubis.core.Selection.domain.DatasetSource import BundleIO
+
 import pandas as pd
 import os
 
-DF_FILE = (os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "Assets", "Test", "df_HNL_example", "perfect_df.csv")))
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DF_FILE = os.path.join(CURRENT_DIR, "..","InputFiles", "hnl_df.csv")
 
 if __name__ == "__main__":
     df = pd.read_csv(DF_FILE)
@@ -13,3 +16,5 @@ if __name__ == "__main__":
     out_opt = analyzer.create_sample_dataframes(LLPid)
     
     print(out_opt["LLPs"])
+    
+    BundleIO().save_bundle(out_opt, "samples_dfs_hnl.pkl")
