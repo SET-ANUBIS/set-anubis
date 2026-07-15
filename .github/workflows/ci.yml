@@ -83,7 +83,7 @@ jobs:
           print(asset_path("particles", "particleData.json"))
           PY
       - name: Upload distributions
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: setanubis-dist
           path: dist/*
