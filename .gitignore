@@ -252,6 +252,7 @@ setanubis/SetAnubis/core/MadGraph/app/TestFiles/tag_1_pythia8_events.hepmc
 *.pkl
 *.pkl.gz
 pythia_smoke_outputs/
+reproducibility_outputs/
 .ci-pythia-smoke/
 .ci-pythia-runtime/
 Docs/manual/build/

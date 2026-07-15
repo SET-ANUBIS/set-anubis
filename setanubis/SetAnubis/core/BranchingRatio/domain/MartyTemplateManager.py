@@ -27,8 +27,8 @@ class MartyTemplateManager:
         
     def _set_base_analytic(self):
         self._temp = """#include <iostream>
-#include "/home/theo/hyperiso/Third_party/MARTY/src/MARTY/src/marty/models/sm.h"
-#include "/home/theo/hyperiso/Third_party/MARTY/MARTY_INSTALL/include/marty.h"
+#include "marty/models/sm.h"
+#include "marty.h"
 //42
 
 using namespace csl;
@@ -97,7 +97,7 @@ int main() {
 
     param_t param;
 
-    std::string ParamFilePath = "/home/theo/hyperiso/Assets/MartyTemp/libs/C10_SM/bin/paramlist.csv";
+    std::string ParamFilePath = "paramlist.csv";
 	std::ifstream ParamFile(ParamFilePath);
     readParams(ParamFile, param.realParams, param.complexParams);
     
@@ -297,7 +297,7 @@ int main() {
         marty_header_path = marty_header_path.replace("\\", "/")  # Pour Windows si besoin
 
         self._temp = re.sub(
-            r'#include\s+"?.*?/MARTY_INSTALL/include/marty\.h"?',
+            r'#include\s+["<](?:.*?/)?marty\.h[">]',
             f'#include "{marty_header_path}"',
             self._temp
         )

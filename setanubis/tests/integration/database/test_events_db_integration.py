@@ -6,7 +6,7 @@ import shutil
 import sqlite3
 import pytest
 
-import SetAnubis.core.DataBase.domain.EventDatabaseManagerv2 as events_mod
+import SetAnubis.core.DataBase.domain.EventDatabaseManager as events_mod
 
 
 def _deterministic_gzip_bytes(payload: bytes) -> bytes:

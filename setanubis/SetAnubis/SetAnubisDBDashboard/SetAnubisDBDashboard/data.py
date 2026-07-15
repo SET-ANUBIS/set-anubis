@@ -12,14 +12,14 @@ from .formatting import safe_ratio
 
 def _candidate_modules() -> List[str]:
     return [
-        "setanubis.SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
-        "SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
-        "EventDatabaseManagerv3",
+        "setanubis.SetAnubis.core.DataBase.domain.EventDatabaseManager",
+        "SetAnubis.core.DataBase.domain.EventDatabaseManager",
+        "EventDatabaseManager",
     ]
 
 
 def _candidate_manager_paths() -> List[Path]:
-    """Find EventDatabaseManagerv3.py without requiring PYTHONPATH magic.
+    """Find EventDatabaseManager.py without requiring PYTHONPATH magic.
 
     This covers the common layouts:
       - launched from the repository root: ./setanubis/SetAnubis/...
@@ -28,10 +28,10 @@ def _candidate_manager_paths() -> List[Path]:
       - explicit SETANUBIS_DB_MANAGER_PATH override
     """
     rels = [
-        Path("setanubis/SetAnubis/core/DataBase/domain/EventDatabaseManagerv3.py"),
-        Path("SetAnubis/core/DataBase/domain/EventDatabaseManagerv3.py"),
-        Path("core/DataBase/domain/EventDatabaseManagerv3.py"),
-        Path("EventDatabaseManagerv3.py"),
+        Path("setanubis/SetAnubis/core/DataBase/domain/EventDatabaseManager.py"),
+        Path("SetAnubis/core/DataBase/domain/EventDatabaseManager.py"),
+        Path("core/DataBase/domain/EventDatabaseManager.py"),
+        Path("EventDatabaseManager.py"),
     ]
 
     roots: List[Path] = []
@@ -59,13 +59,13 @@ def _candidate_manager_paths() -> List[Path]:
 
 
 def _load_module_from_path(path: Path):
-    spec = importlib.util.spec_from_file_location("EventDatabaseManagerv3", str(path))
+    spec = importlib.util.spec_from_file_location("EventDatabaseManager", str(path))
     if spec and spec.loader:
         module = importlib.util.module_from_spec(spec)
-        sys.modules["EventDatabaseManagerv3"] = module
+        sys.modules["EventDatabaseManager"] = module
         spec.loader.exec_module(module)
         return module
-    raise ImportError(f"Impossible de charger EventDatabaseManagerv3 depuis {path}")
+    raise ImportError(f"Impossible de charger EventDatabaseManager depuis {path}")
 
 
 def load_database_module():
@@ -88,8 +88,8 @@ def load_database_module():
             last_exc = exc
 
     msg = (
-        "Impossible d'importer EventDatabaseManagerv3. Lance depuis la racine du repo, "
-        "ou définis SETANUBIS_DB_MANAGER_PATH=/chemin/EventDatabaseManagerv3.py."
+        "Impossible d'importer EventDatabaseManager. Lance depuis la racine du repo, "
+        "ou définis SETANUBIS_DB_MANAGER_PATH=/chemin/EventDatabaseManager.py."
     )
     if tried_paths:
         msg += " Chemins testés: " + "; ".join(tried_paths)
@@ -101,7 +101,7 @@ def make_accessor(db_path: str, storage_dir: str):
     manager_cls = getattr(mod, "EventDatabaseManager", None) or getattr(mod, "EventDataBaseManager", None)
     accessor_cls = getattr(mod, "EventAccessor")
     if manager_cls is None:
-        raise AttributeError("EventDatabaseManager/EventDataBaseManager introuvable dans EventDatabaseManagerv3")
+        raise AttributeError("EventDatabaseManager/EventDataBaseManager introuvable dans EventDatabaseManager")
     return accessor_cls(manager_cls(db_path, storage_dir))
 
 
@@ -131,7 +131,7 @@ def _row_get(row: Any, key: str, default: Any = None) -> Any:
 
 
 def ensure_dashboard_schema(db_path: str, storage_dir: str) -> None:
-    """Opening the manager triggers migrations in EventDatabaseManagerv3."""
+    """Opening the manager triggers migrations in EventDatabaseManager."""
     make_accessor(db_path, storage_dir)
 
 
@@ -226,7 +226,7 @@ def refresh_storage_metadata(
 ) -> List[Dict[str, Any]]:
     acc = make_accessor(db_path, storage_dir)
     if not hasattr(acc, "refresh_storage_metadata_from_events_root"):
-        raise RuntimeError("La méthode refresh_storage_metadata_from_events_root n'existe pas encore dans EventDatabaseManagerv3")
+        raise RuntimeError("La méthode refresh_storage_metadata_from_events_root n'existe pas encore dans EventDatabaseManager")
     return acc.refresh_storage_metadata_from_events_root(events_root, event_ids=event_ids, dry_run=dry_run)
 
 

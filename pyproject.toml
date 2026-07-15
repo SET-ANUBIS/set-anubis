@@ -33,6 +33,11 @@ dependencies = [
   "pyyaml",
   "particle",
   "graphviz",
+  "awkward",
+  "fastjet",
+  "docker",
+  "watchdog",
+  "six",
 ]
 
 [project.optional-dependencies]
@@ -56,7 +61,7 @@ Issues = "https://github.com/SET-ANUBIS/set-anubis/issues"
 
 [project.scripts]
 setanubis-pythia-check = "SetAnubis.core.Pythia.tools.check_install:main"
-setanubis-pythia-smoke = "SetAnubis.examples.Pythia.main_test_pythia_refactor:main"
+setanubis-pythia-smoke = "SetAnubis.examples.Pythia.dev_examples.main_test_pythia_refactor:main"
 setanubis-docs = "SetAnubis.tools.docs:main"
 
 [tool.setuptools]
@@ -75,7 +80,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"SetAnubis" = ["py.typed", "**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt"]
+"SetAnubis" = ["py.typed", "**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt", "**/*.csv"]
 "SetAnubis.core.Pythia.bindings" = ["*.so", "*.pyd", "*.dylib"]
 
 [tool.setuptools.exclude-package-data]

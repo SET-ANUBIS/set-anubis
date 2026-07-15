@@ -41,6 +41,7 @@ Documentation contents
    SelectionWorkflow
    BranchingRatioCalculation
    CIAndDocs
+   Reproducibility
    ReleaseUpdate
    Pythia
    api/public_api

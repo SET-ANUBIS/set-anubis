@@ -87,8 +87,8 @@ python -m pytest -q setanubis/tests
 Useful optional extras:
 
 ```bash
-python -m pip install "SetAnubis[selection]"  # pyhepmc / fastjet / awkward selection stack
-python -m pip install "SetAnubis[madgraph]"   # Docker runner integration
+python -m pip install "SetAnubis[selection]"  # adds pyhepmc integration
+python -m pip install "SetAnubis[madgraph]"   # compatibility extra; Docker SDK is already included
 python -m pip install "SetAnubis[app]"        # Dash event/database inspection tools
 python -m pip install "SetAnubis[docs]"       # local Sphinx documentation
 ```
@@ -241,6 +241,27 @@ combined = SelectionManager(pipeline).run_many(
 )
 print(combined.cutflow_sum)
 ```
+
+> **Trusted-input note:** pickle-based selection/database bundles can execute
+> arbitrary Python code when loaded. Only open bundles produced by a trusted
+> workflow or obtained from a verified source; see [`SECURITY.md`](SECURITY.md).
+
+## Reproducibility and CPC examples
+
+The source release contains deterministic examples for ModelCore, branching
+ratios without MARTY, Pythia CMND construction, MadGraph card construction and
+selection from the bundled `hnl_df.csv` input. They do not launch external
+generators.
+
+```bash
+python -m pip install -e .
+python reproducibility/run_all.py --output-dir reproducibility_outputs
+```
+
+A successful run creates `reproducibility_outputs/VALIDATED` after comparing the
+outputs with [`reproducibility/expected_results.json`](reproducibility/expected_results.json).
+See [`reproducibility/README.md`](reproducibility/README.md) for scope, provenance
+and trusted-input notes.
 
 ## Documentation
 

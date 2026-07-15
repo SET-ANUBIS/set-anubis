@@ -14,9 +14,12 @@ Release checklist
 * run the local CI commands from :doc:`CIAndDocs`;
 * build and check the distribution with ``python -m build`` and
   ``python -m twine check dist/*``;
-* upload to TestPyPI first;
-* test installation from TestPyPI in a clean environment;
-* publish a GitHub release/tag and then publish to PyPI.
+* run the complete ``reproducibility/`` validation package;
+* build one immutable sdist/wheel set and record SHA-256 checksums;
+* upload those artifacts to TestPyPI first;
+* download the TestPyPI wheel, verify its SHA-256, then install and smoke-test it in a clean environment;
+* approve promotion of the same artifacts to PyPI;
+* create the matching GitHub tag/release with those same artifacts.
 
 Scientific provenance
 ---------------------
@@ -24,4 +27,6 @@ Scientific provenance
 A release should preserve the exact cards, scan metadata, banners and selection
 configuration used for examples or validation plots.  The database and
 content-addressed storage layers are designed to make this information auditable
-without forcing large generated HepMC samples into the Python package.
+without forcing large generated HepMC samples into the Python package. The
+lightweight CPC package and its expected outputs are documented in
+:doc:`Reproducibility`.

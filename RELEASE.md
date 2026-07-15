@@ -1,6 +1,6 @@
 # Release checklist
 
-This checklist is intended for maintainers preparing a SET-ANUBIS release.
+This checklist is intended for maintainers preparing SET-ANUBIS 1.0.0.
 
 ## 1. Pre-release checks
 
@@ -9,6 +9,7 @@ python -m pip install -e ".[dev,docs]"
 python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
 setanubis-pythia-smoke --out .release-pythia-smoke
 python -m pytest -q setanubis/tests
+python reproducibility/run_all.py --output-dir .release-reproducibility
 setanubis-docs --strict
 ```
 
@@ -24,40 +25,49 @@ setanubis-pythia-check
 setanubis-pythia-smoke --run-pythia --no-hard-cut --events 3
 ```
 
-## 2. Build distributions
+## 2. TestPyPI-only rehearsal
+
+Run the `Release` GitHub workflow manually with `target=testpypi`. The workflow
+builds and checks one sdist/wheel set, publishes it to TestPyPI, installs the
+published wheel in a clean Python 3.12 environment, verifies that its SHA-256
+matches the retained build artifact, and runs the public import and Pythia-CMND
+smoke tests.
+
+A TestPyPI-only run is best used with a version that will not later need to be
+re-uploaded, because package indexes do not allow replacing an existing filename.
+
+## 3. Final TestPyPI to PyPI promotion
+
+For the final 1.0.0 release, run the workflow with
+`target=testpypi-and-pypi`. It performs this sequence in one workflow run:
+
+1. build the sdist and wheel once;
+2. record SHA-256 checksums and upload an immutable Actions artifact;
+3. publish those files to TestPyPI;
+4. download the TestPyPI wheel, compare its SHA-256 with the retained wheel, install it and run smoke tests;
+5. wait for approval of the protected `pypi` environment;
+6. verify the retained checksums and publish the same files to PyPI;
+7. create tag `v1.0.0` and attach the same files to the GitHub release.
+
+Configure Trusted Publishing for the environments `testpypi` and `pypi`. The
+`pypi` environment should require maintainer approval so the TestPyPI install can
+be inspected before promotion.
+
+## 4. Clean-install verification
+
+After publication:
 
 ```bash
-rm -rf dist build *.egg-info
-python -m build
-python -m twine check dist/*
+python -m venv /tmp/setanubis-release-check
+. /tmp/setanubis-release-check/bin/activate
+python -m pip install --upgrade pip
+python -m pip install SetAnubis==1.0.0
+python -c "import setanubis; print(setanubis.__version__)"
+setanubis-pythia-smoke --out /tmp/setanubis-pythia-smoke
 ```
-
-## 3. TestPyPI
-
-Run the `Release` GitHub workflow manually with `repository=testpypi`. Then test
-installation in a fresh environment.
-
-```bash
-python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ SetAnubis
-```
-
-## 4. PyPI and GitHub release
-
-Make sure the PyPI trusted publisher is configured for
-`SET-ANUBIS/set-anubis`, workflow `.github/workflows/release.yml`, environment
-`pypi`. Then create and push the matching tag:
-
-```bash
-git tag -a v1.0.0 -m "SetAnubis 1.0.0"
-git push origin v1.0.0
-```
-
-The tag workflow builds the sdist/wheel, publishes to PyPI and attaches the
-distributions to the GitHub release.
 
 ## 5. Documentation Pages
 
 The `Docs` workflow always builds HTML and uploads an artifact. Pages deployment
 requires repository Settings → Pages → Source = GitHub Actions. The public URL
-will be shown in the `github-pages` deployment environment after the deploy job
-succeeds.
+is shown in the `github-pages` deployment environment after deployment.

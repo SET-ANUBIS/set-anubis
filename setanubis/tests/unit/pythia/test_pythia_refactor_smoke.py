@@ -1,4 +1,4 @@
-from SetAnubis.examples.Pythia.main_test_pythia_refactor import (
+from SetAnubis.examples.Pythia.dev_examples.main_test_pythia_refactor import (
     assert_cmnd_is_generic,
     build_generic_cmnd,
 )

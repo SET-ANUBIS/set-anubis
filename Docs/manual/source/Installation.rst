@@ -3,9 +3,11 @@ Installation
 
 SET-ANUBIS separates the Python analysis framework from large external HEP tools.
 A normal PyPI installation is sufficient for model inspection, card construction,
-branching-ratio interfaces, geometry definitions and most selection utilities.
-MadGraph, Pythia8, HepMC3 and MARTY remain external tools that should be installed
-explicitly for the workflows that need them.
+branching-ratio interfaces, geometry definitions and the public selection API.
+The base dependency set includes Awkward Array, FastJet, the Docker Python SDK,
+Watchdog and six so that public imports and bundled examples are available immediately.
+MadGraph, Pythia8, HepMC3 and MARTY remain external or optional tools
+that must be configured for workflows that execute them.
 
 Python package
 --------------
@@ -35,8 +37,8 @@ Optional extras
 
 .. code-block:: bash
 
-   python -m pip install "SetAnubis[selection]"  # pyhepmc, fastjet, awkward
-   python -m pip install "SetAnubis[madgraph]"   # Docker runner integration
+   python -m pip install "SetAnubis[selection]"  # adds pyhepmc
+   python -m pip install "SetAnubis[madgraph]"   # compatibility extra; Docker SDK is in the base install
    python -m pip install "SetAnubis[app]"        # Dash inspection tools
    python -m pip install "SetAnubis[docs]"       # Sphinx documentation
 
@@ -99,3 +101,10 @@ Then use:
 
    hnl_ufo = ufo_path("UFO_HNL")
    particles = asset_path("particles", "particleData.json")
+
+Reproducibility examples
+------------------------
+
+The source release contains the CPC-oriented validation examples described in
+:doc:`Reproducibility`. They run after a normal editable installation and do not
+start external generators.

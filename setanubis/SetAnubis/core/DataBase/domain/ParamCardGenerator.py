@@ -4,6 +4,8 @@ import sys
 import shutil
 import tempfile
 import tokenize
+import importlib
+import cmath
 from pathlib import Path
 
 
@@ -94,12 +96,46 @@ class ParamCardGenerator:
         patched_script = os.path.join(patched_dir, script_name)
         return temp_root, patched_dir, patched_script
 
+    def _parameter_value_namespace(self):
+        """Evaluate UFO parameters in declaration order for Python 3 writers.
+
+        Older UFO ``write_param_card.py`` files use ``exec`` inside a function
+        and assume that assignments become function locals.  That behavior is
+        not reliable on Python 3.  Precomputing the values in the writer
+        module's global namespace preserves the intended evaluation order.
+        UFO Python files are executable inputs and must only come from trusted
+        sources (see SECURITY.md).
+        """
+        try:
+            parameters = importlib.import_module("parameters")
+        except ModuleNotFoundError:
+            return {}
+        if not hasattr(parameters, "all_parameters"):
+            return {}
+        globals_ns = dict(parameters.__dict__)
+        globals_ns.setdefault("cmath", cmath)
+        values = {}
+        for parameter in parameters.all_parameters:
+            raw_value = parameter.value
+            if isinstance(raw_value, str):
+                value = eval(raw_value, globals_ns, values)
+            else:
+                value = raw_value
+            values[parameter.name] = value
+        return values
+
     def generate_param_card(self, **init_kwargs):
         local_env = {}
         original_cwd = os.getcwd()
         original_sys_path = list(sys.path)
 
         temp_root, patched_dir, patched_script = self._prepare_patched_tree()
+        module_names = {path.stem for path in Path(patched_dir).glob("*.py")}
+        saved_modules = {
+            name: sys.modules.pop(name)
+            for name in module_names
+            if name in sys.modules
+        }
 
         try:
             if patched_dir not in sys.path:
@@ -109,6 +145,7 @@ class ParamCardGenerator:
             code, _ = self._read_python_file(patched_script)
             exec(compile(code, patched_script, "exec"), local_env)
 
+            local_env.update(self._parameter_value_namespace())
             ParamCardWriter = local_env["ParamCardWriter"]
             writer = ParamCardWriter(filename="ignored.dat", **init_kwargs)
             return writer.fsock.getvalue()
@@ -119,4 +156,7 @@ class ParamCardGenerator:
         finally:
             os.chdir(original_cwd)
             sys.path = original_sys_path
+            for name in module_names:
+                sys.modules.pop(name, None)
+            sys.modules.update(saved_modules)
             shutil.rmtree(temp_root, ignore_errors=True)

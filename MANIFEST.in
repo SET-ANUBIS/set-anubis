@@ -12,7 +12,11 @@ include RELEASE.md
 include AUTHORS.md
 
 graft Docs
+graft reproducibility
 graft setanubis/SetAnubis/assets
+
+prune Docs/manual/build
+prune reproducibility_outputs
 
 graft External_Integration/Pythia
 graft External_Integration/HepMC3

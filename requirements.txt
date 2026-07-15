@@ -6,3 +6,8 @@ scipy
 pyyaml
 particle
 graphviz
+awkward
+fastjet
+docker
+watchdog
+six
