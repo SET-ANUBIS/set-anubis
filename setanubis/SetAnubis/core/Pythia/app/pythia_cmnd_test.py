@@ -16,7 +16,7 @@ if __name__ == "__main__":
     nsa.set_leaf_param("mN1", 1.0)
     
     dm = DecayInterface(nsa)
-    # nsa.set(NeoSetAnubisInterface.SetType.DECAY, {9900012 : (11,-11,12)}, None)
+    # nsa.set(SetAnubisInterface.SetType.DECAY, {9900012 : (11,-11,12)}, None)
 
     
     decay_list = [

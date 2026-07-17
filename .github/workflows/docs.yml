@@ -1,3 +1,5 @@
+name: Documentation
+
 on:
   push:
     branches: [main]
@@ -28,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v6
         with:
@@ -44,10 +46,10 @@ jobs:
           python -m pip install -e ".[docs]"
 
       - name: Build Sphinx HTML
-        run: sphinx-build -b html Docs/manual/source Docs/manual/build/html
+        run: sphinx-build -W --keep-going -b html Docs/manual/source Docs/manual/build/html
 
       - name: Upload built docs artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: setanubis-docs-html
           path: Docs/manual/build/html

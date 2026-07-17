@@ -38,11 +38,11 @@ _EXPORTS: dict[str, str | tuple[str, str]] = {
     "YAMLParser": "SetAnubis.core.DataBase.adapters.YAMLParser",
     "JSONExtractor": "SetAnubis.core.DataBase.adapters.JSONExtractor",
     "ParamCardGenerator": "SetAnubis.core.DataBase.domain.ParamCardGenerator",
-    "EventDatabaseManager": "SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
-    "EventImporter": "SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
-    "EventAccessor": "SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
-    "DataframeBundleIO": "SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
-    "BundleBuildConfig": "SetAnubis.core.DataBase.domain.EventDatabaseManagerv3",
+    "EventDatabaseManager": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
+    "EventImporter": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
+    "EventAccessor": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
+    "DataframeBundleIO": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
+    "BundleBuildConfig": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
 
     # Pythia
     "PythiaCMNDInterface": "SetAnubis.core.Pythia.adapters.input.PythiaCMNDInterface",

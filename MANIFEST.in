@@ -13,6 +13,7 @@ include AUTHORS.md
 
 graft Docs
 graft reproducibility
+graft setanubis/tests
 graft setanubis/SetAnubis/assets
 
 prune Docs/manual/build

@@ -89,7 +89,7 @@ class MartyManager:
     
     
 if __name__ == "__main__":
-    # neo = NeoSetAnubisInterface("Assets/UFO/UFO_HNL")
+    # neo = SetAnubisInterface("Assets/UFO/UFO_HNL")
     
     # # mm = MartyManager("HNL")
     

@@ -17,6 +17,13 @@ import pickle
 #   proANUBIS is on side A.
 
 class ATLASCavern():
+    """Legacy ATLAS-cavern and ANUBIS RPC geometry implementation.
+
+    Coordinates are expressed in metres relative to the cavern centre unless an
+    explicit origin transformation is applied. New code may prefer the adapter-
+    based geometry API, while this class remains part of the public interface.
+    """
+
     # Define the parameters for the ATLAS cavern using technical drawings:
     #   - LHCJUX150002: Axial View (xy) of the ATLAS Cavern
     #   - ATFIU___0004: Side View (zy) of the ATLAS Cavern with the Access Shafts

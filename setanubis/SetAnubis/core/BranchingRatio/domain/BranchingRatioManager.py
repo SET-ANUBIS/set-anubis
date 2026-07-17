@@ -58,7 +58,7 @@ class BranchingRatioManager:
             Dictionary mapping decay processes to their calculation strategies.
         _decay_checker (IDecayChecker):
             Checker to verify the validity of decay processes.
-        nsa (NeoSetAnubisInterface):
+        nsa (SetAnubisInterface):
             Interface for retrieving particle information and parameters.
         params (Dict[str, Any]):
             Parameters retrieved from SetAnubisInterface.
@@ -69,7 +69,7 @@ class BranchingRatioManager:
 
         Args:
             decay_checker (IDecayChecker): Decay validity checker.
-            nsa (NeoSetAnubisInterface): Interface for accessing parameters and particle information.
+            nsa (SetAnubisInterface): Interface for accessing parameters and particle information.
         """
         self._decays: Dict[(int, tuple), IDecayCalculation] = {}
         self._decay_checker = decay_checker

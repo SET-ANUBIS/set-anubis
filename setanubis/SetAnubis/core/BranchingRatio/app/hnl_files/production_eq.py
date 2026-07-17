@@ -1,4 +1,4 @@
-import os
+from importlib.resources import as_file, files
 import re
 import numpy as np
 import scipy.interpolate
@@ -28,8 +28,11 @@ class HNLDecayBRCalculator(IDecayCalculation):
         return float(interpolator(float(mass.real)))
 
     def _make_interpolators(self, kind: str = "linear") -> Dict[str, scipy.interpolate.interp1d]:
-        filepath = os.path.join(os.path.dirname(__file__), "N1_branchingratios.dat")
-        histogram_data = self._parse_histograms(filepath)
+        resource = files("SetAnubis.examples.Pythia.TestFiles").joinpath(
+            "N1_branchingratios.dat"
+        )
+        with as_file(resource) as filepath:
+            histogram_data = self._parse_histograms(str(filepath))
         histograms = {}
         for hist_string, (masses, br) in six.iteritems(histogram_data):
             histograms[hist_string] = scipy.interpolate.interp1d(

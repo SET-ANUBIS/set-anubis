@@ -14,11 +14,11 @@ if TYPE_CHECKING:
 
 class CMNDScanManager:
     """
-    Interface to generate CMND cards from a scan over NeoSetAnubis parameters.
+    Interface to generate CMND cards from a scan over SetAnubis parameters.
     """
 
     def __init__(self, nsa : SetAnubisInterface, decay_interface : DecayInterface, output_dir: str):
-        self.nsa = nsa  # NeoSetAnubisInterface
+        self.nsa = nsa  # SetAnubisInterface
         self.dm = decay_interface  # DecayInterface
         self.output_dir = Path(output_dir)
         self.scan_params: Dict[str, List[Any]] = {}

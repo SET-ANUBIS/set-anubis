@@ -12,6 +12,8 @@ class GeometryBuildConfig:
     geometryType: str = ""              # "", "ceiling", "ceiling+singlet", "shaft", "shaft+cone"
 
 class GeometryBuilder:
+    """Delegate geometry construction to an ``IGeometryBuilder`` implementation."""
+
     def __init__(self, impl: IGeometryBuilder) -> None:
         self._impl = impl
 

@@ -6,7 +6,7 @@ from SetAnubis.core.BranchingRatio.domain.DecayChecker import DecayChecker
 # ---- Fake NSA ----
 class FakeNSA:
     """
-    Simule NeoSetAnubisInterface.get_particle_info(pdg_code) en renvoyant la charge
+    Simule SetAnubisInterface.get_particle_info(pdg_code) en renvoyant la charge
     avec la bonne gestion du signe, comme ton manager :
       - si pdg > 0  -> charge telle que définie dans charges_pos[pdg]
       - si pdg < 0  -> charge opposée de charges_pos[abs(pdg)]

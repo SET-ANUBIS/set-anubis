@@ -1,6 +1,10 @@
 import os
-input_filename = filepath = os.path.join(os.path.dirname(__file__),"TestFiles",  "N1_branchingratios.dat")
-output_filename = os.path.join(os.path.dirname(__file__),"TestFiles",  "decay_channel.txt")
+from importlib.resources import files
+
+input_resource = files("SetAnubis.examples.Pythia.TestFiles").joinpath(
+    "N1_branchingratios.dat"
+)
+output_filename = os.path.join(os.path.dirname(__file__), "TestFiles", "decay_channel.txt")
 
 decay_data = {
     "ds_mu": (431, [9900012, -13]),
@@ -94,7 +98,7 @@ decay_data = {
 decay_list = []
 not_found = []
 
-with open(input_filename, "r") as infile, open(output_filename, "w") as outfile:
+with input_resource.open("r") as infile, open(output_filename, "w") as outfile:
     for line in infile:
         line = line.strip()
         if line.startswith("TH1F|"):

@@ -26,7 +26,7 @@ jobs:
     outputs:
       version: ${{ steps.package-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -35,6 +35,10 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: pyproject.toml
+
+      - name: Require main branch for final promotion
+        if: github.event.inputs.target == 'testpypi-and-pypi'
+        run: test "$GITHUB_REF" = "refs/heads/main"
 
       - name: Read package version
         id: package-version
@@ -51,8 +55,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev,docs]"
           python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
+          python -m ruff check .
+          python -m pip_audit
+          python -m bandit -q -lll -r setanubis/SetAnubis/core \
+            -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
           setanubis-pythia-smoke --out .release-pythia-smoke
-          python -m pytest -q setanubis/tests
+          python -m pytest -q setanubis/tests \
+            --cov=SetAnubis --cov-config=pyproject.toml \
+            --cov-report=term-missing --cov-fail-under=35
           python reproducibility/run_all.py --output-dir .release-reproducibility
           setanubis-docs --strict
 
@@ -64,7 +74,7 @@ jobs:
           sha256sum dist/* | tee SHA256SUMS
 
       - name: Upload immutable distribution artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-dist
           path: |
@@ -81,7 +91,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: release-dist
           path: release-artifact
@@ -101,7 +111,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: release-dist
           path: release-artifact
@@ -160,7 +170,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: release-dist
           path: release-artifact
@@ -181,7 +191,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: release-dist
           path: release-artifact

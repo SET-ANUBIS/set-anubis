@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -47,8 +47,33 @@ jobs:
       - name: Run Pythia CMND smoke test
         run: setanubis-pythia-smoke --out .ci-pythia-smoke
 
+      - name: Run release lint
+        if: matrix.python-version == '3.12'
+        run: python -m ruff check .
+
       - name: Run unit tests
+        if: matrix.python-version != '3.12'
         run: python -m pytest -q setanubis/tests
+
+      - name: Run unit tests with coverage
+        if: matrix.python-version == '3.12'
+        run: >-
+          python -m pytest -q setanubis/tests
+          --cov=SetAnubis
+          --cov-config=pyproject.toml
+          --cov-report=term-missing
+          --cov-report=xml
+          --cov-fail-under=35
+
+      - name: Audit installed dependencies
+        if: matrix.python-version == '3.12'
+        run: python -m pip_audit
+
+      - name: Run high-severity security scan
+        if: matrix.python-version == '3.12'
+        run: >-
+          python -m bandit -q -lll -r setanubis/SetAnubis/core
+          -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
 
       - name: Run CPC reproducibility examples
         if: matrix.python-version == '3.12'
@@ -58,7 +83,7 @@ jobs:
     name: Packaging smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -72,18 +97,31 @@ jobs:
       - name: Test wheel install without source-tree shadowing
         run: |
           tmpdir=$(mktemp -d)
-          python -m pip install --force-reinstall --no-deps dist/*.whl
+          python -m pip install --force-reinstall dist/*.whl
           cd "$tmpdir"
           python - <<'PY'
           import setanubis
           from setanubis import __version__, asset_path
           assert __version__ == "1.0.0", __version__
+          import inspect
           assert "SetAnubisInterface" in dir(setanubis)
+          failures = []
+          for name in setanubis.__all__:
+              if name == "__version__":
+                  continue
+              try:
+                  value = getattr(setanubis, name)
+              except Exception as exc:
+                  failures.append(f"{name}: {type(exc).__name__}: {exc}")
+                  continue
+              if not inspect.getdoc(value):
+                  failures.append(f"{name}: missing docstring")
+          assert not failures, "\n".join(failures)
           print("SetAnubis", __version__)
           print(asset_path("particles", "particleData.json"))
           PY
       - name: Upload distributions
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: setanubis-dist
           path: dist/*

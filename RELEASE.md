@@ -8,7 +8,10 @@ This checklist is intended for maintainers preparing SET-ANUBIS 1.0.0.
 python -m pip install -e ".[dev,docs]"
 python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
 setanubis-pythia-smoke --out .release-pythia-smoke
-python -m pytest -q setanubis/tests
+python -m ruff check .
+python -m pip_audit
+python -m bandit -q -lll -r setanubis/SetAnubis/core -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
+python -m pytest -q setanubis/tests --cov=SetAnubis --cov-config=pyproject.toml --cov-fail-under=35
 python reproducibility/run_all.py --output-dir .release-reproducibility
 setanubis-docs --strict
 ```
@@ -38,7 +41,7 @@ re-uploaded, because package indexes do not allow replacing an existing filename
 
 ## 3. Final TestPyPI to PyPI promotion
 
-For the final 1.0.0 release, run the workflow with
+For the final 1.0.0 release, run the workflow from the protected `main` branch with
 `target=testpypi-and-pypi`. It performs this sequence in one workflow run:
 
 1. build the sdist and wheel once;

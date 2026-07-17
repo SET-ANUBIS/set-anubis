@@ -7,6 +7,8 @@ from SetAnubis.core.MadGraph.adapters.output.CardAdapter import CardAdapter, Car
 from pathlib import Path
 
 class GeneralCardInterface:
+    """Facade exposing the standard MadGraph card builders for one run."""
+
     def __init__(self, config: MadGraphCommandConfig):
         # Historical typo kept as an alias for backward compatibility.
         # New examples and documentation should use `jobscript_builder`.

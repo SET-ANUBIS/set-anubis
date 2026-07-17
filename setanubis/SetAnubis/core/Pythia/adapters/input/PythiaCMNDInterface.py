@@ -19,7 +19,7 @@ class PythiaCMNDInterface:
     and hard production processes by delegating tasks to the `CMNDGenerationManager`.
 
     Args:
-        master (NeoSetAnubisInterface): Interface to access model parameters and particles.
+        master (SetAnubisInterface): Interface to access model parameters and particles.
         dm (DecayInterface): Interface to manage particle decays.
 
     Attributes:

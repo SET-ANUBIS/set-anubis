@@ -1,19 +1,9 @@
-import io
-import os
-import gzip
 import json
-import sqlite3
-import hashlib
+import os
+
 import pytest
 
 import SetAnubis.core.DataBase.domain.EventDatabaseManager as events_mod
-
-
-def _deterministic_gzip_bytes(payload: bytes) -> bytes:
-    bio = io.BytesIO()
-    with gzip.GzipFile(fileobj=bio, mode="wb", mtime=0) as gf:
-        gf.write(payload)
-    return bio.getvalue()
 
 
 def test_parse_banner_helpers():
@@ -60,9 +50,9 @@ def test_scan_table_parsing_splits_params_and_widths(tmp_path):
 def test_compute_run_hash_changes_with_content(tmp_path):
     run = tmp_path / "run_00"; run.mkdir()
     (run / "run_01_tag_1_banner.txt").write_text("hello", encoding="utf-8")
-    h1 = events_mod.EventImporter._compute_run_hash(str(run))
+    h1 = events_mod.EventImporter._compute_run_hash(str(run), None, {})
     (run / "run_01_tag_1_banner.txt").write_text("hello!", encoding="utf-8")
-    h2 = events_mod.EventImporter._compute_run_hash(str(run))
+    h2 = events_mod.EventImporter._compute_run_hash(str(run), None, {})
     assert h1 != h2
 
 

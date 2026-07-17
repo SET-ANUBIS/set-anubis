@@ -30,6 +30,8 @@ class RunCardLine:
 
 
 class RunCardEditor:
+    """Parse, edit, and serialize MadGraph ``run_card.dat`` text."""
+
     def __init__(self, content: str):
         self.lines: List[RunCardLine] = [
             RunCardLine(line) for line in content.strip().split("\n")

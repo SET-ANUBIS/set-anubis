@@ -7,7 +7,7 @@ class MadGraphCommandConfig:
     """Configuration data class for MadGraph command card settings.
 
     Attributes:
-        neo_set_anubis (NeoSetAnubis): General Interface of the neo-set-anubis pipeline
+        neo_set_anubis (SetAnubis): General interface of the SET-ANUBIS pipeline
         cards_path (Path): Path to the directory containing MadGraph input cards.
         cache (bool, optional): Whether to enable caching. Defaults to False.
         shower (str, optional): Showering method, e.g., "py8" for Pythia8. Defaults to "py8".

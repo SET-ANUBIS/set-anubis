@@ -1,32 +1,36 @@
+"""Abstract decay-calculation contract."""
+
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Set
+from typing import Dict
+
 from SetAnubis.core.Common.MultiSet import MultiSet
 
-class IDecayCalculation(ABC):
-    """Interface for calculating decay widths for particle decays.
 
-    Provides an abstract method to compute decay width given the mother particle,
-    daughter particles, and relevant parameters.
-    """
-    def __init__(self):
+class IDecayCalculation(ABC):
+    """Calculate a partial width or branching ratio for a decay channel."""
+
+    def __init__(self) -> None:
         self._is_br = False
-        
-    def is_br(self):
+
+    def is_br(self) -> bool:
+        """Return whether :meth:`calculate` produces a branching ratio."""
         return self._is_br
-    
+
     @abstractmethod
-    def calculate(self, 
-                  mother: int, 
-                  daughters: MultiSet[int], 
-                  parameters: Dict[str, float]) -> float:
-        """Calculates decay width for a given decay process.
+    def calculate(
+        self,
+        mother: int,
+        daughters: MultiSet[int],
+        parameters: Dict[str, float],
+    ) -> float:
+        """Calculate the configured decay observable.
 
         Args:
-            mother (int): PDG code of the mother particle.
-            daughters (MultiSet[int]): PDG codes of daughter particles.
-            parameters (Dict[str, float]): Parameters needed for the calculation (masses, couplings, etc.).
+            mother: PDG identifier of the mother particle.
+            daughters: Daughter-particle PDG identifiers.
+            parameters: Numerical model parameters required by the calculation.
 
         Returns:
-            float: Calculated decay width.
+            The calculated partial width or branching ratio.
         """
-        pass
+        raise NotImplementedError

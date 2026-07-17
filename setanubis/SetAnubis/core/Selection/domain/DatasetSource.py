@@ -1,7 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Tuple, Protocol, Any
-import os, gzip, pickle, hashlib, io
+from typing import Callable, Dict, List, Optional, Tuple, Protocol
+import gzip
+import hashlib
+import io
+import os
+import pickle
 import pandas as pd
 
 from SetAnubis.core.Selection.domain.LLPAnalyzer import LLPAnalyzer
@@ -33,14 +37,15 @@ class BundleIO:
             return pickle.load(f)
 
 
-def _sha1_bytes(b: bytes) -> str:
-    return hashlib.sha1(b).hexdigest()[:16]
+def _sha256_bytes(data: bytes) -> str:
+    """Return a compact SHA-256 fingerprint for cache identity."""
+    return hashlib.sha256(data).hexdigest()[:16]
 
 def _fingerprint_paths(paths: List[str]) -> str:
     """
     for cache (figerprint noms + tailles + mtimes)
     """
-    h = hashlib.sha1()
+    h = hashlib.sha256()
     for p in sorted(map(str, paths)):
         try:
             st = os.stat(p)
@@ -59,7 +64,7 @@ def _fingerprint_df(df: pd.DataFrame) -> str:
 
     df.head(min(len(df), 5000)).to_csv(buf, index=False)
     meta = f"{df.shape}-{tuple(df.columns)}".encode()
-    return _sha1_bytes(meta + buf.getvalue())
+    return _sha256_bytes(meta + buf.getvalue())
 
 
 class HepmcLoader(Protocol):
@@ -132,7 +137,7 @@ class EventsBundleSource:
             if (not self.force_recompute) and bundle_path and os.path.exists(bundle_path):
                 return BundleIO.load_bundle(bundle_path)
 
-        for transform in pre_df_transforms:
+        for transform in pre_df_transforms or []:
             df = transform(df)
         
         analyzer = LLPAnalyzer(df, pt_min_cfg=self.cfg.pt_min_cfg)

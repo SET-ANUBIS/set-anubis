@@ -31,10 +31,10 @@ class MadGraphLocalRunner(IMadGraphRunner):
             f.write(jobscript)
             
         with open(param_card_path, 'w', encoding='utf-8') as f:
-            f.write(run_card)
+            f.write(param_card)
             
         with open(run_card_path, 'w', encoding='utf-8') as f:
-            f.write(param_card)
+            f.write(run_card)
         
         if pythia_card:
             with open(pythia_card_path, 'w', encoding='utf-8') as f:
@@ -50,8 +50,6 @@ class MadGraphLocalRunner(IMadGraphRunner):
         self.inject_all_cards(jobscript, run_card, param_card, pythia_card, madspin_card)
         card_path = self.__card_path()
         jobscript_path = os.path.join(card_path, "jobscript_param_scan.txt")
-        MG_COMMAND = f"./bin/mg5_aMC {jobscript_path}"
-        
         subprocess.run(
             ["./bin/mg5_aMC", jobscript_path],
             cwd=self.madgraph_path,

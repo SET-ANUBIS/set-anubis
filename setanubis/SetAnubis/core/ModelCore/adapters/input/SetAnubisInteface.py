@@ -141,10 +141,10 @@ class SetAnubisInterface(IParameterService):
         return self.manager.get_particle_mass_name(pdg_code)
     
 if __name__ == "__main__":
-    neo = NeoSetAnubisInterface("Assets/UFO/UFO_HNL")
+    neo = SetAnubisInterface("Assets/UFO/UFO_HNL")
     
     print(neo.get_particle_info(24))
     print(neo.get_particle_mass(24))
     print(neo.get_all_parameters())
-    neo2 = NeoSetAnubisInterface("Assets/UFO/SM_HeavyN_CKM_AllMasses_LO")
+    neo2 = SetAnubisInterface("Assets/UFO/SM_HeavyN_CKM_AllMasses_LO")
     print(neo2.get_all_particles() )

@@ -46,11 +46,11 @@ selection = ["pyhepmc", "fastjet", "awkward"]
 madgraph = ["docker"]
 app = ["dash", "plotly", "requests", "python-dotenv", "python-multipart"]
 docs = ["sphinx", "sphinx_rtd_theme"]
-dev = ["pytest", "build", "twine", "ruff"]
+dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit"]
 all = [
   "pybind11>=2.12", "pyhepmc", "fastjet", "awkward", "docker",
   "dash", "plotly", "requests", "python-dotenv", "python-multipart",
-  "sphinx", "sphinx_rtd_theme", "pytest", "build", "twine", "ruff",
+  "sphinx", "sphinx_rtd_theme", "pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit",
 ]
 
 [project.urls]
@@ -103,3 +103,40 @@ pythonpath = ["setanubis"]
 markers = [
   "pythia: tests requiring compiled Pythia/HepMC3 binding",
 ]
+filterwarnings = [
+  "error::ResourceWarning",
+]
+
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = [
+  "Assets",
+  "External_Integration",
+  "setanubis/SetAnubis/assets/UFO",
+  "setanubis/SetAnubis/core/UFOInterface/SM_NLO",
+  "setanubis/SetAnubis/HepMCGUI",
+  "setanubis/SetAnubis/SetAnubisDBDashboard",
+]
+
+[tool.ruff.lint]
+# Release gate: syntax errors, undefined names, and invalid control-flow only.
+# Generated UFO trees intentionally retain upstream formatting and imports.
+select = ["E9", "F63", "F7", "F82"]
+
+[tool.coverage.run]
+source = ["SetAnubis"]
+omit = [
+  "*/SetAnubis/assets/*",
+  "*/SetAnubis/examples/*",
+  "*/SetAnubis/HepMCGUI/*",
+  "*/SetAnubis/SetAnubisDBDashboard/*",
+  "*/SetAnubis/core/*/app/*",
+  "*/SetAnubis/core/UFOInterface/SM_NLO/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+precision = 1
+fail_under = 35

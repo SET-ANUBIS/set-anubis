@@ -1,7 +1,21 @@
-from typing import Protocol, List
-from SetAnubis.core.Selection.domain.Models import HepmcRef, IndexWriterConfig, IndexWriteResult
+"""Output port for writing a searchable HepMC index."""
+
+from typing import List, Protocol
+
+from SetAnubis.core.Selection.domain.Models import (
+    HepmcRef,
+    IndexWriteResult,
+    IndexWriterConfig,
+)
+
 
 class HepmcIndexPort(Protocol):
-    """Port: écrit/maintient l’index CSV à partir d’une liste d’HEPMC."""
-    def write_index(self, items: List[HepmcRef], cfg: IndexWriterConfig) -> IndexWriteResult:
+    """Write or update an index from a collection of HepMC references."""
+
+    def write_index(
+        self,
+        items: List[HepmcRef],
+        cfg: IndexWriterConfig,
+    ) -> IndexWriteResult:
+        """Persist ``items`` according to ``cfg`` and return the write result."""
         ...

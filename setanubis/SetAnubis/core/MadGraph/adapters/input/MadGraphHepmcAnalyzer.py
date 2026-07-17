@@ -1,11 +1,13 @@
 from __future__ import annotations
-import matplotlib
-matplotlib.use('Tkagg')
+
 from dataclasses import dataclass, field
-from typing import Iterable, Protocol, Optional, Dict, List
+from typing import TYPE_CHECKING, Iterable, Protocol, Optional, Dict, List
 
 from collections import Counter
 import numpy as np
+
+if TYPE_CHECKING:
+    import pyhepmc as hp
 
 
 class EventSource(Protocol):
@@ -105,7 +107,6 @@ class ParticleStats:
     def _describe_array(self, values: List[float], name: str) -> str:
         if not values:
             return f"  {name:>8} : aucun point\n"
-        print(values)
         arr = np.asarray(values, dtype=float)
         return (
             f"  {name:>8} : N={len(arr)}, "

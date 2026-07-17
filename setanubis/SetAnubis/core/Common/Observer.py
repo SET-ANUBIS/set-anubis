@@ -1,8 +1,12 @@
-import os
+import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+logger = logging.getLogger(__name__)
+
 class FileCreationHandler(FileSystemEventHandler):
+    """Forward filesystem creation events to a :class:`FileObserver`."""
+
     def __init__(self, observer):
         self.observer = observer
 
@@ -10,6 +14,8 @@ class FileCreationHandler(FileSystemEventHandler):
         self.observer.file_created(event.src_path)
 
 class FileObserver:
+    """Watch a directory and invoke callbacks for registered file paths."""
+
     _instance = None
 
     def __new__(cls, directory_to_watch=None):

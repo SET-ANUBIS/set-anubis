@@ -10,6 +10,13 @@ from pathlib import Path
 
 
 class ParamCardGenerator:
+    """Generate a parameter card from a trusted UFO writer script.
+
+    Legacy Python-2-style UFO writers are copied to a temporary directory and
+    patched in memory-compatible form before execution. UFO inputs are Python
+    code and must only be loaded from trusted sources.
+    """
+
     def __init__(self, script_path):
         self.script_path = os.path.abspath(script_path)
 

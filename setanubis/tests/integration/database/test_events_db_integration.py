@@ -2,8 +2,7 @@ import io
 import os
 import json
 import gzip
-import shutil
-import sqlite3
+from pathlib import Path
 import pytest
 
 import SetAnubis.core.DataBase.domain.EventDatabaseManager as events_mod
@@ -54,15 +53,20 @@ def test_import_two_runs_scan_cas_and_transforms(tmp_path):
     lhe_gz_1 = _deterministic_gzip_bytes(b"HELLO-LHE-CONTENT-1")
     hepmc_gz = _deterministic_gzip_bytes(b"HEPMC-CONTENT")
 
-    _mk_run(os.path.join(evroot, "run_00"), banner, lhe_gz_bytes=lhe_gz_0)
-    _mk_run(os.path.join(evroot, "run_01"), banner, lhe_gz_bytes=lhe_gz_1)
+    _mk_run(os.path.join(evroot, "run_00_decayed_1"), banner, lhe_gz_bytes=lhe_gz_0, hepmc_gz_bytes=hepmc_gz)
+    _mk_run(os.path.join(evroot, "run_01_decayed_1"), banner, lhe_gz_bytes=lhe_gz_1, hepmc_gz_bytes=hepmc_gz)
 
     db = events_mod.EventDatabaseManager(db_path, storage_dir, use_hardlinks=False)
     importer = events_mod.EventImporter(db)
     acc = events_mod.EventAccessor(db)
     events_mod.register_example_transforms(acc)
 
-    imported = importer.import_from_events_folder(evroot, model="SM_HeavyN_CKM_AllMasses_LO", include_hepmc=False)
+    imported = importer.import_from_events_folder(
+        evroot,
+        model="SM_HeavyN_CKM_AllMasses_LO",
+        store_lhe=True,
+        include_hepmc=False,
+    )
     assert len(imported) == 2
 
     rows = acc.query()
@@ -85,12 +89,20 @@ def test_import_two_runs_scan_cas_and_transforms(tmp_path):
         blobs = list(conn.execute("SELECT sha256, refcount FROM cas_blobs"))
     assert any(int(rc[1]) >= 2 for rc in blobs)
 
-    imported2 = importer.import_from_events_folder(evroot, model="SM_HeavyN_CKM_AllMasses_LO", include_hepmc=False)
+    imported2 = importer.import_from_events_folder(
+        evroot,
+        model="SM_HeavyN_CKM_AllMasses_LO",
+        store_lhe=True,
+        include_hepmc=False,
+    )
     assert len(imported2) == 0
 
     out = os.path.join(tmp_path, "out"); os.makedirs(out, exist_ok=True)
-    written = events_mod.programmatic_run_transforms(acc, first_id, out)
-    assert any(p.endswith(".json") for p in written) and any(p.endswith(".txt") for p in written)
+    for transform_name in ("to_json", "report_txt"):
+        acc.run_transform(first_id, transform_name, out)
+    written = [str(path) for path in Path(out).iterdir()]
+    assert any(path.endswith(".json") for path in written)
+    assert any(path.endswith(".txt") for path in written)
 
     jpath = [p for p in written if p.endswith(".json")][0]
     payload = json.loads(open(jpath, "r").read())
@@ -115,13 +127,17 @@ def test_import_with_hepmc_and_query_filters(tmp_path):
     lhe_gz = _deterministic_gzip_bytes(b"LHE-DATA")
     hepmc_gz = _deterministic_gzip_bytes(b"HEPMC-DATA")
 
-    _mk_run(os.path.join(evroot, "run_00"), banner, lhe_gz_bytes=lhe_gz, hepmc_gz_bytes=hepmc_gz)
+    _mk_run(os.path.join(evroot, "run_00_decayed_1"), banner, lhe_gz_bytes=lhe_gz, hepmc_gz_bytes=hepmc_gz)
 
     db = events_mod.EventDatabaseManager(db_path, storage_dir, use_hardlinks=False)
     importer = events_mod.EventImporter(db)
     acc = events_mod.EventAccessor(db)
 
-    imported = importer.import_from_events_folder(evroot, include_hepmc=True)
+    imported = importer.import_from_events_folder(
+        evroot,
+        store_lhe=True,
+        include_hepmc=True,
+    )
     assert len(imported) == 1
     eid = imported[0]
 

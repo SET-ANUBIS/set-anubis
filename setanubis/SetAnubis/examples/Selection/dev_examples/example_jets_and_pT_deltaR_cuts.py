@@ -7,13 +7,17 @@ from SetAnubis.core.Selection.domain.isolation import IsolationComputer
 from SetAnubis.core.Geometry.domain.builder import GeometryBuilder, GeometryBuildConfig
 from SetAnubis.core.Geometry.adapters.geometry_builder import CavernGeometryBuilder
 from SetAnubis.core.Geometry.adapters.geometry_query import CavernQuery
+from SetAnubis.core.Selection.domain.DatasetSource import BundleIO
 
 import numpy as np
+import os
 
-
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PKL_FILE = os.path.join(CURRENT_DIR, "..", "InputFiles", "samples_dfs_hnl.pkl")
 
 if __name__ == "__main__":
-    SDFs_base = load_bundle("paul_dict.pkl.gz")
+    print(PKL_FILE)
+    SDFs_base = load_bundle(PKL_FILE)
     cfs = SDFs_base["chargedFinalStates"].copy()
     nfs = SDFs_base["neutralFinalStates"].copy()
 
@@ -48,7 +52,8 @@ if __name__ == "__main__":
     SDFs["finalStatePromptJets"] = createJetDF(ev, cfs, nfs)
 
     iso = IsolationComputer(selection=sel_cfg)
-    LLPs_new = iso.attach_min_delta_r(SDFs.copy())
+    SDFs["LLPs"] = iso.attach_min_delta_r(SDFs.copy())
 
-    print(LLPs_new.head())
+    print(SDFs["LLPs"].head())
 
+    BundleIO().save_bundle(SDFs, "samples_dfs_hnl_with_jet_deltaR.pkl")

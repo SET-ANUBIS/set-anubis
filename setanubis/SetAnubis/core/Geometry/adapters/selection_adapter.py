@@ -24,6 +24,7 @@ def _coords_to_origin_if_possible(geometry, x_m, y_m, z_m):
     return (x_m, y_m, z_m)
     
 class GeometrySelectionAdapter:
+    """Adapt a geometry implementation to the selection-engine API."""
 
     def __init__(self, geometry: IGeometry) -> None:
         self.geometry = geometry

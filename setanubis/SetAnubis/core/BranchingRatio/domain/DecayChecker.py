@@ -19,7 +19,7 @@ class DecayChecker(IDecayChecker):
         Args:
             mother_id (int): PDG ID of the mother particle.
             daughters_id (MultiSet[int]): PDG IDs of daughter particles.
-            nsa (NeoSetAnubisInterface): Interface to retrieve particle information.
+            nsa (SetAnubisInterface): Interface to retrieve particle information.
 
         Returns:
             bool: True if decay is valid.

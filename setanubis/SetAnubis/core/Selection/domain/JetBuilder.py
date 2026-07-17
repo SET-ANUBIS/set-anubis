@@ -243,6 +243,7 @@ class JetDFBuilder:
 
 
 def createJetDF(eventNumbers, chargedFinalStates, neutralFinalStates) -> pd.DataFrame:
+    """Build a jet dataframe from charged and neutral final-state particles."""
 
     builder = JetDFBuilder()
     return builder.build(eventNumbers, chargedFinalStates, neutralFinalStates)

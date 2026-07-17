@@ -9,6 +9,17 @@ import pickle
 import re
 import shutil
 import sqlite3
+
+
+class _ClosingConnection(sqlite3.Connection):
+    """SQLite connection that commits or rolls back and then closes on exit."""
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            return super().__exit__(exc_type, exc_value, traceback)
+        finally:
+            self.close()
+
 import tempfile
 import uuid
 import zipfile
@@ -405,7 +416,7 @@ class EventDatabaseManager:
         return os.path.join(self.storage_dir, EVENTS_DIRNAME)
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, factory=_ClosingConnection)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA synchronous=NORMAL;")
@@ -592,6 +603,13 @@ class EventDatabaseManager:
 
 
 class EventImporter:
+    """Import generator runs into the current event database and CAS.
+
+    The importer extracts scan metadata, optionally builds compact selection
+    bundles from HepMC, deduplicates runs by content hash, and records artifacts
+    in the database storage managed by :class:`EventDatabaseManager`.
+    """
+
     def __init__(self, db: EventDatabaseManager):
         self.db = db
 
@@ -1522,6 +1540,8 @@ class EventImporter:
 
 
 class EventAccessor:
+    """Query, inspect, transform, and export records from an event database."""
+
     def __init__(self, db: EventDatabaseManager):
         self.db = db
         self._transforms: Dict[str, Transform] = {}
@@ -2204,17 +2224,17 @@ def programmatic_regenerate(
 TEST_HELP = """
 Examples:
   # Import decayed HEPMC into dataframe bundles, without storing HEPMC
-  python EventDatabaseManagerv3_storage_dashboard.py import \
+  python EventDatabaseManager_storage_dashboard.py import \
     --events-root db/Temp/madgraph/Events/Events \
     --model SM_HeavyN_CKM_AllMasses_LO \
     --ufo-path Assets/UFO/UFO_HNL \
     --llp-pid 9900012 \
     --charged-pt-min 0.5
 
-  python EventDatabaseManagerv3_storage_dashboard.py list --model SM_HeavyN_CKM_AllMasses_LO --has-bundle
-  python EventDatabaseManagerv3_storage_dashboard.py show --id <EVENT_UUID>
-  python EventDatabaseManagerv3_storage_dashboard.py export-bundle --id <EVENT_UUID> --out out
-  python EventDatabaseManagerv3_storage_dashboard.py stats
+  python EventDatabaseManager_storage_dashboard.py list --model SM_HeavyN_CKM_AllMasses_LO --has-bundle
+  python EventDatabaseManager_storage_dashboard.py show --id <EVENT_UUID>
+  python EventDatabaseManager_storage_dashboard.py export-bundle --id <EVENT_UUID> --out out
+  python EventDatabaseManager_storage_dashboard.py stats
 """
 
 

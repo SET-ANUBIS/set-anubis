@@ -13,16 +13,16 @@ if __name__ == "__main__":
     dry_run = True
     
     """
-    General interface of the neo-set-anubis pipeline. Need the path to the UFO as an input.
+    General interface of the SET-ANUBIS pipeline. Need the path to the UFO as an input.
     
-    Everything concerning this interface is available in the ModelCore.exampleNeoSetAnubisInterface.py example.
+    Everything concerning this interface is available in the ModelCore.example_setanubis_interface.py example.
     """
     neo = SetAnubisInterface(hnl_ufo_path)
-    print(neo.get_all_parameters())
+
     """
     Configuration for the MagraphInterface (for writing cards). Few inputs are needed :
     
-        -   neo_set_anubis : General NeoSetAnubis interface, with the ufo_path and all the particles/parameters.
+        -   neo_set_anubis : General SetAnubis interface, with the ufo_path and all the particles/parameters.
         -   cards_path  :   Path to the cards in the docker container. No need to change it it will only break things (or be sure of what you're doing !).
         -   cache : If we want to use what's already in MadGraph, Generally put it to False only you're sure or doing the same scan than before.
         -   model_in_madgraph : name of the UFO, used in madgraph to import the model (from Feynrule).

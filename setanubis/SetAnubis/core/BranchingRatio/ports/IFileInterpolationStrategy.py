@@ -1,13 +1,20 @@
-from typing import Dict, Any, Set, List
-from SetAnubis.core.BranchingRatio.domain.IDecayCalculation import IDecayCalculation
+"""Port for file-backed decay-width interpolation."""
+
+from typing import Dict, List, Set
+
 
 class IFileInterpolationSubStrategy:
-    """
-    Interface pour lire un fichier (CSV, JSON, etc.) et 
-    interpoler la valeur de la largeur partielle.
-    """
-    def load_file(self, file_path: str, varying_params: List[str]):
-        pass
+    """Load tabulated decay data and interpolate a requested channel."""
 
-    def interpolate(self, mother: int, daughters: Set[int], param_values: Dict[str, float]) -> float:
-        pass
+    def load_file(self, file_path: str, varying_params: List[str]) -> None:
+        """Load tabulated values and record the parameters varied by the table."""
+        raise NotImplementedError
+
+    def interpolate(
+        self,
+        mother: int,
+        daughters: Set[int],
+        param_values: Dict[str, float],
+    ) -> float:
+        """Interpolate the value for a decay channel at ``param_values``."""
+        raise NotImplementedError
