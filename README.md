@@ -1,5 +1,11 @@
 # SET-ANUBIS
 
+<p align="center">
+  <img src="Docs/assets/set-anubis-logo.png" alt="SET-ANUBIS logo" width="220">
+</p>
+
+<p align="center"><strong>Simulation, accEptance and sensiTivity studies framework for ANUBIS</strong></p>
+
 [![CI](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/ci.yml/badge.svg)](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/ci.yml)
 [![Docs](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/docs.yml/badge.svg)](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/docs.yml)
 [![CodeQL](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/codeql.yml/badge.svg)](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/codeql.yml)
@@ -11,63 +17,63 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Citation](https://img.shields.io/badge/cite-arXiv%3A2512.14942-b31b1b.svg)](https://arxiv.org/abs/2512.14942)
 
-**SET-ANUBIS** (*Simulation, accEptance and sensiTivity studies framework for
-ANUBIS*) is a Python/C++ framework for projecting the sensitivity of the proposed
-**ANUBIS** detector to long-lived particles (LLPs).  The code follows the
-analysis strategy used in the SET-ANUBIS paper: describe a BSM model through UFO
-inputs, evaluate widths/branching ratios, generate signal samples, ingest the
-resulting HepMC events, propagate LLP decays through an ATLAS-cavern/ANUBIS
-geometry model, and apply the truth-level cutflow used to estimate geometric and
-kinematic acceptance.
+**SET-ANUBIS** is an end-to-end framework for long-lived-particle sensitivity studies in the proposed **ANUBIS** detector. It follows the workflow described in the SET-ANUBIS software paper: start from a UFO model, expose the model parameters and particle content, compute widths / branching ratios / lifetimes, generate events, ingest HepMC output, propagate LLP decays through an ATLAS-cavern / ANUBIS geometry description, and finally apply the truth-level selection used to estimate geometric and kinematic acceptance.
 
-ANUBIS is a proposed transverse LLP detector at LHC Point 1, intended to
-instrument the ATLAS underground cavern with RPC tracking stations.  Its physics
-motivation is to recover LLP decays that can occur outside the main ATLAS
-detector but inside the cavern volume, where dedicated tracking layers could
-observe charged decay products.  For detector details and physics motivation see
-the original ANUBIS proposal, the recent ANUBIS detector/sensitivity paper, and
-the SET-ANUBIS software paper listed in [Citation](#citation).
+The codebase is organised around small domain APIs and replaceable adapters. In practice this means that generator backends, decay calculators, storage backends and geometry-aware selection tools can evolve independently while still fitting into one reproducible analysis pipeline. Optional Dash applications complement the command-line and Python APIs with interactive event inspection and database auditing tools.
+
+## At a glance
+
+- **Model interface**: load UFO models and work with scan parameters through a user-facing Python facade.
+- **Branching ratios and lifetimes**: mix Python formulas, interpolation tables, UFO-derived information, MadGraph preparation and MARTY preparation workflows.
+- **Generation**: prepare MadGraph campaigns and keep optional Pythia-based studies available for dedicated workflows and cross-checks.
+- **Geometry-aware selection**: convert HepMC events into dataframe bundles, apply the ANUBIS cutflow, and optionally capture intermediate cutflow stages.
+- **Reproducibility**: store compact selection-ready bundles together with scan metadata, content-addressed artifacts and import/export helpers.
+- **Interactive inspection**: use the bundled Dash applications to inspect HepMC events in the cavern geometry and to audit the event database.
+
+## ANUBIS detector context
+
+ANUBIS is a proposed transverse LLP detector at LHC Point 1, designed to instrument the ATLAS cavern and nearby shafts with RPC tracking stations. Its physics motivation is to recover neutral LLP decays that can occur outside the main ATLAS detector volume but still inside the cavern infrastructure, where displaced charged decay products could be reconstructed.
 
 <p align="center">
-  <img src="Docs/assets/anubis-detector-concept.jpeg" alt="ANUBIS detector concept in the ATLAS cavern" width="520">
+  <img src="Docs/assets/anubis-detector-concept.jpg" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
 </p>
 
-## Physics workflow
+## Workflow overview
 
-SET-ANUBIS is organised around the analysis pipeline rather than around a single
-generator.  The main release examples focus on **MadGraph generation**,
-**branching-ratio/lifetime handling**, **geometry-aware selection**, and
-**sensitivity inputs**.  Pythia remains available as an optional backend for
-standalone generation, showering studies and cross-checks, but it is not the
-central public workflow.
+SET-ANUBIS is organised around the analysis workflow rather than around a single generator executable.
 
 <p align="center">
   <img src="Docs/assets/set-anubis-architecture.jpg" alt="SET-ANUBIS architecture" width="900">
 </p>
 
-The principal components are:
+The principal release-ready components are:
 
-- **UFO and model interface**: load UFO models, expose model parameters and
-  particle content, and produce parameter cards suitable for generator scans.
-- **Branching ratios and lifetimes**: combine Python formulas, interpolation
-  tables, UFO/MadGraph strategies and MARTY-oriented workflows to provide widths,
-  BRs and lifetimes to generation and sensitivity calculations.
-- **MadGraph campaign generation**: build MadGraph job scripts, run cards,
-  parameter cards, MadSpin cards and shower cards for HNL-like or generic BSM
-  scan points.
-- **Database and provenance**: store cards, banners, scan metadata, HepMC
-  references and compact selection-ready dataframe bundles with reproducible
-  metadata.
-- **ATLAS cavern and ANUBIS geometry**: model the cavern volume, the ATLAS
-  exclusion region, the PX14/PX16 shafts and configurable ANUBIS RPC tracking
-  layers.
-- **Selection cutflow**: first require the LLP decay to occur in the relevant
-  detector geometry, then require charged decay products to intersect ANUBIS
-  stations, and only afterwards apply MET and isolation cuts motivated by the
-  ATLAS-associated background rejection strategy.
-- **Sensitivity projections**: use acceptance values from the cutflow together
-  with luminosity, production cross sections, branching ratios and signal
-  efficiencies to compute expected LLP yields.
+- **UFO and model interface**: inspect the model content and produce parameter cards.
+- **Branching-ratio / width / lifetime layer**: provide one consistent source of decay information for scans, generation and sensitivity calculations.
+- **MadGraph campaign generation**: generate cards, command scripts and scan metadata for LLP production studies.
+- **Database and provenance**: track runs, stored bundles, cards, banners and metadata with reproducible identifiers.
+- **ATLAS cavern and ANUBIS geometry**: describe the UX1 cavern, the ATLAS exclusion region, the shaft options and the RPC tracking stations.
+- **Selection cutflow**: apply decay-location, station-intersection, tracking, MET and isolation requirements in the order used by the analysis.
+- **Sensitivity inputs**: combine acceptance with luminosity, cross sections, branching fractions and efficiency assumptions.
+
+## Release highlights
+
+This repository is prepared for a public release around four user-visible workflows:
+
+1. **MadGraph setup and scan preparation**
+2. **Branching-ratio / decay-width / lifetime studies**
+3. **Selection and cutflow validation**
+4. **Reproducibility, storage and inspection dashboards**
+
+The example suite includes real and synthetic selection traces, compact bundled datasets, branching-ratio developer examples, and validation scripts intended to make the release self-documenting.
+
+## Documentation and dashboards
+
+- **Sphinx manual**: <https://set-anubis.github.io/set-anubis/>
+- **DB dashboard**: inspect stored events, artifacts, bundle compression and scan metadata.
+- **HepMC explorer**: visualise LLP decays, geometry intersections and event-by-event kinematics in the ATLAS cavern.
+
+The documentation has been aligned with the current examples and with the software paper draft. It now emphasises the end-to-end workflow, the role of the public API, and the way the branching-ratio, selection and reproducibility layers fit together.
 
 ## Installation
 

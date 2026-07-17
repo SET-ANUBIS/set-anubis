@@ -1,6 +1,6 @@
-# HepMC ANUBIS event explorer
+# SET-ANUBIS HepMC explorer
 
-The HepMC GUI is an optional Dash application for inspecting generated signal
+The HepMC explorer is the optional Dash application for inspecting generated signal
 events in the ATLAS cavern and ANUBIS detector geometry.  It is intended for
 validation and debugging, not for defining the production selection.  The physics
 selection used in scans lives in the `SelectionEngine` and geometry adapters.

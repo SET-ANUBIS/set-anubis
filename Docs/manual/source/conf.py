@@ -45,3 +45,8 @@ html_short_title = "SET-ANUBIS"
 
 nitpicky = False
 autodoc_typehints = "description"
+
+html_logo = "_static/set-anubis-logo.png"
+html_favicon = "_static/set-anubis-logo.png"
+html_theme_options = {"logo_only": False, "navigation_depth": 3}
+html_css_files = ["custom.css"]

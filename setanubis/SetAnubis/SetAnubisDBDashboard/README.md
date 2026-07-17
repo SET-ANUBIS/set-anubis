@@ -1,4 +1,4 @@
-# SET-ANUBIS database dashboard
+# SET-ANUBIS DB dashboard
 
 The database dashboard is an optional Dash application for auditing generated
 campaigns and selection-ready event bundles.  It is designed to answer practical

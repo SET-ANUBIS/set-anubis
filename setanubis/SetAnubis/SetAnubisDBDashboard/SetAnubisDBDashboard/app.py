@@ -117,11 +117,18 @@ def _metric_items(payload: Dict[str, Any]):
     ]
 
 
-def controls_sidebar(default_db: str, default_storage: str, default_events_root: str) -> html.Div:
+def controls_sidebar(default_db: str, default_storage: str, default_events_root: str, logo_src: str) -> html.Div:
     return html.Div(
         className="grid",
         children=[
-            html.Div(className="brand", children=[html.H1("SetAnubis DB monitor"), html.Div("Dash", className="badge")]),
+            html.Div(className="brand", children=[
+                html.Img(src=logo_src, alt="SET-ANUBIS logo", className="brand-logo"),
+                html.Div(className="brand-copy", children=[
+                    html.H1("SET-ANUBIS DB dashboard"),
+                    html.Div("Audit stored runs, bundle sizes and scan metadata.", className="brand-subtitle"),
+                ]),
+                html.Div("Dash", className="badge"),
+            ]),
             card(
                 "Database",
                 "SQLite + CAS",
@@ -361,14 +368,14 @@ def empty_page() -> html.Div:
 
 def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAGE, default_events_root: str = DEFAULT_EVENTS_ROOT) -> Dash:
     app = Dash(__name__, suppress_callback_exceptions=True)
-    app.title = "SetAnubis DB monitor"
+    app.title = "SET-ANUBIS DB dashboard"
     server = app.server
 
     app.layout = html.Div(
         className="app-shell",
         children=[
             dcc.Store(id="payload-store"),
-            html.Div(className="sidebar", children=[controls_sidebar(default_db, default_storage, default_events_root)]),
+            html.Div(className="sidebar", children=[controls_sidebar(default_db, default_storage, default_events_root, app.get_asset_url("set-anubis-logo.png"))]),
             html.Div(
                 className="content",
                 children=[

@@ -1,22 +1,17 @@
 Installation
 ============
 
-SET-ANUBIS separates the Python analysis framework from large external HEP tools.
-A normal PyPI installation is sufficient for model inspection, card construction,
-branching-ratio interfaces, geometry definitions and the public selection API.
-The base dependency set includes Awkward Array, FastJet, the Docker Python SDK,
-Watchdog and six so that public imports and bundled examples are available immediately.
-MadGraph, Pythia8, HepMC3 and MARTY remain external or optional tools
-that must be configured for workflows that execute them.
+SET-ANUBIS is published on PyPI as ``SetAnubis``.  The recommended Python import
+layer is the lower-case facade ``setanubis``.
 
-Python package
---------------
+Quick start
+-----------
 
 .. code-block:: bash
 
    python -m pip install SetAnubis
 
-From a development checkout:
+For development from a local checkout:
 
 .. code-block:: bash
 
@@ -25,86 +20,72 @@ From a development checkout:
    python -m pip install -e ".[dev,docs,selection,madgraph]"
    python -m pytest -q setanubis/tests
 
-The public import layer is:
+Basic import check
+------------------
 
 .. code-block:: python
 
    import setanubis
    from setanubis import SetAnubisInterface, SelectionConfig, ufo_path
 
+   print(setanubis.__version__)
+   print(ufo_path("UFO_HNL"))
+
 Optional extras
 ---------------
 
-.. code-block:: bash
-
-   python -m pip install "SetAnubis[selection]"  # adds pyhepmc
-   python -m pip install "SetAnubis[madgraph]"   # compatibility extra; Docker SDK is in the base install
-   python -m pip install "SetAnubis[app]"        # Dash inspection tools
-   python -m pip install "SetAnubis[docs]"       # Sphinx documentation
-
-MadGraph
---------
-
-MadGraph is the primary generation backend shown in the release documentation.
-SET-ANUBIS can generate the cards and job scripts; execution can happen in a
-local installation, in Docker, or on a batch system.
+The release keeps optional features behind extras so that the base wheel remains
+lightweight:
 
 .. code-block:: bash
 
-   ./External_Integration/install.sh MadGraph
-   python -m pip install -e ".[madgraph]"
+   python -m pip install "SetAnubis[selection]"  # HepMC ingestion and selection helpers
+   python -m pip install "SetAnubis[madgraph]"   # Docker-backed MadGraph helpers
+   python -m pip install "SetAnubis[app]"        # optional Dash applications
+   python -m pip install "SetAnubis[docs]"       # local Sphinx build support
 
-External installations are also supported; the framework only needs to know where
-MadGraph is executed and where the resulting ``Events`` directory is stored.
+Pythia / HepMC3 native extension
+--------------------------------
 
-Optional Pythia/HepMC3 binding
-------------------------------
-
-The native Pythia runtime is intentionally opt-in.  CMND card generation works in
-the Python-only install, but runtime generation requires a compiled extension
-linked against Pythia8 and HepMC3.
+The default wheel is Python-only.  The optional native Pythia8 / HepMC3 binding
+is built only when explicitly requested.
 
 .. code-block:: bash
 
-   SETANUBIS_BUILD_PYTHIA=1 \
-   SETANUBIS_PYTHIA8_DIR=/path/to/pythia8 \
-   SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
-   python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
+   SETANUBIS_BUILD_PYTHIA=1    SETANUBIS_PYTHIA8_DIR=/path/to/pythia8    SETANUBIS_HEPMC3_DIR=/path/to/hepmc3    python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
 
-From a checkout:
+For a local checkout, helper scripts are available to build the external copies
+first:
 
 .. code-block:: bash
 
    ./External_Integration/install.sh HepMC3 Pythia
-   SETANUBIS_BUILD_PYTHIA=1 \
-   SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
-   SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
-   python -m pip install -e ".[pythia]"
+   SETANUBIS_BUILD_PYTHIA=1    SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315    SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install    python -m pip install -e ".[pythia]"
    setanubis-pythia-check
 
-Assets and private UFOs
------------------------
+See ``PYTHIA_PACKAGING.md`` for the release policy and supported build modes.
 
-The wheel ships lightweight assets and example UFOs.  For private models or
-large generated samples, keep them outside the wheel and point SET-ANUBIS to the
-asset directory explicitly:
+Recommended repository checks
+-----------------------------
+
+Before preparing a release or validating a local branch, the core checks are:
 
 .. code-block:: bash
 
-   export SETANUBIS_ASSETS_DIR=/path/to/Assets
+   python -m pytest -q setanubis/tests
+   python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
+   python -m bandit -q -lll -r setanubis/SetAnubis/core       -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
+   setanubis-docs --strict
 
-Then use:
+Asset helper functions
+----------------------
+
+The public helper functions ``asset_path()`` and ``ufo_path()`` resolve bundled
+resources:
 
 .. code-block:: python
 
    from setanubis import asset_path, ufo_path
 
-   hnl_ufo = ufo_path("UFO_HNL")
-   particles = asset_path("particles", "particleData.json")
-
-Reproducibility examples
-------------------------
-
-The source release contains the CPC-oriented validation examples described in
-:doc:`Reproducibility`. They run after a normal editable installation and do not
-start external generators.
+   print(asset_path("Pythia/TestFiles/production_eq.py"))
+   print(ufo_path("UFO_HNL"))

@@ -349,10 +349,11 @@ def build_events_table(df: pd.DataFrame) -> pd.DataFrame:
 
 
 app = Dash(__name__, suppress_callback_exceptions=True)
+app.title = "SET-ANUBIS HepMC explorer"
 server = app.server
 
 
-def controls_sidebar() -> html.Div:
+def controls_sidebar(logo_src: str) -> html.Div:
     def range_row(lbl: str, lo_id: str, hi_id: str):
         return html.Div(
             className="row-3",
@@ -366,7 +367,14 @@ def controls_sidebar() -> html.Div:
     return html.Div(
         className="grid",
         children=[
-            html.Div(className="brand", children=[html.H1("ATLAS BSM explorer"), html.Div("Dash", className="badge")]),
+            html.Div(className="brand", children=[
+                html.Img(src=logo_src, alt="SET-ANUBIS logo", className="brand-logo"),
+                html.Div(className="brand-copy", children=[
+                    html.H1("SET-ANUBIS HepMC explorer"),
+                    html.Div("Inspect LLP decays in the ATLAS cavern and ANUBIS geometry.", className="brand-subtitle"),
+                ]),
+                html.Div("Dash", className="badge"),
+            ]),
 
             html.Div(
                 className="card",
@@ -684,7 +692,7 @@ app.layout = html.Div(
         dcc.Store(id="cfg-store"),
         dcc.Store(id="tracks-store"),
 
-        html.Div(className="sidebar", children=[controls_sidebar()]),
+        html.Div(className="sidebar", children=[controls_sidebar(app.get_asset_url("set-anubis-logo.png"))]),
 
         html.Div(
             className="content",

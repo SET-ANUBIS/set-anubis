@@ -49,17 +49,40 @@ a { color: var(--accent); }
   overflow-y: auto;
 }
 
+
 .brand{
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 10px;
+}
+
+.brand-logo{
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.96);
+  padding: 6px;
+  box-shadow: var(--shadow);
+}
+
+.brand-copy{
+  min-width: 0;
 }
 
 .brand h1{
   font-size: 18px;
   margin: 0;
   letter-spacing: 0.2px;
+}
+
+.brand-subtitle{
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+  margin-top: 4px;
 }
 
 .badge{
