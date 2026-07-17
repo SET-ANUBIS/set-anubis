@@ -1,3 +1,4 @@
+include .zenodo.json
 include LICENSE
 include README.md
 include INSTALL.md

@@ -14,7 +14,9 @@
 [![Python](https://img.shields.io/pypi/pyversions/SetAnubis.svg)](https://pypi.org/project/SetAnubis/)
 [![GitHub Release](https://img.shields.io/github/v/release/SET-ANUBIS/set-anubis?sort=semver)](https://github.com/SET-ANUBIS/set-anubis/releases)
 [![License: GPL v3+](https://img.shields.io/badge/License-GPL%20v3%2B-blue.svg)](LICENSE)
+[![Paper](https://img.shields.io/badge/arXiv-2606.26862-b31b1b.svg)](https://arxiv.org/abs/2606.26862)
 [![Citation](https://img.shields.io/badge/citation-CITATION.cff-b31b1b.svg)](CITATION.cff)
+[![Zenodo](https://img.shields.io/badge/Zenodo-DOI%20after%20v1.0.0-1682D4?logo=zenodo)](#citation-and-archival)
 
 **SET-ANUBIS** is a modular framework for studying the sensitivity of the proposed **ANUBIS** detector to scenarios containing long-lived particles (LLPs). It provides a common analysis chain from the definition of a beyond-the-Standard-Model (BSM) spectrum to the calculation of decay properties, event generation, event ingestion, detector-geometry acceptance and truth-level event selection.
 
@@ -25,8 +27,10 @@ The framework was developed to reduce the model-specific code normally required 
 ANUBIS is a proposed transverse LLP detector at LHC Point 1. The detector concept uses resistive-plate-chamber tracking stations in the ATLAS cavern and service-shaft infrastructure. It is intended to provide sensitivity to neutral LLPs that escape the main ATLAS detector before decaying into charged final states in the surrounding cavern volume.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/SET-ANUBIS/set-anubis/main/Docs/assets/anubis-detector-concept.jpeg" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
+  <img src="https://raw.githubusercontent.com/SET-ANUBIS/set-anubis/main/Docs/assets/anubis-ceiling-concept.png" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
 </p>
+
+<p align="center"><em>ANUBIS ceiling-detector concept and LHC Point-1 geometry, reproduced from the ANUBIS proposal (arXiv:1909.13022) under CC BY-NC-ND 4.0. The PDF page was converted to PNG without altering its content.</em></p>
 
 SET-ANUBIS addresses three connected parts of an ANUBIS sensitivity study:
 
@@ -280,9 +284,13 @@ The release gate includes the Python 3.10–3.13 test matrix, public-API contrac
 
 Maintainer-side GitHub environment, branch-protection and Trusted Publisher settings are documented in [`GITHUB_RELEASE_SETUP.md`](GITHUB_RELEASE_SETUP.md).
 
-## Citation
+## Citation and archival
 
-Citation metadata is provided in [`CITATION.cff`](CITATION.cff). The final CPC article reference should replace the temporary pre-publication reference when the article identifier becomes available. Please also cite the ANUBIS detector papers relevant to the analysis being performed.
+Citation metadata for the software is provided in [`CITATION.cff`](CITATION.cff). The current entry retains the temporary pre-publication reference used during preparation of the SET-ANUBIS software article; it should be replaced by the final *Computer Physics Communications* DOI when that record is available.
+
+The ANUBIS HNL sensitivity study obtained with SET-ANUBIS is available as [*Projected sensitivity of the ANUBIS detector to heavy neutral leptons*](https://arxiv.org/abs/2606.26862). Users should cite the software record and the physics article(s) relevant to the analysis being reproduced.
+
+The repository also contains [`.zenodo.json`](.zenodo.json) metadata for release archiving. Because Zenodo gives this file precedence over `CITATION.cff`, the two records must be kept consistent. After the GitHub-Zenodo integration is enabled, the `v1.0.0` GitHub release can be deposited on Zenodo and assigned an immutable DOI. Once the first deposit exists, replace the temporary Zenodo badge above with the DOI badge supplied by Zenodo and add the concept DOI to `CITATION.cff`. No placeholder DOI should be published.
 
 ## License
 

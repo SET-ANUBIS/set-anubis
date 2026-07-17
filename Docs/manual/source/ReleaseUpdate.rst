@@ -51,6 +51,21 @@ The ``pypi`` GitHub environment should require a maintainer approval and allow
 only tags matching ``v*``. The ``testpypi`` environment can be less restrictive,
 but it should still limit deployment to the release workflow.
 
+Zenodo archival
+----------------
+
+Enable the repository in Zenodo before the final public tag if a DOI should be
+created automatically. The repository contains ``.zenodo.json`` metadata for the
+software title, creators, licence and scientific keywords. After GitHub creates
+the ``v1.0.0`` release, verify the Zenodo deposit and then:
+
+* add the immutable version DOI and the concept DOI to the README;
+* add the preferred software DOI to ``CITATION.cff``;
+* verify the Git tag and GitHub release assets against the checksums produced by the release workflow;
+* record the DOI in the CPC manuscript when the software record is cited.
+
+Do not add a fabricated or placeholder DOI before Zenodo has created the record.
+
 Final promotion sequence
 ------------------------
 

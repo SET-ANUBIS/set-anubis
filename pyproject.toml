@@ -47,11 +47,12 @@ selection = ["pyhepmc", "fastjet", "awkward"]
 madgraph = ["docker"]
 app = ["dash", "plotly", "requests", "python-dotenv", "python-multipart"]
 docs = ["sphinx", "sphinx_rtd_theme"]
-dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit"]
+dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit", "tomli>=2; python_version < '3.11'"]
 all = [
   "pybind11>=2.12", "pyhepmc", "fastjet", "awkward", "docker",
   "dash", "plotly", "requests", "python-dotenv", "python-multipart",
   "sphinx", "sphinx_rtd_theme", "pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit",
+  "tomli>=2; python_version < '3.11'",
 ]
 
 [project.urls]
@@ -59,6 +60,8 @@ Homepage = "https://github.com/SET-ANUBIS/set-anubis"
 Repository = "https://github.com/SET-ANUBIS/set-anubis"
 Documentation = "https://set-anubis.github.io/set-anubis/"
 Issues = "https://github.com/SET-ANUBIS/set-anubis/issues"
+Paper = "https://arxiv.org/abs/2606.26862"
+Citation = "https://github.com/SET-ANUBIS/set-anubis/blob/main/CITATION.cff"
 
 [project.scripts]
 setanubis-pythia-check = "SetAnubis.core.Pythia.tools.check_install:main"

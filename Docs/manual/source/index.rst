@@ -1,12 +1,6 @@
 SET-ANUBIS documentation
 ========================
 
-.. raw:: html
-
-   <div class="setanubis-hero">
-     <img src="images/set-anubis-logo.png" alt="SET-ANUBIS logo">
-   </div>
-
 SET-ANUBIS (*Simulation, accEptance and sensiTivity studies framework for
 ANUBIS*) is a modular framework for evaluating the sensitivity of the proposed
 ANUBIS detector to long-lived-particle (LLP) scenarios. It connects the model,
@@ -37,10 +31,14 @@ service-shaft infrastructure. This provides sensitivity to neutral LLPs that
 leave the main ATLAS detector before decaying into charged final states in the
 surrounding cavern volume.
 
-.. image:: images/anubis-detector-concept.jpeg
-   :width: 72%
+.. figure:: images/anubis-ceiling-concept.png
+   :width: 86%
    :align: center
    :alt: ANUBIS detector concept in the ATLAS cavern
+
+   ANUBIS ceiling-detector concept and LHC Point-1 geometry, reproduced from
+   the ANUBIS proposal (arXiv:1909.13022) under CC BY-NC-ND 4.0. The PDF page
+   was converted to PNG without altering its content.
 
 The purpose of SET-ANUBIS is to express this detector concept as a reproducible
 analysis pipeline. Model parameters, generator cards, event samples, geometry
@@ -110,13 +108,18 @@ explorer displays LLP decays and tracks in the cavern geometry, while the
 database dashboard audits stored runs, content-addressed artefacts and compact
 selection bundles.
 
-Citation and licence
---------------------
+Citation, archival and licence
+-------------------------------
 
 Citation metadata is provided in the repository ``CITATION.cff`` file. The
-final CPC article identifier should replace the temporary pre-publication
-reference when it becomes available. SET-ANUBIS is distributed under
-GPL-3.0-or-later.
+temporary software-article reference should be replaced by the final CPC DOI
+when that record becomes public. The HNL sensitivity study obtained with
+SET-ANUBIS is available at https://arxiv.org/abs/2606.26862.
+
+The repository includes ``.zenodo.json`` metadata for archiving tagged releases.
+After the GitHub-Zenodo integration has created the first deposit, the Zenodo
+concept DOI should be added to both the README and ``CITATION.cff``. SET-ANUBIS
+is distributed under GPL-3.0-or-later.
 
 Indices and tables
 ------------------

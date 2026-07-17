@@ -1,0 +1,43 @@
+{
+  "title": "SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies",
+  "description": "SET-ANUBIS is a modular Python/C++ framework for long-lived-particle sensitivity studies in the proposed ANUBIS detector. It connects UFO model handling, decay-property calculations, event-generation inputs, HepMC ingestion, ATLAS-cavern/ANUBIS geometry, truth-level selection and reproducible provenance.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "GPL-3.0-or-later",
+  "creators": [
+    {
+      "name": "Erner, Sofie"
+    },
+    {
+      "name": "Mullin, Anna"
+    },
+    {
+      "name": "Reymermier, Théo"
+    },
+    {
+      "name": "Satterthwaite, Toby"
+    },
+    {
+      "name": "Swallow, Paul"
+    }
+  ],
+  "keywords": [
+    "ANUBIS",
+    "long-lived particles",
+    "LLP",
+    "ATLAS",
+    "LHC",
+    "MadGraph",
+    "Pythia",
+    "HepMC",
+    "scientific software"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://arxiv.org/abs/2606.26862",
+      "relation": "isReferencedBy",
+      "resource_type": "publication-article"
+    }
+  ],
+  "version": "1.0.0"
+}

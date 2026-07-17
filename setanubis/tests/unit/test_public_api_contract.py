@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import inspect
 import io
 import tokenize
@@ -336,7 +337,10 @@ def test_release_python_files_parse_with_supported_minimum_version():
 
 def test_release_metadata_and_branding_assets_are_consistent():
     """Keep licence metadata and release-facing branding in sync."""
-    import tomllib
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
 
     root = Path(__file__).parents[3]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[
@@ -352,10 +356,12 @@ def test_release_metadata_and_branding_assets_are_consistent():
 
     required_assets = [
         root / "Docs/assets/set-anubis-logo.png",
-        root / "Docs/assets/anubis-detector-concept.jpeg",
+        root / "Docs/assets/anubis-ceiling-concept.png",
         root / "Docs/manual/source/ProgramOverview.rst",
         root / "Docs/manual/source/_static/set-anubis-logo.png",
         root / "Docs/manual/source/images/set-anubis-logo.png",
+        root / "Docs/manual/source/images/anubis-ceiling-concept.png",
+        root / ".zenodo.json",
         root / "setanubis/SetAnubis/HepMCGUI/assets/set-anubis-logo.png",
         root
         / "setanubis/SetAnubis/SetAnubisDBDashboard/SetAnubisDBDashboard/assets"
@@ -363,6 +369,25 @@ def test_release_metadata_and_branding_assets_are_consistent():
     ]
     missing = [path.relative_to(root) for path in required_assets if not path.is_file()]
     assert not missing, f"Missing release branding assets: {missing}"
+
+    dev_dependencies = project["optional-dependencies"]["dev"]
+    assert any(dependency.startswith("tomli") for dependency in dev_dependencies)
+
+    zenodo = json.loads((root / ".zenodo.json").read_text(encoding="utf-8"))
+    assert zenodo["license"] == "GPL-3.0-or-later"
+    assert zenodo["upload_type"] == "software"
+    assert zenodo["version"] == project["version"]
+    assert any(
+        item["identifier"] == "https://arxiv.org/abs/2606.26862"
+        for item in zenodo["related_identifiers"]
+    )
+
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    assert "https://arxiv.org/abs/2606.26862" in readme
+    assert "`.zenodo.json`" in readme
+    assets_notice = (root / "Docs/assets/README.md").read_text(encoding="utf-8")
+    assert "CC BY-NC-ND 4.0" in assets_notice
+    assert "without cropping" in assets_notice
 
 
 def test_final_release_workflow_requires_a_matching_tag():
@@ -373,3 +398,10 @@ def test_final_release_workflow_requires_a_matching_tag():
     assert "testpypi-and-pypi" in workflow
     assert "environment: testpypi" in workflow
     assert "environment: pypi" in workflow
+
+    workflow_dir = root / ".github/workflows"
+    workflow_text = "\n".join(
+        path.read_text(encoding="utf-8") for path in workflow_dir.glob("*.yml")
+    )
+    assert "actions/checkout@v7" not in workflow_text
+    assert "actions/checkout@v6" in workflow_text
