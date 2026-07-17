@@ -201,8 +201,8 @@ The nominal selection follows the physics ordering described in the paper:
 
 ```python
 from setanubis import (
-    ATLASCavern,
-    GeometrySelectionAdapter,
+    ATLASCavernGeometry,
+    ATLASCavernGeometryConfig,
     SelectionGeometryAdapter,
     SelectionConfig,
     RunConfig,
@@ -213,8 +213,10 @@ from setanubis import (
     EventsBundleSource,
 )
 
-cavern = ATLASCavern()
-geometry = SelectionGeometryAdapter(GeometrySelectionAdapter(cavern))
+geometry_backend = ATLASCavernGeometry.create(
+    ATLASCavernGeometryConfig(mode="ceiling", origin="IP", use_cache=False)
+)
+geometry = SelectionGeometryAdapter(geometry_backend)
 
 selection = SelectionConfig(
     geometry=geometry,

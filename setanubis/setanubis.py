@@ -3,7 +3,7 @@
 Examples
 --------
 >>> from setanubis import SetAnubisInterface, PythiaRunInterface, asset_path
->>> from SetAnubis import SelectionConfig, ATLASCavern
+>>> from SetAnubis import SelectionConfig, ATLASCavernGeometry
 
 Objects are imported lazily so optional integrations such as Pythia/HepMC3 do
 not break a Python-only installation.

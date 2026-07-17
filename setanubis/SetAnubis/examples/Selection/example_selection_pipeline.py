@@ -1,70 +1,90 @@
-"""Run the configurable selection pipeline on a prepared event bundle."""
+"""Run the current selection pipeline on a small packaged HNL sample."""
 
-from SetAnubis.core.Selection.domain.SelectionPipeline import SelectionPipelineBuilder, FileCache, IDataSource
-from SetAnubis.core.Selection.domain.SelectionManager import SelectionManager, DatasetSpec
-from SetAnubis.core.Selection.domain.DatasetSource import EventsBundleSource, SourceConfig
+from importlib.resources import as_file, files
 
-from SetAnubis.core.Selection.domain.SelectionEngine import (
-    SelectionEngine, SelectionConfig, RunConfig, MinThresholds, MinDR
-)
-from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import SelectionGeometryAdapter
-from SetAnubis.core.Geometry.adapters.selection_adapter import GeometrySelectionAdapter
-from SetAnubis.core.Geometry.domain.defineGeometry import ATLASCavern
-
-
-from dataclasses import dataclass
 import pandas as pd
 
-@dataclass
-class CSVDataSource(IDataSource):
-    path: str
-    name: str = "csv"
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import ATLASCavernGeometry
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometryConfig import (
+    ATLASCavernGeometryConfig,
+)
+from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import (
+    SelectionGeometryAdapter,
+)
+from SetAnubis.core.Selection.domain.DatasetSource import EventsBundleSource
+from SetAnubis.core.Selection.domain.SelectionEngine import (
+    MinDR,
+    MinThresholds,
+    RunConfig,
+    SelectionConfig,
+)
+from SetAnubis.core.Selection.domain.SelectionManager import SelectionManager
+from SetAnubis.core.Selection.domain.SelectionPipeline import SelectionPipelineBuilder
 
-    def load_df(self) -> pd.DataFrame:
-        return pd.read_csv(self.path)
 
-    def dataset_id(self) -> str:
-        return self.name
+def build_selection_geometry() -> SelectionGeometryAdapter:
+    """Build the geometry backend required by the current selection engine."""
+    geometry = ATLASCavernGeometry.create(
+        ATLASCavernGeometryConfig(
+            mode="ceiling",
+            origin="IP",
+            rpc_eff=1.0,
+            n_rpcs_per_layer=1,
+            use_cache=False,
+        )
+    )
+    return SelectionGeometryAdapter(geometry)
+
+
+def load_example_events(max_events: int = 5) -> pd.DataFrame:
+    """Load a few events from the CSV shipped with the Python package."""
+    resource = files("SetAnubis.examples.Selection").joinpath("InputFiles/hnl_df.csv")
+    with as_file(resource) as csv_path:
+        dataframe = pd.read_csv(csv_path)
+
+    # Restrict the demonstration to a handful of complete events so it runs
+    # quickly while still exercising bundle construction, jets and isolation.
+    event_ids = dataframe["eventNumber"].drop_duplicates().head(max_events)
+    return dataframe[dataframe["eventNumber"].isin(event_ids)].copy()
+
+
+def main() -> None:
+    """Execute the example and print the resulting cut flow."""
+    selection = SelectionConfig(
+        geometry=build_selection_geometry(),
+        minMET=30.0,
+        minP=MinThresholds(
+            LLP=0.1, chargedTrack=0.1, neutralTrack=0.1, jet=0.1
+        ),
+        minPt=MinThresholds(
+            LLP=0.0, chargedTrack=5.0, neutralTrack=5.0, jet=15.0
+        ),
+        minDR=MinDR(jet=0.4, chargedTrack=0.4, neutralTrack=0.4),
+        nStations=2,
+        nIntersections=2,
+        nTracks=1,
+    )
+
+    pipeline = (
+        SelectionPipelineBuilder()
+        .set_options(
+            add_jets=True,
+            compute_isolation=True,
+            selection_mode="standard",
+        )
+        .build()
+    )
+    source = EventsBundleSource.from_events_dataframe(load_example_events())
+    combined = SelectionManager(pipeline).run_many(
+        named_sources=[("packaged_hnl_sample", source)],
+        sel_cfg=selection,
+        run_cfg=RunConfig(reweightLifetime=False, plotTrajectory=False),
+    )
+
+    for sample in combined.per_sample:
+        print(f"[{sample.name}] cutFlow: {sample.cutFlow}")
+    print(f"Combined cut flow: {combined.cutflow_sum}")
 
 
 if __name__ == "__main__":
-
-    cav = ATLASCavern()
-    geom_adapter = GeometrySelectionAdapter(cav)
-    sel_geo = SelectionGeometryAdapter(geom_adapter)
-
-    sel_cfg = SelectionConfig(
-        geometry=sel_geo,
-        minMET=30.0,
-        minP=MinThresholds(LLP=0.1, chargedTrack=0.1, neutralTrack=0.1, jet=0.1),
-        minPt=MinThresholds(LLP=0.0, chargedTrack=5.0, neutralTrack=5.0, jet=15.0),
-        minDR=MinDR(jet=0.4, chargedTrack=0.4, neutralTrack=0.4),
-        nStations=2, nIntersections=2, nTracks=1,
-    )
-
-    run_cfg = RunConfig(reweightLifetime=False, plotTrajectory=False)
-
-    builder = (
-        SelectionPipelineBuilder()
-        .set_options(add_jets=True, compute_isolation=True, selection_mode="standard")
-        # .set_reweighter(lifetime_s=1.0e-10, llp_pid=9900012, seed=42)
-        # .add_pre_df_transform(lambda df: df)
-        # .add_post_bundle_transform(lambda b: b)
-    )
-    pipeline = builder.build()
-
-
-    src_bundle = EventsBundleSource.from_bundle_file("/home/theo/set-anubis/setanubis/SetAnubis/examples/Selection/InputFiles/samples_dfs_hnl_with_jet_deltaR.pkl.gz")
-
-    mgr = SelectionManager(pipeline)
-    combined = mgr.run_many(
-        named_sources=[("source_example", src_bundle)],
-        sel_cfg=sel_cfg,
-        run_cfg=run_cfg,
-    )
-
-    for s in combined.per_sample:
-        print(f"[{s.name}] cutFlow:", s.cutFlow)
-    print("SUM:", combined.cutflow_sum)
-
-    final_df = combined.per_sample[0].finalDF
+    main()

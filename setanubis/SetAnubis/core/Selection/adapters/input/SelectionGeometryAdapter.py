@@ -1,275 +1,324 @@
-from SetAnubis.core.Selection.ports.input.ISelectionGeometry import ISelectionGeometry
-from typing import Any, Dict, Iterable, List, Optional, Protocol, Tuple, Callable
-import pandas as pd
-import math
-import numpy as np
+from __future__ import annotations
+
 import ast
+import math
+from typing import Any
+
+import numpy as np
+import pandas as pd
+from collections import defaultdict
+
+from SetAnubis.core.Selection.ports.input.ISelectionGeometry import ISelectionGeometry
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import (
+    ICavernGeometry,
+    GeometryFrame,
+    GeometryIntersections,
+    GeometryRegion,
+)
+
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class _DecayTrackSegment:
+    llp_index: int
+    child_index: Any
+    parent_ref: int | None
+    start_m: tuple[float, float, float]
+    stop_m: tuple[float, float, float] | None
+    theta: float
+    phi: float
+    charge: float | None
+    pdg_id: int | None
+    points: list[tuple[float, float, float]]
+    station_indices: list[int]
+
+    @property
+    def station_score(self) -> int:
+        if self.station_indices:
+            return len(set(int(s) for s in self.station_indices))
+        return len(self.points)
 
 
-def _as_xyz(vertex: Any) -> Tuple[float, float, float]:
+@dataclass(frozen=True)
+class _DecayTrackCandidate:
+    llp_index: int
+    segment_indices: tuple[Any, ...]
+    points: list[tuple[float, float, float]]
+    station_indices: list[int]
+
+    @property
+    def station_score(self) -> int:
+        if self.station_indices:
+            return len(set(int(s) for s in self.station_indices))
+        return len(self.points)
+
+def _as_xyz(vertex: Any) -> tuple[float, float, float]:
     """
-    Normalize 'vertex' to a 3-tuple (x, y, z) of floats.
-    Accepts:
-      - tuple/list/np.array length >= 3
-      - pandas Series with indices [0,1,2] or ['x','y','z']
-      - dict with keys 0/1/2 or 'x','y','z'
-      - string like '(x, y, z)' or '(x, y, z, t)' -> parsed via ast.literal_eval
-    Raises ValueError if cannot parse.
+    Normalize a vertex-like object to (x, y, z).
+    Accepted:
+      - tuple/list/np.ndarray
+      - pandas Series with x,y,z or 0,1,2
+      - dict with x,y,z or 0,1,2
+      - string representation like '(x, y, z)' or '[x, y, z, t]'
     """
-    v = vertex
+    value = vertex
 
-    # Strings like "(1.0, 2.0, 3.0)" or "[1,2,3,4]"
-    if isinstance(v, str):
-        v = ast.literal_eval(v)
+    if isinstance(value, str):
+        value = ast.literal_eval(value)
 
-    # pandas Series
-    if isinstance(v, pd.Series):
-        if set(['x','y','z']).issubset(v.index):
-            return (float(v['x']), float(v['y']), float(v['z']))
-        if set([0,1,2]).issubset(v.index):
-            return (float(v[0]), float(v[1]), float(v[2]))
-        v = v.to_list()
+    if isinstance(value, pd.Series):
+        if {"x", "y", "z"}.issubset(value.index):
+            return float(value["x"]), float(value["y"]), float(value["z"])
+        if {0, 1, 2}.issubset(value.index):
+            return float(value[0]), float(value[1]), float(value[2])
+        value = value.to_list()
 
-    # dict-like
-    if isinstance(v, dict):
-        if all(k in v for k in ('x','y','z')):
-            return (float(v['x']), float(v['y']), float(v['z']))
-        if all(k in v for k in (0,1,2)):
-            return (float(v[0]), float(v[1]), float(v[2]))
-        # fallthrough to try sequence
+    if isinstance(value, dict):
+        if all(k in value for k in ("x", "y", "z")):
+            return float(value["x"]), float(value["y"]), float(value["z"])
+        if all(k in value for k in (0, 1, 2)):
+            return float(value[0]), float(value[1]), float(value[2])
 
-    # sequence / np array
-    if isinstance(v, (list, tuple, np.ndarray)):
-        if len(v) < 3:
+    if isinstance(value, (list, tuple, np.ndarray)):
+        if len(value) < 3:
             raise ValueError("vertex sequence has less than 3 elements")
-        return (float(v[0]), float(v[1]), float(v[2]))
+        return float(value[0]), float(value[1]), float(value[2])
 
     raise ValueError(f"Unsupported vertex type: {type(vertex)}")
 
-def _get_intersect_fn(geom_proxy) :
+
+def _mm_to_m_xyz(vertex_mm: Any) -> tuple[float, float, float]:
+    x_mm, y_mm, z_mm = _as_xyz(vertex_mm)
+    return x_mm * 1.0e-3, y_mm * 1.0e-3, z_mm * 1.0e-3
+
+
+def _eta_phi_from_row(row: pd.Series) -> tuple[float, float]:
     """
-    Get the function intersect_stations_simple(θ, φ, (x,y,z), extrema=None)
-    from geom_proxy.
+    Prefer eta/phi if present, otherwise derive them from px/py/pz.
     """
-    fn = getattr(geom_proxy, "intersect_stations_simple", None)
-    if fn is None and hasattr(geom_proxy, "geometry"):
-        fn = getattr(geom_proxy.geometry, "intersect_stations_simple", None)
-    if fn is None:
-        raise AttributeError("No intersect_stations_simple on geometry adapter")
-    return fn
-    
+    if ("eta" in row.index) and ("phi" in row.index):
+        return float(row["eta"]), float(row["phi"])
+
+    if all(k in row.index for k in ("px", "py", "pz")):
+        px = float(row["px"])
+        py = float(row["py"])
+        pz = float(row["pz"])
+
+        p = math.sqrt(px * px + py * py + pz * pz)
+        if p <= 0.0:
+            raise ValueError("Cannot derive eta/phi from zero momentum")
+
+        num = max(p + pz, 1.0e-300)
+        den = max(p - pz, 1.0e-300)
+        eta = 0.5 * math.log(num / den)
+        phi = math.atan2(py, px)
+        return eta, phi
+
+    raise ValueError("Row does not contain eta/phi nor px/py/pz")
+
+
+def _theta_from_eta(eta: float) -> float:
+    return 2.0 * math.atan(math.exp(-float(eta)))
+
+def _ordered_unique_ints(values: list[int]) -> list[int]:
+    out: list[int] = []
+    seen: set[int] = set()
+    for v in values:
+        iv = int(v)
+        if iv not in seen:
+            seen.add(iv)
+            out.append(iv)
+    return out
+
+def _distance_m(a: tuple[float, float, float], b: tuple[float, float, float]) -> float:
+    return math.sqrt(
+        (float(a[0]) - float(b[0])) ** 2
+        + (float(a[1]) - float(b[1])) ** 2
+        + (float(a[2]) - float(b[2])) ** 2
+    )
+
+
+def _maybe_int_from_row(row: pd.Series, candidates: tuple[str, ...]) -> int | None:
+    for col in candidates:
+        if col in row.index and pd.notna(row[col]):
+            try:
+                return int(row[col])
+            except Exception:
+                pass
+    return None
+
+def _maybe_float_from_row(row: pd.Series, candidates: tuple[str, ...]) -> float | None:
+    for col in candidates:
+        if col in row.index and pd.notna(row[col]):
+            try:
+                return float(row[col])
+            except Exception:
+                pass
+    return None
+
+def _safe_notna_scalar(value: Any) -> bool:
+    """Return a scalar not-na check even for list/array-like values."""
+    try:
+        out = pd.notna(value)
+    except Exception:
+        return False
+
+    if isinstance(out, (bool, np.bool_)):
+        return bool(out)
+
+    try:
+        return bool(np.asarray(out).all())
+    except Exception:
+        return False
+
+
+def _row_is_final_state(row: pd.Series) -> bool:
+    """Final-state particles have no finite endpoint and should be projected onward."""
+    for col, expected in (("nChildren", 0), ("status", 1)):
+        if col not in row.index or pd.isna(row[col]):
+            continue
+        try:
+            if int(row[col]) == expected:
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def _is_missing_decay_vertex_value(value: Any) -> bool:
+    """Recognise the HEPMC convention used in the legacy code for stable particles."""
+    if not _safe_notna_scalar(value):
+        return True
+
+    try:
+        x, y, z = _as_xyz(value)
+    except Exception:
+        return True
+
+    return bool(
+        np.isclose(x, -1.0)
+        and np.isclose(y, -1.0)
+        and np.isclose(z, -1.0)
+    )
+
+
+def _has_finite_decay_vertex(row: pd.Series, decay_vertex_col: str) -> bool:
+    """
+    True only when the track has a real endpoint.
+
+    Final-state particles, or rows carrying the legacy (-1,-1,-1,-1) decay
+    vertex placeholder, should not be bounded by decayVertex.  They are kept as
+    open tracks so they can propagate to the detector while preserving the new
+    bounded-segment logic for genuinely decaying intermediate particles.
+    """
+    if decay_vertex_col not in row.index:
+        return False
+
+    if _row_is_final_state(row):
+        return False
+
+    value = row[decay_vertex_col]
+    if _is_missing_decay_vertex_value(value):
+        return False
+
+    if "decayVertexDist" in row.index and pd.notna(row["decayVertexDist"]):
+        try:
+            if float(row["decayVertexDist"]) <= 0.0:
+                return False
+        except Exception:
+            pass
+
+    return True
+
+
 class SelectionGeometryAdapter(ISelectionGeometry):
     """
-    Proxy on the Selection side to the Geometry.
-    Can have multiple convention (camelCase, snake_case, getters).
+    Concrete Selection-side adapter for ICavernGeometry / ATLASCavernGeometry.
+
+    This class is Selection-specific:
+      - it consumes LLP/children dataframes
+      - it converts vertices from mm to m
+      - it derives theta/phi from eta/phi or px/py/pz
+      - it uses the generic Geometry regions and tracing API
     """
 
-    def __init__(self, geometry_adapter: Any) -> None:
-        self._g = geometry_adapter
+    _VERTEX_LINK_TOLERANCE_M = 1.0e-4  # 0.1 mm
 
-    def _first_attr(self, obj: Any, names: List[str]):
-        for n in names:
-            if hasattr(obj, n):
-                return getattr(obj, n)
-        return None
+    def __init__(
+        self,
+        geometry: ICavernGeometry,
+        *,
+        default_decay_region: GeometryRegion | None = None,
+    ) -> None:
+        if not isinstance(geometry, ICavernGeometry):
+            raise TypeError(
+                "SelectionGeometryAdapter expects an ICavernGeometry-compatible object"
+            )
 
-    def _resolve_attr(self, names: List[str], default: Any = None):
-        """
-        Looks for the attribut on self._g and self._g.geometry. 
-        if callable, we called it.
-        """
-        cand = self._first_attr(self._g, names)
-        if cand is None and hasattr(self._g, "geometry"):
-            cand = self._first_attr(self._g.geometry, names)
-
-        if cand is None:
-            if default is not None:
-                return default
-            wanted = "|".join(names)
-            raise AttributeError(f"Geometry adapter missing attribute: one of [{wanted}]")
-
-        if callable(cand) and any(n.startswith("get_") for n in names):
-            return cand()
-        return cand
-
-    def _resolve_callable(self, names: List[str]) -> Callable:
-        """
-        Return a callable function from self._g or self._g.geometry
-        """
-        cand = self._first_attr(self._g, names)
-        if callable(cand):
-            return cand
-        if hasattr(self._g, "geometry"):
-            cand = self._first_attr(self._g.geometry, names)
-            if callable(cand):
-                return cand
-        wanted = "|".join(names)
-        raise AttributeError(f"Geometry adapter missing callable: one of [{wanted}]")
-
-    @property
-    def geoMode(self) -> str:
-        val = self._resolve_attr(
-            ["geoMode", "geo_mode", "mode", "get_geo_mode"],
-            default=""
+        self._geometry = geometry
+        self._default_decay_region = (
+            default_decay_region if default_decay_region is not None
+            else self._infer_default_decay_region()
         )
-        if callable(val):
-            val = val()
-        return str(val)
 
     @property
-    def RPCMaxRadius(self) -> float:
-        val = self._resolve_attr(
-            ["RPCMaxRadius", "rpc_max_radius", "get_rpc_max_radius"],
-            default=float("inf")
+    def default_decay_region(self) -> GeometryRegion:
+        return self._default_decay_region
+
+    @property
+    def default_fiducial_radius(self) -> float:
+        return float(self._geometry.rpc_max_radius)
+
+    def inside(
+        self,
+        region: GeometryRegion,
+        decay_vertex_mm: Any,
+        *,
+        max_radius: float | None = None,
+        tracking_only: bool = False,
+    ) -> bool:
+        position_m = _mm_to_m_xyz(decay_vertex_mm)
+
+        return bool(
+            self._geometry.inside(
+                region,
+                position_m,
+                frame=GeometryFrame.SOURCE,
+                max_radius=max_radius,
+                tracking_only=bool(tracking_only),
+            )
         )
-        if callable(val):
-            val = val()
-        return float(val)
 
-    def cavernCentreToIP(self, x, y, z):
-        return self._g.cavernCentreToIP(x, y, z)
-
-    def IPTocavernCentre(self, x, y, z):
-        return self._g.IPTocavernCentre(x, y, z)
-
-    def coordsToOrigin(self, x, y, z, origin=[]):
-        return self._g.coordsToOrigin(x, y, z, origin)
-    
-
-    #Old
-    def inCavern(self, x: float, y: float, z: float,
-                  max_radius: Optional[float] = None) -> bool:
-        return self._g.inCavern(x,y,z,max_radius)
-    
-    #Old
-    def inATLAS(self, x: float, y: float, z: float,
-                  max_radius: Optional[float] = None) -> bool:
-        return self._g.inATLAS(x,y,z,max_radius)
-    
-    #Old
-    def intersectANUBISstationsSimple(self, theta, phi, d, position, extremaPosition, verbose):
-        return self._g.intersectANUBISstationsSimple(theta,phi,d, position, extremaPosition, verbose)
-
-    def reverseCoordsToOrigin(self, x, y, z, origin=[]):
-        return self._g.reverseCoordsToOrigin(x,y,z,origin)
-    
-    @property
-    def ANUBIS_RPCs(self) -> str:
-        return self._g.ANUBIS_RPCs
-    
-    def in_cavern(self, decay_vertex_mm, rpc_max_radius):
-        try:
-            # mm → m
-            x_m, y_m, z_m = self._mm_to_m_xyz(decay_vertex_mm)
-            # shift legacy: coordsToOrigin(...)
-            X, Y, Z = self._coords_to_origin_if_possible(x_m, y_m, z_m)
-
-            fn = getattr(self._g, "inCavern", None)
-            if fn is None and hasattr(self._g, "geometry"):
-                fn = getattr(self._g.geometry, "inCavern", None)
-            if fn is None and hasattr(self._g, "geometry") and hasattr(self._g.geometry, "cavern"):
-                fn = getattr(self._g.geometry.cavern, "inCavern", None)
-
-            if fn is None:
-                fn = getattr(self._g, "in_cavern", None)
-                if fn is None and hasattr(self._g, "geometry"):
-                    fn = getattr(self._g.geometry, "in_cavern", None)
-            if fn is None:
-                raise AttributeError("No cavern check available on geometry adapter")
-
-            mr = "" if (rpc_max_radius is None or math.isinf(rpc_max_radius)) else float(rpc_max_radius)
-            try:
-                return bool(fn(X, Y, Z, maxRadius=mr))
-            except TypeError:
-                try:
-                    return bool(fn(X, Y, Z, mr))
-                except TypeError:
-                    return bool(fn(X, Y, Z, max_radius=(None if mr=="" else mr)))
-        except Exception:
-            return False
-
-
-    def in_shaft(self, decay_vertex_mm, rpc_max_radius):
-        try:
-            x_m, y_m, z_m = self._mm_to_m_xyz(decay_vertex_mm)
-            X, Y, Z = self._coords_to_origin_if_possible(x_m, y_m, z_m)
-
-            fn = getattr(self._g, "inShaft", None)
-            if fn is None and hasattr(self._g, "geometry"):
-                fn = getattr(self._g.geometry, "inShaft", None)
-            if fn is None and hasattr(self._g, "geometry") and hasattr(self._g.geometry, "cavern"):
-                fn = getattr(self._g.geometry.cavern, "inShaft", None)
-
-            if fn is not None:
-                includeCone = False
-                geoMode = ""
-                if hasattr(self._g, "geoMode"): geoMode = getattr(self._g, "geoMode")
-                elif hasattr(self._g, "geometry") and hasattr(self._g.geometry, "geoMode"):
-                    geoMode = getattr(self._g.geometry, "geoMode")
-                includeCone = "cone" in str(geoMode).lower()
-                try:
-                    return bool(fn(X, Y, Z, includeCavernCone=includeCone))
-                except TypeError:
-                    return bool(fn(X, Y, Z))
-
-            fn = getattr(self._g, "in_shaft", None)
-            if fn is None and hasattr(self._g, "geometry"):
-                fn = getattr(self._g.geometry, "in_shaft", None)
-            if fn is None:
-                raise AttributeError("No shaft check available on geometry adapter")
-            try:
-                return bool(fn(X, Y, Z, shafts=("PX14", "PX16"), include_cavern_cone=True))
-            except TypeError:
-                return bool(fn(X, Y, Z))
-        except Exception:
-            return False
-
-
-    def in_atlas(self, decay_vertex_mm, strict):
-        try:
-            x_m, y_m, z_m = self._mm_to_m_xyz(decay_vertex_mm)
-            X, Y, Z = self._coords_to_origin_if_possible(x_m, y_m, z_m)
-
-            fn = getattr(self._g, "inATLAS", None)
-            if fn is None and hasattr(self._g, "geometry"):
-                fn = getattr(self._g.geometry, "inATLAS", None)
-            if fn is None and hasattr(self._g, "geometry") and hasattr(self._g.geometry, "cavern"):
-                fn = getattr(self._g.geometry.cavern, "inATLAS", None)
-
-            if fn is not None:
-                try:
-                    return bool(fn(X, Y, Z, bool(strict)))
-                except TypeError:
-                    return bool(fn(X, Y, Z, trackingOnly=bool(strict)))
-
-            fn = getattr(self._g, "in_atlas", None)
-            if fn is None and hasattr(self._g, "geometry"):
-                fn = getattr(self._g.geometry, "in_atlas", None)
-            if fn is None:
-                raise AttributeError("No ATLAS check available on geometry adapter")
-            try:
-                return bool(fn(X, Y, Z, tracking_only=bool(strict)))
-            except TypeError:
-                return bool(fn(X, Y, Z, bool(strict)))
-        except Exception:
-            return False
-
-    def llp_intersections(
+    def intersections(
         self,
         row: pd.Series,
         decay_vertex_col: str,
         min_p_llp: float,
         plot_trajectory: bool = False,
-    ):
-        fn = self._resolve_callable([
-            "compute_llp_intersections",
-            "checkIntersectionsWithANUBIS",
-            "check_intersections_with_anubis"
-        ])
-        # (row, decay_vertex_col, min_p_llp, plot_trajectory)
-        return fn(row, decay_vertex_col, min_p_llp, plot_trajectory)
+    ) -> GeometryIntersections:
+        if decay_vertex_col not in row.index:
+            return GeometryIntersections(points=[], station_indices=[])
 
-    def decay_hits(
+        if ("p" in row.index) and pd.notna(row["p"]) and (float(row["p"]) < float(min_p_llp)):
+            return GeometryIntersections(points=[], station_indices=[])
+
+        try:
+            eta, phi = _eta_phi_from_row(row)
+        except Exception:
+            return GeometryIntersections(points=[], station_indices=[])
+
+        theta = _theta_from_eta(eta)
+        position_m = _mm_to_m_xyz(row[decay_vertex_col])
+
+        return self._geometry.trace(
+            theta,
+            phi,
+            position_m,
+            extrema_position=None,
+            frame=GeometryFrame.SOURCE,
+        )
+
+    def filter_decay_hits_old(
         self,
         llps_df: pd.DataFrame,
         children_df: pd.DataFrame,
@@ -277,115 +326,380 @@ class SelectionGeometryAdapter(ISelectionGeometry):
         nTracks: int,
         requireCharge: bool,
         prodVertex: str,
-        decayVertex: str,  # Non use here
+        decayVertex: str,
     ) -> pd.DataFrame:
         """
-        - Begining position for start (vertex of children production)
-        - conversion mm -> m then cavernCentreToIP
-        - direction (theta, phi) from (eta, phi) or (px,py,pz)
-        - If a children is validated if  >= nIntersections *intersections*
-        - Keep LLP with >= nTracks valid childrens
+        Keep LLPs that have at least `nTracks` decay products with
+        at least `nIntersections` geometry intersections.
         """
         if llps_df.empty or children_df.empty:
             return llps_df.iloc[0:0]
 
-        ch = children_df
-        if requireCharge and "charge" in ch.columns:
-            # legacy from paul, -0.555 excluded
-            ch = ch[(ch["charge"] != 0) & (ch["charge"] != None)]
+        ch = children_df.copy()
+
+        if requireCharge and ("charge" in ch.columns):
+            charge = pd.to_numeric(ch["charge"], errors="coerce")
+            ch = ch[charge.notna() & (charge != 0)]
+
         if ch.empty:
             return llps_df.iloc[0:0]
 
-        intersect_fn = _get_intersect_fn(self._g)
-
-        has_eta_phi = ("eta" in ch.columns) and ("phi" in ch.columns)
-        has_pxyz    = all(c in ch.columns for c in ("px", "py", "pz"))
-
         valid_tracks_by_llp: dict[int, int] = {}
+        has_decay_vertex = decayVertex in ch.columns
 
-        for idx, row in ch.iterrows():
-            # parent LLP
-            if "LLPindex" not in row:
+        for _, row in ch.iterrows():
+            if "LLPindex" not in row.index or pd.isna(row["LLPindex"]):
                 continue
+
             parent_idx = int(row["LLPindex"])
 
-            #beggining position
-            pv = row.get(prodVertex, None)
-            if pv is None:
+            if prodVertex not in row.index or pd.isna(row[prodVertex]):
                 continue
 
-            # mm -> m, then cavernCentreToIP (like LLPs)
             try:
-                x_m, y_m, z_m = self._mm_to_m_xyz(pv)
-                X, Y, Z = self._coords_to_origin_if_possible(x_m, y_m, z_m)
-                position = (X, Y, Z)
+                start_m = _mm_to_m_xyz(row[prodVertex])
             except Exception:
                 continue
 
-            # direction
-            if has_eta_phi:
+            stop_m = None
+            if has_decay_vertex and _has_finite_decay_vertex(row, decayVertex):
                 try:
-                    eta = float(row["eta"])
-                    phi = float(row["phi"])
+                    stop_m = _mm_to_m_xyz(row[decayVertex])
                 except Exception:
-                    continue
-            elif has_pxyz:
-                try:
-                    px = float(row["px"]); py = float(row["py"]); pz = float(row["pz"])
-                    p  = (px*px + py*py + pz*pz) ** 0.5
-                    # Avoid dividing by zero
-                    num = max(p + pz, 1e-300); den = max(p - pz, 1e-300)
-                    eta = 0.5 * float(np.log(num / den))
-                    phi = float(np.arctan2(py, px))
-                except Exception:
-                    continue
-            else:
-                continue
-            theta = 2.0 * np.arctan(np.exp(-eta))
+                    stop_m = None
 
-            # intersections
             try:
-                res = intersect_fn(theta, phi, position, None)
-            except TypeError:
-                res = intersect_fn(theta, phi, position)
+                eta, phi = _eta_phi_from_row(row)
+            except Exception:
+                continue
 
-            # normalisation
-            points   = getattr(res, "points", None)
-            stations = getattr(res, "station_indices", None)
-            if points is None and stations is None and isinstance(res, tuple):
-                # accept (n, points, stations)
-                try:
-                    _, points, stations = res
-                except Exception:
-                    points, stations = [], []
+            theta = _theta_from_eta(eta)
 
-            if points is None:
-                points = []
-            # --- Legacy Parity: count the number of intersections, no unique station.
-            n_hits = len(points)
+            try:
+                #TODO : paul is this normal ?
+                # result = self._geometry.trace(
+                #     theta,
+                #     phi,
+                #     start_m,
+                #     extrema_position=stop_m,
+                #     frame=GeometryFrame.SOURCE,
+                # )
+                result = self._geometry.trace(
+                    theta,
+                    phi,
+                    start_m,
+                    extrema_position=None,
+                    frame=GeometryFrame.SOURCE,
+                )
+            except Exception:
+                continue
 
-            if n_hits >= int(nIntersections):
+            if len(result.points) >= int(nIntersections):
                 valid_tracks_by_llp[parent_idx] = valid_tracks_by_llp.get(parent_idx, 0) + 1
 
-        # LLPs with >= nTracks  valid children
-        keep = [i for i, c in valid_tracks_by_llp.items() if c >= int(nTracks)]
-        if not keep:
+        keep_llp_indices = [
+            llp_idx
+            for llp_idx, n_valid_tracks in valid_tracks_by_llp.items()
+            if n_valid_tracks >= int(nTracks)
+        ]
+
+        if not keep_llp_indices:
             return llps_df.iloc[0:0]
 
-        return llps_df.loc[llps_df.index.intersection(keep)]
-    
-    def _coords_to_origin_if_possible(self, x_m: float, y_m: float, z_m: float):
-        candidates = [self._g]
-        if hasattr(self._g, "geometry"):
-            candidates.append(self._g.geometry)
-            if hasattr(self._g.geometry, "cavern"):
-                candidates.append(self._g.geometry.cavern)
-        for obj in candidates:
-            cto = getattr(obj, "cavernCentreToIP", None)
-            if callable(cto):
-                return cto(x_m, y_m, z_m)
-        return (x_m, y_m, z_m)
-    
-    def _mm_to_m_xyz(self, decay_vertex_mm):
-        x_mm, y_mm, z_mm = _as_xyz(decay_vertex_mm)
-        return (x_mm * 1e-3, y_mm * 1e-3, z_mm * 1e-3)
+        return llps_df.loc[llps_df.index.intersection(keep_llp_indices)]
+
+    def filter_decay_hits(
+        self,
+        llps_df: pd.DataFrame,
+        children_df: pd.DataFrame,
+        nIntersections: int,
+        nTracks: int,
+        requireCharge: bool,
+        prodVertex: str,
+        decayVertex: str,
+    ) -> pd.DataFrame:
+        """
+        - build bounded charged segments using prodVertex -> decayVertex
+        - merge successive charged segments into reconstructed track candidates
+        - count reconstructed track candidates, not raw child rows
+        - store details for plotting/debugging in the returned dataframe
+        """
+        if llps_df.empty or children_df.empty:
+            return llps_df.iloc[0:0].copy()
+
+        ch = children_df.copy()
+
+        if requireCharge and ("charge" in ch.columns):
+            charge = pd.to_numeric(ch["charge"], errors="coerce")
+            ch = ch[charge.notna() & (charge != 0)]
+
+        if ch.empty:
+            return llps_df.iloc[0:0].copy()
+
+        segments_by_llp = self._build_segments_by_llp(
+            ch,
+            prodVertex=prodVertex,
+            decayVertex=decayVertex,
+        )
+
+        segment_payloads: dict[int, list[dict[str, Any]]] = {}
+        candidate_payloads: dict[int, list[dict[str, Any]]] = {}
+        passing_payloads: dict[int, list[dict[str, Any]]] = {}
+        passing_count: dict[int, int] = {}
+
+        for llp_idx, segments in segments_by_llp.items():
+            candidates = self._build_track_candidates_for_llp(segments)
+            passing = [
+                cand
+                for cand in candidates
+                if cand.station_score >= int(nIntersections)
+            ]
+
+            segment_payloads[llp_idx] = [self._segment_to_payload(seg) for seg in segments]
+            candidate_payloads[llp_idx] = [self._candidate_to_payload(c) for c in candidates]
+            passing_payloads[llp_idx] = [self._candidate_to_payload(c) for c in passing]
+            passing_count[llp_idx] = len(passing)
+
+        annotated = llps_df.copy()
+
+        annotated["decayTrackSegments"] = [
+            segment_payloads.get(int(idx), []) for idx in annotated.index
+        ]
+        annotated["decayTrackCandidates"] = [
+            candidate_payloads.get(int(idx), []) for idx in annotated.index
+        ]
+        annotated["decayTrackPassing"] = [
+            passing_payloads.get(int(idx), []) for idx in annotated.index
+        ]
+        annotated["nDecayTrackCandidates"] = [
+            len(candidate_payloads.get(int(idx), [])) for idx in annotated.index
+        ]
+        annotated["nDecayTrackPassing"] = [
+            passing_count.get(int(idx), 0) for idx in annotated.index
+        ]
+
+        keep_idx = [
+            idx
+            for idx in annotated.index
+            if passing_count.get(int(idx), 0) >= int(nTracks)
+        ]
+
+        if not keep_idx:
+            return annotated.iloc[0:0].copy()
+
+        return annotated.loc[annotated.index.intersection(keep_idx)].copy()
+
+    def _build_segments_by_llp(
+        self,
+        children_df: pd.DataFrame,
+        *,
+        prodVertex: str,
+        decayVertex: str,
+    ) -> dict[int, list[_DecayTrackSegment]]:
+        out: dict[int, list[_DecayTrackSegment]] = defaultdict(list)
+        has_decay_vertex = decayVertex in children_df.columns
+
+        for child_idx, row in children_df.iterrows():
+            if "LLPindex" not in row.index or pd.isna(row["LLPindex"]):
+                continue
+
+            parent_idx = int(row["LLPindex"])
+
+            if prodVertex not in row.index or pd.isna(row[prodVertex]):
+                continue
+
+            try:
+                start_m = _mm_to_m_xyz(row[prodVertex])
+            except Exception:
+                continue
+
+            stop_m = None
+            if has_decay_vertex and _has_finite_decay_vertex(row, decayVertex):
+                try:
+                    stop_m = _mm_to_m_xyz(row[decayVertex])
+                except Exception:
+                    stop_m = None
+
+            try:
+                eta, phi = _eta_phi_from_row(row)
+            except Exception:
+                continue
+
+            theta = _theta_from_eta(eta)
+
+            try:
+                result = self._geometry.trace(
+                    theta,
+                    phi,
+                    start_m,
+                    extrema_position=stop_m,   # important: bounded segment
+                    frame=GeometryFrame.SOURCE,
+                )
+            except Exception:
+                continue
+
+            segment = _DecayTrackSegment(
+                llp_index=parent_idx,
+                child_index=child_idx,
+                parent_ref=_maybe_int_from_row(
+                    row,
+                    (
+                        "parentIndex",
+                        "motherIndex",
+                        "motherParticleIndex",
+                        "parentParticleIndex",
+                    ),
+                ),
+                start_m=start_m,
+                stop_m=stop_m,
+                theta=theta,
+                phi=phi,
+                charge=_maybe_float_from_row(row, ("charge",)),
+                pdg_id=_maybe_int_from_row(row, ("pdgId", "pdgID", "pid", "PDGID")),
+                points=[tuple(map(float, p)) for p in result.points],
+                station_indices=[int(s) for s in result.station_indices],
+            )
+            out[parent_idx].append(segment)
+
+        return out
+
+    def _build_track_candidates_for_llp(
+        self,
+        segments: list[_DecayTrackSegment],
+    ) -> list[_DecayTrackCandidate]:
+        if not segments:
+            return []
+
+        by_id = {seg.child_index: seg for seg in segments}
+        successors: dict[Any, list[Any]] = {seg.child_index: [] for seg in segments}
+        incoming: dict[Any, set[Any]] = {seg.child_index: set() for seg in segments}
+
+        # explicit parent references if present
+        for child in segments:
+            if child.parent_ref is None:
+                continue
+            if child.parent_ref not in by_id:
+                continue
+
+            parent = by_id[child.parent_ref]
+            if self._is_segment_successor(parent, child):
+                successors[parent.child_index].append(child.child_index)
+                incoming[child.child_index].add(parent.child_index)
+
+        # fallback by vertex continuity for rows without an incoming edge
+        for parent in segments:
+            if parent.stop_m is None:
+                continue
+
+            for child in segments:
+                if parent.child_index == child.child_index:
+                    continue
+
+                if incoming[child.child_index]:
+                    continue
+
+                if self._is_segment_successor(parent, child):
+                    successors[parent.child_index].append(child.child_index)
+                    incoming[child.child_index].add(parent.child_index)
+
+        roots = [seg.child_index for seg in segments if not incoming[seg.child_index]]
+        if not roots:
+            roots = [seg.child_index for seg in segments]
+
+        terminal_paths: list[tuple[Any, ...]] = []
+
+        def _dfs(node_id: Any, path: list[Any]) -> None:
+            nxt = successors.get(node_id, [])
+            if not nxt:
+                terminal_paths.append(tuple(path + [node_id]))
+                return
+            for child_id in nxt:
+                if child_id in path:
+                    continue
+                _dfs(child_id, path + [node_id])
+
+        for root in roots:
+            _dfs(root, [])
+
+        if not terminal_paths:
+            terminal_paths = [(seg.child_index,) for seg in segments]
+
+        terminal_paths = list(dict.fromkeys(terminal_paths))
+
+        candidates: list[_DecayTrackCandidate] = []
+        for path in terminal_paths:
+            ordered_segments = [by_id[idx] for idx in path]
+
+            all_points: list[tuple[float, float, float]] = []
+            all_stations: list[int] = []
+
+            for seg in ordered_segments:
+                all_points.extend(seg.points)
+                all_stations.extend(seg.station_indices)
+
+            candidates.append(
+                _DecayTrackCandidate(
+                    llp_index=ordered_segments[0].llp_index,
+                    segment_indices=tuple(path),
+                    points=all_points,
+                    station_indices=_ordered_unique_ints(all_stations),
+                )
+            )
+
+        return candidates
+
+    def _is_segment_successor(
+        self,
+        parent: _DecayTrackSegment,
+        child: _DecayTrackSegment,
+    ) -> bool:
+        if parent.llp_index != child.llp_index:
+            return False
+
+        if parent.stop_m is None:
+            return False
+
+        if _distance_m(parent.stop_m, child.start_m) > self._VERTEX_LINK_TOLERANCE_M:
+            return False
+
+        # If both charges are known, enforce same sign to avoid accidental merges.
+        if (parent.charge is not None) and (child.charge is not None):
+            if parent.charge == 0 or child.charge == 0:
+                return False
+            if math.copysign(1.0, parent.charge) != math.copysign(1.0, child.charge):
+                return False
+
+        return True
+
+    @staticmethod
+    def _segment_to_payload(seg: _DecayTrackSegment) -> dict[str, Any]:
+        return {
+            "child_index": seg.child_index,
+            "parent_ref": seg.parent_ref,
+            "start_m": seg.start_m,
+            "stop_m": seg.stop_m,
+            "charge": seg.charge,
+            "pdg_id": seg.pdg_id,
+            "theta": seg.theta,
+            "phi": seg.phi,
+            "points": seg.points,
+            "station_indices": seg.station_indices,
+            "station_score": seg.station_score,
+        }
+
+    @staticmethod
+    def _candidate_to_payload(cand: _DecayTrackCandidate) -> dict[str, Any]:
+        return {
+            "segment_indices": list(cand.segment_indices),
+            "points": cand.points,
+            "station_indices": cand.station_indices,
+            "station_score": cand.station_score,
+        }
+
+    def _infer_default_decay_region(self) -> GeometryRegion:
+        mode = str(self._geometry.mode).lower()
+
+        if "shaft" in mode:
+            return GeometryRegion.AUXILIARY
+
+        return GeometryRegion.FIDUCIAL

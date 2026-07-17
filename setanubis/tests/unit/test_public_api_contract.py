@@ -116,4 +116,21 @@ def test_hnl_branching_ratio_table_has_single_canonical_copy():
     ]
     assert canonical.is_file()
     assert canonical.stat().st_size > 5_000_000
-    assert not any(path.exists() for path in duplicates)
+    existing_duplicates = [path for path in duplicates if path.exists()]
+    assert not existing_duplicates, (
+        "Remove obsolete HNL table copies; the canonical resource is "
+        f"{canonical}: {existing_duplicates}"
+    )
+
+
+def test_selection_example_uses_the_current_geometry_stack():
+    """Prevent examples from reintroducing the removed legacy geometry path."""
+    example = (
+        Path(__file__).resolve().parents[2]
+        / "SetAnubis/examples/Selection/example_selection_pipeline.py"
+    )
+    source = example.read_text(encoding="utf-8")
+    assert "ATLASCavernGeometry.create" in source
+    assert "SelectionGeometryAdapter(geometry)" in source
+    assert "GeometrySelectionAdapter" not in source
+    assert "SelectionEnginev2" not in source

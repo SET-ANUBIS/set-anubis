@@ -6,8 +6,8 @@ from SetAnubis.core.Selection.domain.SelectionEngine import (
     SelectionEngine, SelectionConfig, RunConfig, MinThresholds, MinDR
 )
 from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import SelectionGeometryAdapter
-from SetAnubis.core.Geometry.adapters.selection_adapter import GeometrySelectionAdapter
-from SetAnubis.core.Geometry.domain.defineGeometry import ATLASCavern
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import ATLASCavernGeometry
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometryConfig import ATLASCavernGeometryConfig
 
 
 from dataclasses import dataclass
@@ -27,9 +27,10 @@ class CSVDataSource(IDataSource):
 
 if __name__ == "__main__":
 
-    cav = ATLASCavern()
-    geom_adapter = GeometrySelectionAdapter(cav)
-    sel_geo = SelectionGeometryAdapter(geom_adapter)
+    geometry = ATLASCavernGeometry.create(
+        ATLASCavernGeometryConfig(mode="ceiling", origin="IP", use_cache=False)
+    )
+    sel_geo = SelectionGeometryAdapter(geometry)
 
     sel_cfg = SelectionConfig(
         geometry=sel_geo,

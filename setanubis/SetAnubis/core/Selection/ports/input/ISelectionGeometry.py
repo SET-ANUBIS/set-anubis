@@ -1,58 +1,77 @@
-"""Geometry contract consumed by the event-selection pipeline."""
+from __future__ import annotations
 
-from typing import Any, List, Protocol, Tuple
+from typing import Any, Protocol, runtime_checkable
 
 import pandas as pd
 
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import (
+    GeometryIntersections,
+    GeometryRegion,
+)
 
+
+@runtime_checkable
 class ISelectionGeometry(Protocol):
-    """Expose containment and hit calculations required by selection cuts."""
+    """
+    Selection-side contract, independent from a concrete experiment geometry.
+
+    The Selection layer should reason in terms of:
+      - regions (fiducial / auxiliary / detector / ...)
+      - containment checks
+      - intersections / tracing
+      - filtering LLPs based on decay-product hits
+
+    It should NOT know about:
+      - ATLAS-specific names such as cavern / shaft / ATLAS
+      - raw ATLASCavern internals
+      - guessed method names on adapters
+    """
 
     @property
-    def geoMode(self) -> str:
-        """Return the active detector geometry mode."""
+    def default_decay_region(self) -> GeometryRegion:
+        """
+        Region used by default for the LLP decay acceptance step.
+        Example:
+          - ceiling-like setup -> FIDUCIAL
+          - shaft-like setup   -> AUXILIARY
+        """
         ...
 
     @property
-    def RPCMaxRadius(self) -> float:
-        """Return the maximum RPC radius used for containment checks."""
+    def default_fiducial_radius(self) -> float:
+        """
+        Default radius constraint used when Selection wants to restrict the
+        fiducial volume, e.g. for ANUBIS acceptance.
+        """
         ...
 
-    def in_cavern(
+    def inside(
         self,
-        decay_vertex_mm: Tuple[float, float, float, float],
-        rpc_max_radius: float,
+        region: GeometryRegion,
+        decay_vertex_mm: Any,
+        *,
+        max_radius: float | None = None,
+        tracking_only: bool = False,
     ) -> bool:
-        """Return whether a decay vertex lies inside the cavern volume."""
+        """
+        Selection-facing containment check.
+        Input vertex is in mm, because that is what the Selection dataframes use.
+        """
         ...
 
-    def in_shaft(
-        self,
-        decay_vertex_mm: Tuple[float, float, float, float],
-        rpc_max_radius: float,
-    ) -> bool:
-        """Return whether a decay vertex lies inside the shaft volume."""
-        ...
-
-    def in_atlas(
-        self,
-        decay_vertex_mm: Tuple[float, float, float, float],
-        strict: bool,
-    ) -> bool:
-        """Return whether a decay vertex lies inside the ATLAS veto volume."""
-        ...
-
-    def llp_intersections(
+    def intersections(
         self,
         row: pd.Series,
         decay_vertex_col: str,
         min_p_llp: float,
         plot_trajectory: bool = False,
-    ) -> Tuple[List[Any], List[Any]]:
-        """Calculate detector intersections for one LLP candidate."""
+    ) -> GeometryIntersections:
+        """
+        Compute detector intersections for a given LLP row.
+        """
         ...
 
-    def decay_hits(
+    def filter_decay_hits(
         self,
         llps_df: pd.DataFrame,
         children_df: pd.DataFrame,
@@ -62,5 +81,7 @@ class ISelectionGeometry(Protocol):
         prodVertex: str,
         decayVertex: str,
     ) -> pd.DataFrame:
-        """Return LLP candidates whose charged daughters satisfy hit cuts."""
+        """
+        Keep LLPs that satisfy the requested decay-product hit requirements.
+        """
         ...

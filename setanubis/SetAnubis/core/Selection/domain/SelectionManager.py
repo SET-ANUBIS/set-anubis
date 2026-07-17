@@ -6,7 +6,7 @@ import pandas as pd
 
 from SetAnubis.core.Selection.domain.SelectionPipeline import SelectionPipeline, SelectionPipelineBuilder, IDataSource
 from SetAnubis.core.Selection.domain.DatasetSource import EventsBundleSource
-from SetAnubis.core.Selection.domain.SelectionEnginev2 import SelectionConfig, RunConfig
+from SetAnubis.core.Selection.domain.SelectionEngine import SelectionConfig, RunConfig
 
 @dataclass
 class DatasetSpec:

@@ -1,14 +1,11 @@
 from SetAnubis.core.Selection.domain.SelectionEngine import SelectionEngine, SelectionConfig, RunConfig, MinThresholds, MinDR
-from write_and_load_selection_dict import load_bundle
+from SetAnubis.core.Selection.domain.DatasetSource import BundleIO
 from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import SelectionGeometryAdapter
-from SetAnubis.core.Geometry.adapters.selection_adapter import GeometrySelectionAdapter
-from SetAnubis.core.Geometry.domain.defineGeometry import ATLASCavern
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import ATLASCavernGeometry
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometryConfig import ATLASCavernGeometryConfig
 from SetAnubis.core.Selection.domain.JetBuilder import createJetDF
 from SetAnubis.core.Selection.domain.ReweightTransformer import DataBundle, ReweightDecayPositions, RandomProvider
 from SetAnubis.core.Selection.domain.isolation import IsolationComputer
-from SetAnubis.core.Geometry.domain.builder import GeometryBuilder, GeometryBuildConfig
-from SetAnubis.core.Geometry.adapters.geometry_builder import CavernGeometryBuilder
-from SetAnubis.core.Geometry.adapters.geometry_query import CavernQuery
 
 import pandas as pd
 import numpy as np
@@ -186,21 +183,14 @@ def time_many(fn, *args, repeats=5, **kwargs):
     return float(np.median(times)), float(times.min())
 
 if __name__ == "__main__":
-    SDFs_base = load_bundle("paul_dict.pkl.gz")
+    SDFs_base = BundleIO.load_bundle("paul_dict.pkl.gz")
     cfs = SDFs_base["chargedFinalStates"].copy()
     nfs = SDFs_base["neutralFinalStates"].copy()
 
-    gcfg = GeometryBuildConfig(
-        geo_cache_file="atlas_cavern.pkl",
-        origin="IP",
-        RPCeff=1.0,
-        nRPCsPerLayer=1,
-        geometryType="",
+    geometry = ATLASCavernGeometry.create(
+        ATLASCavernGeometryConfig(mode="ceiling", origin="IP", use_cache=False)
     )
-    builder = GeometryBuilder(CavernGeometryBuilder(gcfg))
-    geom: CavernQuery = builder.build()
-    geom_adapter = GeometrySelectionAdapter(geom)
-    sel_geo = SelectionGeometryAdapter(geom_adapter)
+    sel_geo = SelectionGeometryAdapter(geometry)
 
     sel_cfg = SelectionConfig(
         geometry=sel_geo,

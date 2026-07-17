@@ -11,7 +11,7 @@ setanubis-pythia-smoke --out .release-pythia-smoke
 python -m ruff check .
 python -m pip_audit
 python -m bandit -q -lll -r setanubis/SetAnubis/core -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
-python -m pytest -q setanubis/tests --cov=SetAnubis --cov-config=pyproject.toml --cov-fail-under=35
+python -m pytest -q setanubis/tests --cov=SetAnubis --cov-config=pyproject.toml --cov-fail-under=40
 python reproducibility/run_all.py --output-dir .release-reproducibility
 setanubis-docs --strict
 ```
