@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import json
 from io import StringIO
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -348,7 +349,11 @@ def build_events_table(df: pd.DataFrame) -> pd.DataFrame:
     return agg
 
 
-app = Dash(__name__, suppress_callback_exceptions=True)
+app = Dash(
+    __name__,
+    suppress_callback_exceptions=True,
+    assets_folder=str(Path(__file__).with_name("assets")),
+)
 app.title = "SET-ANUBIS HepMC explorer"
 server = app.server
 

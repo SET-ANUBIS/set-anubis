@@ -1,6 +1,7 @@
 import argparse
 import os
 import traceback
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dash import Dash, Input, Output, State, callback_context, dcc, html, no_update
@@ -367,7 +368,11 @@ def empty_page() -> html.Div:
 
 
 def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAGE, default_events_root: str = DEFAULT_EVENTS_ROOT) -> Dash:
-    app = Dash(__name__, suppress_callback_exceptions=True)
+    app = Dash(
+        __name__,
+        suppress_callback_exceptions=True,
+        assets_folder=str(Path(__file__).with_name("assets")),
+    )
     app.title = "SET-ANUBIS DB dashboard"
     server = app.server
 

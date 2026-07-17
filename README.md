@@ -35,7 +35,7 @@ The codebase is organised around small domain APIs and replaceable adapters. In 
 ANUBIS is a proposed transverse LLP detector at LHC Point 1, designed to instrument the ATLAS cavern and nearby shafts with RPC tracking stations. Its physics motivation is to recover neutral LLP decays that can occur outside the main ATLAS detector volume but still inside the cavern infrastructure, where displaced charged decay products could be reconstructed.
 
 <p align="center">
-  <img src="Docs/assets/anubis-detector-concept.jpg" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
+  <img src="Docs/assets/anubis-detector-concept.jpeg" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
 </p>
 
 ## Workflow overview

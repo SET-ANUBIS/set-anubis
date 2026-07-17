@@ -1,0 +1,42 @@
+
+.wy-side-nav-search {
+  background: linear-gradient(135deg, #0f172a, #111b34);
+}
+.wy-side-nav-search .wy-dropdown > a img.logo,
+.wy-side-nav-search > a img.logo {
+  max-width: 160px;
+}
+.wy-nav-content {
+  max-width: 1120px;
+}
+.rst-content h1,
+.rst-content h2,
+.rst-content h3 {
+  color: #111827;
+}
+.rst-content .section ul li,
+.rst-content .section ol li {
+  margin-bottom: 0.35rem;
+}
+.rst-content code.literal,
+.rst-content tt.literal {
+  color: #a61e4d;
+}
+.rst-content blockquote {
+  border-left: 4px solid #d1d5db;
+  padding-left: 1rem;
+}
+.setanubis-hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.setanubis-hero img {
+  max-width: 180px;
+}
+.setanubis-callout {
+  padding: 1rem 1.25rem;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  margin: 1rem 0 1.5rem 0;
+}

@@ -32,7 +32,7 @@ instrument the ATLAS underground cavern and shaft regions with RPC tracking
 stations so that LLP decays missed by the main ATLAS detector can still be
 observed through charged decay products.
 
-.. image:: images/anubis-detector-concept.jpg
+.. image:: images/anubis-detector-concept.jpeg
    :width: 72%
    :align: center
    :alt: ANUBIS detector concept in the ATLAS cavern
