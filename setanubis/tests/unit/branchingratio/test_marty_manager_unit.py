@@ -7,8 +7,8 @@ from SetAnubis.core.Common.MultiSet import MultiSet
 
 def _patch_root(monkeypatch, tmp_path: Path, module):
     """
-    Force Path(__file__).resolve() à renvoyer .../root/a/b/c/d/e/module.py,
-    ainsi module.Path(__file__).resolve().parents[5] == tmp_path/'root'.
+    Force Path(__file__).resolve() to return .../root/a/b/c/d/e/module.py,
+    so module.Path(__file__).resolve().parents[5] == tmp_path/'root'.
     """
     root = tmp_path / "root"
     nested = root / "a" / "b" / "c" / "d" / "e" / "module.py"
@@ -34,6 +34,12 @@ class FakeTemplateManager:
     def _change_particles(self): self._temp += "|PARTICLES"
     def _update_marty_include_path(self): self._temp += "|MARTY_PATH"
     def _change_paramlist(self): self._temp += "|PARAMLIST"
+    def prepare(self):
+        if self.template_type.value == "ANALYTIC":
+            self._change_model(); self._change_particles(); self._update_marty_include_path()
+        else:
+            self._change_particles(); self._change_paramlist()
+        return self._temp
 
 
 class FakeCopyManager:
@@ -109,7 +115,7 @@ def test_build_analytic_writes_cpp(tmp_path):
 
     mgr.build_analytic(23, MultiSet([2, -2]), nsa, builder)
 
-    assert FakeCopyManager.instances, "CopyManager non instancié"
+    assert FakeCopyManager.instances, "CopyManager was not instantiated"
     cm = FakeCopyManager.instances[-1]
     assert cm.ampli_name == "decay_widths_fake"
 
@@ -126,7 +132,7 @@ def test_launch_analytic_calls_compiler_and_paths(monkeypatch, tmp_path):
     mgr = mm_mod.MartyManager("SM")
     mgr.launch_analytic(23, MultiSet([2, -2]), mm_mod.neo)
 
-    assert FakeCompiler.last_calls, "compile_run non appelé"
+    assert FakeCompiler.last_calls, "compile_run was not called"
     tag, ctype, ampli, src, out, outdir, pattern = FakeCompiler.last_calls[-1]
     assert tag == "compile_run"
     assert ctype == mm_mod.CompilerType.GCC

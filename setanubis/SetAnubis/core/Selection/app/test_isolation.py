@@ -30,7 +30,7 @@ def _ensure_eta_phi(df: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
     py = _find_col(df, ["py", "Py", "PY"])
     pz = _find_col(df, ["pz", "Pz", "PZ"])
     if not (px and py and pz):
-        raise ValueError("Impossible de déterminer (eta, phi) : colonnes manquantes.")
+        raise ValueError("Cannot determine (eta, phi): required columns are missing.")
     pxv, pyv, pzv = df[px].astype(float).to_numpy(), df[py].astype(float).to_numpy(), df[pz].astype(float).to_numpy()
     phi = np.arctan2(pyv, pxv)
     p = np.sqrt(pxv**2 + pyv**2 + pzv**2)
@@ -46,7 +46,7 @@ def _ensure_pt(df: pd.DataFrame) -> pd.Series:
     px = _find_col(df, ["px", "Px", "PX"])
     py = _find_col(df, ["py", "Py", "PY"])
     if not (px and py):
-        raise ValueError("Impossible de déterminer pT : colonnes (pt | pT | PT) ou (px, py) manquantes.")
+        raise ValueError("Cannot determine pT: expected (pt | pT | PT) or (px, py) columns.")
     return np.sqrt(df[px].astype(float)**2 + df[py].astype(float)**2)
 
 def _delta_r(eta1, phi1, eta2, phi2) -> np.ndarray:
@@ -76,11 +76,11 @@ def legacy_attach_min_delta_r(SDFs: Dict[str, pd.DataFrame], sel_cfg: SelectionC
 
     ev_col = _find_col(LLPs, ["eventNumber", "event", "EventNumber", "Event"])
     if not ev_col:
-        raise ValueError("Colonne d'événement absente dans LLPs.")
+        raise ValueError("Event column is missing from LLPs.")
     ev_j = _find_col(jets, ["eventNumber", "event", "EventNumber", "Event"])
     ev_t = _find_col(tracks, ["eventNumber", "event", "EventNumber", "Event"])
     if not (ev_j and ev_t):
-        raise ValueError("Colonne d'événement absente dans jets/tracks.")
+        raise ValueError("Event column is missing from jets/tracks.")
 
     llp_index = LLPs.index
     n = len(LLPs)
@@ -211,13 +211,13 @@ if __name__ == "__main__":
     SDFs["finalStatePromptJets"] = createJetDF(ev, cfs, nfs)
 
     t_old_ms = None
-    print("Calcul minΔR (baseline 'old' naïve)…")
+    print("Computing minDeltaR with the naive legacy baseline...")
     t0 = time.perf_counter()
     LLPs_old = legacy_attach_min_delta_r(SDFs, sel_cfg)
     t_old_ms = (time.perf_counter() - t0) * 1000.0
 
     iso = IsolationComputer(selection=sel_cfg)
-    print("Calcul minΔR (nouveau attach_min_delta_r)…")
+    print("Computing minDeltaR with attach_min_delta_r...")
     t1 = time.perf_counter()
     LLPs_new = iso.attach_min_delta_r(SDFs.copy())
     t_new_ms = (time.perf_counter() - t1) * 1000.0
@@ -227,9 +227,9 @@ if __name__ == "__main__":
 
     n_llp = len(LLPs_new)
     print("\n=== Timings ===")
-    print(f"OLD  legacy_attach_min_delta_r : {t_old_ms:.2f} ms  (médiane={med_old*1000:.2f} ms, min={best_old*1000:.2f} ms)  "
+    print(f"OLD  legacy_attach_min_delta_r : {t_old_ms:.2f} ms  (median={med_old*1000:.2f} ms, min={best_old*1000:.2f} ms)  "
           f"~ {med_old/n_llp*1e6:.2f} µs/LLP (n={n_llp})")
-    print(f"NEW  attach_min_delta_r        : {t_new_ms:.2f} ms  (médiane={med_new*1000:.2f} ms, min={best_new*1000:.2f} ms)  "
+    print(f"NEW  attach_min_delta_r        : {t_new_ms:.2f} ms  (median={med_new*1000:.2f} ms, min={best_new*1000:.2f} ms)  "
           f"~ {med_new/n_llp*1e6:.2f} µs/LLP (n={n_llp})")
     spd = med_old/med_new if med_new > 0 else float("inf")
     print(f"Speedup (OLD/NEW) ≈ ×{spd:.2f}")
@@ -240,15 +240,15 @@ if __name__ == "__main__":
     out_old = selectIsolation(LLPs_old, selection_dict)
     out_new = selectIsolation(LLPs_new, selection_dict)
 
-    print("\n=== Comparaison des sorties ===")
+    print("\n=== Output comparison ===")
     print(compare_outputs("old", out_old, "new", out_new))
 
     iso_jet_old = set(out_old["cutIndices"]["nLLP_isoJet"])
     iso_all_old = set(out_old["cutIndices"]["nLLP_isoAll"])
     iso_jet_new = set(out_new["cutIndices"]["nLLP_isoJet"])
     iso_all_new = set(out_new["cutIndices"]["nLLP_isoAll"])
-    assert iso_all_old.issubset(iso_jet_old), "OLD: IsoAll doit être sous-ensemble de IsoJet"
-    assert iso_all_new.issubset(iso_jet_new), "NEW: IsoAll doit être sous-ensemble de IsoJet"
+    assert iso_all_old.issubset(iso_jet_old), "OLD: IsoAll must be a subset of IsoJet"
+    assert iso_all_new.issubset(iso_jet_new), "NEW: IsoAll must be a subset of IsoJet"
 
     only_old = sorted(list(iso_all_old - iso_all_new))
     only_new = sorted(list(iso_all_new - iso_all_old))
@@ -258,4 +258,4 @@ if __name__ == "__main__":
             "only_in_new": pd.Series(only_new),
         })
         diff.to_csv("delta_indices_isoAll_old_vs_new.csv", index=False)
-        print("Désaccords indices IsoAll sauvegardés -> delta_indices_isoAll_old_vs_new.csv")
+        print("IsoAll index differences saved -> delta_indices_isoAll_old_vs_new.csv")

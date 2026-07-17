@@ -1,30 +1,66 @@
+"""Render analytic and numerical C++ sources for MARTY workflows."""
+
 from SetAnubis.core.Common.MultiSet import MultiSet
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
-from SetAnubis.core.BranchingRatio.domain.MartyUtil import decay_name, load_ufo_mappings, load_particle_mappings
+from SetAnubis.core.BranchingRatio.domain.MartyUtil import (
+    decay_name,
+    load_ufo_mappings,
+    load_particle_mappings,
+)
+from SetAnubis.resources import asset_path
 
 from enum import Enum
 import os
+from pathlib import Path
 import re
 
+
 class TemplateType(Enum):
+    """Available generated MARTY source stages."""
+
     ANALYTIC = "ANALYTIC"
     NUMERIC = "NUMERIC"
-    
+
 
 class MartyTemplateManager:
-    def __init__(self, model_name : str, mothers : MultiSet, daugthers : MultiSet, template_type : TemplateType, nsa : SetAnubisInterface):
+    """Apply process and environment substitutions to MARTY C++ templates."""
+
+    def __init__(
+        self,
+        model_name: str,
+        mothers: MultiSet,
+        daugthers: MultiSet,
+        template_type: TemplateType,
+        nsa: SetAnubisInterface,
+    ):
+        """Initialize a source template for one process and model."""
         self.model_name = model_name
         self.mothers = mothers
         self.daugthers = daugthers
         self.template_type = template_type
         self.nsa = nsa
-        
-        self._temp : str = ""
+
+        self._temp: str = ""
         if self.template_type == TemplateType.ANALYTIC:
             self._set_base_analytic()
         else:
             self._set_base_numeric()
-        
+
+    def prepare(self) -> str:
+        """Render the configured MARTY source without compiling or executing it."""
+        if self.template_type == TemplateType.ANALYTIC:
+            self._change_model()
+            self._change_particles()
+            self._update_marty_include_path()
+        else:
+            self._change_particles()
+            self._change_paramlist()
+        return self._temp
+
+    def render(self) -> str:
+        """Return the current generated source text."""
+        return self._temp
+
     def _set_base_analytic(self):
         self._temp = """#include <iostream>
 #include "marty/models/sm.h"
@@ -112,60 +148,76 @@ int main() {
     return 0;
 }
         """
-        
+
     def _change_namespace(self):
         """Update the decay-width namespace for the generated filename."""
-        namespace_name = f'decay_widths_{decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))}'
-        self._temp = re.sub(r'using namespace decay_widths;', f'using namespace {namespace_name};', self._temp)
+        namespace_name = f"decay_widths_{decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))}"
+        self._temp = re.sub(
+            r"using namespace decay_widths;",
+            f"using namespace {namespace_name};",
+            self._temp,
+        )
 
     # def _decay_name(self):
     #     Build a filename from the mother and daughter particles.
     #     names = [convert_particle(self.mother)] + [convert_particle(d) for d in self.daugthers]
     #     return "_".join(names)
-    
+
     def _change_model(self):
+        """Select the standard MARTY model or a bundled custom model header."""
         if self.template_type == TemplateType.NUMERIC:
             return
-        base_path = os.path.abspath(__file__)
-        root_path = os.path.abspath(os.path.join(base_path, *(['..'] * 6)))
-        header_path = os.path.join(root_path, 'Assets', 'MARTY', 'model', self.model_name.lower() + '.h')
 
         include_pattern = r'#include\s+".*/models/.*?\.h"'
-        new_include = f'#include "{header_path}"'
+        if self.model_name.upper() == "SM":
+            new_include = '#include "marty/models/sm.h"'
+        else:
+            header_path = asset_path("MARTY", "model", self.model_name.lower() + ".h")
+            new_include = f'#include "{header_path.as_posix()}"'
 
-        model_pattern = r'\b\w+_Model\s+model\s*;'
-        new_model_decl = f'{self.model_name}_Model model;'
+        model_pattern = r"\b\w+_Model\s+model\s*;"
+        new_model_decl = f"{self.model_name}_Model model;"
 
         self._temp = re.sub(include_pattern, new_include, self._temp)
         self._temp = re.sub(model_pattern, new_model_decl, self._temp)
-    
+
     def _change_paramlist(self):
-        
-        decay = decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))
-        
+
+        decay = decay_name(
+            self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True)
+        )
+
         base_path = os.path.abspath(__file__)
-        root_path = os.path.abspath(os.path.join(base_path, *(['..'] * 6)))
-        
-        paramlist_path = os.path.join(root_path, 'Assets', 'MARTY', 'MartyTemp', "libs", "decay_widths_" + decay, "bin", "paramlist.csv")
+        root_path = os.path.abspath(os.path.join(base_path, *([".."] * 6)))
+
+        paramlist_path = os.path.join(
+            root_path,
+            "Assets",
+            "MARTY",
+            "MartyTemp",
+            "libs",
+            "decay_widths_" + decay,
+            "bin",
+            "paramlist.csv",
+        )
 
         self._temp = re.sub(
             r'std::string ParamFilePath = ".*?";',
             f'std::string ParamFilePath = "{paramlist_path}";',
-            self._temp
+            self._temp,
         )
 
-        
     def _change_particles(self):
         if self.template_type == TemplateType.ANALYTIC:
-            # --------- Partie ANALYTIC ----------
+            # Analytic template path.
             # 1. Replace particles in computeAmplitude.
             mapping = load_particle_mappings()
             # mother_name = mapping.get(str(self.mother), "")
             # if mother_name == "":
             #     raise ValueError("Invalid mother name : " + self.mother)
-            
+
             # incoming = f'Incoming("{mother_name}")'
-            
+
             incomings = []
             if isinstance(self.mothers, list) or isinstance(self.mothers, MultiSet):
                 for m in self.mothers:
@@ -184,7 +236,7 @@ int main() {
                     incomings.append(f'Incoming(AntiPart("{name}"))')
                 else:
                     incomings.append(f'Incoming("{name}")')
-        
+
             outgoings = []
             for d in self.daugthers:
                 name = mapping.get(str(abs(d)), "")
@@ -197,34 +249,37 @@ int main() {
             # particle_list = ",\n             ".join([incoming] + outgoings)
             particle_list = ",\n             ".join(incomings + outgoings)
             # 2. Normalize and replace the computeAmplitude block.
-            pattern = r'auto\s+ampli\s*=\s*model\.computeAmplitude\([^;]+?\);\s*'
-            replacement = f'''auto ampli = model.computeAmplitude(mty::Order::TreeLevel, {{
+            pattern = r"auto\s+ampli\s*=\s*model\.computeAmplitude\([^;]+?\);\s*"
+            replacement = f"""auto ampli = model.computeAmplitude(mty::Order::TreeLevel, {{
                 {particle_list}
             }}, opts);
-    '''
+    """
             self._temp = re.sub(pattern, replacement, self._temp, flags=re.DOTALL)
 
             # 3. Update decayLib paths.
-            decay = decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))
-            print(incomings, outgoings)
+            decay = decay_name(
+                self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True)
+            )
             self._temp = re.sub(
                 r'system\("rm -rf libs/decay_widths"\);',
                 f'system("rm -rf libs/decay_widths_{decay}");',
-                self._temp
+                self._temp,
             )
             self._temp = re.sub(
                 r'mty::Library\s+decayLib\("decay_widths",\s*"libs"\);',
                 f'mty::Library decayLib("decay_widths_{decay}", "libs");',
-                self._temp
+                self._temp,
             )
 
         elif self.template_type == TemplateType.NUMERIC:
-            decay = decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))
+            decay = decay_name(
+                self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True)
+            )
 
             self._temp = re.sub(
                 r'#include\s+"decay_widths\.h"',
                 f'#include "decay_widths_{decay}.h"',
-                self._temp
+                self._temp,
             )
 
             self._change_namespace()
@@ -232,26 +287,26 @@ int main() {
             if not is_list_mothers:
                 is_list_mothers = isinstance(self.mothers, MultiSet)
             mothers = self.mothers
-            if (isinstance(self.mothers, list) or isinstance(self.mothers, MultiSet) )and len(self.mothers) <=1:
+            if (
+                isinstance(self.mothers, list) or isinstance(self.mothers, MultiSet)
+            ) and len(self.mothers) <= 1:
                 is_list_mothers = False
                 if isinstance(self.mothers, list):
                     mothers = self.mothers[0]
                 elif isinstance(self.mothers, MultiSet):
                     mothers = self.mothers.items[0]
-            
-            
+
             if is_list_mothers:
                 mother_masses = [self.nsa.get_particle_mass(m) for m in mothers]
             else:
-                print(mothers)
                 mother_masses = [self.nsa.get_particle_mass(mothers)]
 
             sum_mothers = sum(mother_masses)
-            
+
             daughter_masses = [self.nsa.get_particle_mass(d) for d in self.daugthers]
 
-            mothers_block   = '{' + ', '.join(map(str, mother_masses)) + '}'
-            daughters_block = '{' + ', '.join(map(str, daughter_masses)) + '}'
+            mothers_block = "{" + ", ".join(map(str, mother_masses)) + "}"
+            daughters_block = "{" + ", ".join(map(str, daughter_masses)) + "}"
 
             # def replace_kinematics_masses(match):
             #     return f"{{{{{', '.join(map(str, mother_masses))}}}, {{{', '.join(map(str, daugther_masses))}}},"
@@ -261,125 +316,46 @@ int main() {
             #     replace_kinematics_masses,
             #     self._temp
             # )
-            
+
             def replace_kinematics_block(match):
-                # garder l'indentation originale
-                indent = re.match(r'\s*', match.group(0)).group(0)
+                # Preserve the original indentation.
+                indent = re.match(r"\s*", match.group(0)).group(0)
 
                 if is_list_mothers:
-                    # use configurable s and require sum(m) < s
+                    # Use configurable centre-of-mass energy and validate the threshold.
                     return (
                         f"{indent}double s = 400; // can be modified\n"
                         f"{indent}if ({sum_mothers} >= s) {{\n"
-                        f"{indent}    std::cerr << \"[Error] Sum of mothers masses (={sum_mothers}) >= s=\" << s << std::endl;\n"
+                        f'{indent}    std::cerr << "[Error] Sum of mothers masses (={sum_mothers}) >= s=" << s << std::endl;\n'
                         f"{indent}    return 1;\n"
                         f"{indent}}}\n"
                         f"{indent}Kinematics kin{{{mothers_block}, {daughters_block}, s, &param}};"
                     )
                 else:
-                    # omit s when mothers is not a list
+                    # Omit the centre-of-mass energy for a one-particle decay.
                     return f"{indent}Kinematics kin{{{mothers_block}, {daughters_block}, &param}};"
 
             self._temp = re.sub(
-                r'^\s*Kinematics\s+kin\s*\{[^;]*\};',
+                r"^\s*Kinematics\s+kin\s*\{[^;]*\};",
                 replace_kinematics_block,
                 self._temp,
-                flags=re.MULTILINE
+                flags=re.MULTILINE,
             )
-            
-    def _update_marty_include_path(self):
-        """Update the absolute marty.h include path in the template."""
-        base_path = os.path.abspath(__file__)
-        root_path = os.path.abspath(os.path.join(base_path, *(['..'] * 6)))
-        marty_header_path = os.path.join(
-            root_path, "External_Integration", "Marty", "MARTY_INSTALL", "include", "marty.h"
-        )
-        marty_header_path = marty_header_path.replace("\\", "/")  # Pour Windows si besoin
 
+    def _update_marty_include_path(self):
+        """Use an explicit MARTY include directory when one is configured.
+
+        By default the portable ``#include "marty.h"`` form is preserved so a
+        system or user installation can provide its normal compiler include
+        flags. Set ``SETANUBIS_MARTY_INCLUDE_DIR`` to embed a concrete header
+        path in generated source.
+        """
+        include_dir = os.environ.get("SETANUBIS_MARTY_INCLUDE_DIR")
+        if not include_dir:
+            return
+        header = (Path(include_dir).expanduser().resolve() / "marty.h").as_posix()
         self._temp = re.sub(
             r'#include\s+["<](?:.*?/)?marty\.h[">]',
-            f'#include "{marty_header_path}"',
-            self._temp
+            f'#include "{header}"',
+            self._temp,
         )
-    
-if __name__ == "__main__":
-    nsa = SetAnubisInterface("Assets/UFO/UFO_HNL")
-    mtm = MartyTemplateManager("SM", 23, [2,-2], TemplateType.ANALYTIC, nsa)
-    mtm._change_model()
-    mtm._change_particles()
-    mtm._update_marty_include_path()
-    
-    from SetAnubis.core.BranchingRatio.domain.MartyCompiler import MartyCompiler, CompilerType
-    from pathlib import Path
-    
-    def build_and_run(m : MartyTemplateManager, nsa):
-        """Generate, compile, and execute C++ code with MartyCompiler."""
-
-        decay = decay_name(m.mother, m.daugthers, nsa, load_ufo_mappings(True))
-        cpp_filename = f"{decay}.cpp"
-        binary_filename = decay
-
-        # Resolve input and output paths.
-        base_path = Path(__file__).resolve()
-        root_path = base_path.parents[5]
-        output_dir = root_path / "Assets" / "MARTY" / "MartyTemp"
-        # print(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        cpp_path = output_dir / cpp_filename
-        bin_path = output_dir / binary_filename
-
-        # Write the generated C++ source.
-        with open(cpp_path, "w") as f:
-            f.write(m._temp)
-        print(f"✅ C++ file written: {cpp_path}")
-
-        # Compile and execute with MartyCompiler.
-        compiler = MartyCompiler(CompilerType.GCC)
-        compiler.compile_run(
-            source_file=str(cpp_path),
-            output_binary=str(bin_path),
-            output_dir=str(output_dir)
-        )
-    
-    build_and_run(mtm, nsa)
-    
-    mtm_2 = MartyTemplateManager("SM", 23, [2,-2], TemplateType.NUMERIC, nsa)
-    
-    mtm_2._change_paramlist()
-    mtm_2._change_particles()
-    
-    from SetAnubis.core.BranchingRatio.domain.MartyParamManager import ParamManager
-    header_file = Path("Assets/MARTY/MartyTemp/libs/decay_widths_23_s_2_2/include/params.h")
-    param_manager = ParamManager(header_file, nsa)
-    
-    print("parameters : ", param_manager.get_parameters())
-    csv = param_manager.create_csv()
-    
-    base_path = Path(__file__).resolve()
-    root_path = base_path.parents[5]
-    output_dir = root_path / "Assets" / "MARTY" / "MartyTemp"
-        
-    csv_path = output_dir / "libs" / "decay_widths_23_s_2_2" / "bin" / "paramlist.csv"
-    cpp_path = output_dir / "libs" / "decay_widths_23_s_2_2" / "script" / "example_decay_widths_23_s_2_2.cpp"
-    
-    print("output dir : ", output_dir)
-    
-    with open(csv_path, "w") as f:
-            f.write(csv)
-            print(f"csv file written: {csv_path}")
-        
-    with open(cpp_path, "w") as f:
-            f.write(mtm_2._temp)
-            print(f"cpp file written: {cpp_path}")
-            
-    
-    from SetAnubis.core.BranchingRatio.adapters.output.MartyFileCopyBuilder import MartyFileCopyBuilder
-    
-    mfcb = MartyFileCopyBuilder()
-    
-    mfcb.execute()
-    
-    compiler = MartyCompiler(CompilerType.MAKE, "decay_widths_23_s_2_2")
-    
-    compiler.compile_run("decay_widths_23_s_2_2")

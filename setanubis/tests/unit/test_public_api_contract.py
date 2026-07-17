@@ -39,11 +39,23 @@ def test_required_examples_and_data_are_packaged():
     pythia = resources.files("SetAnubis.examples.Pythia")
 
     assert selection.joinpath("InputFiles/hnl_df.csv").is_file()
+    assert selection.joinpath("example_selection_trace_report.py").is_file()
     assert branching.joinpath("TestFiles/test_BR.csv").is_file()
+    for example_name in (
+        "example_manual_values_and_lifetime.py",
+        "example_python_calculator.py",
+        "example_file_interpolation.py",
+        "example_ufo_decay_functions.py",
+        "example_madgraph_preparation.py",
+        "example_marty_preparation.py",
+    ):
+        assert branching.joinpath(f"dev_examples/{example_name}").is_file()
     assert pythia.joinpath("dev_examples/main_test_pythia_refactor.py").is_file()
-    assert resources.files("SetAnubis.examples.ModelCore").joinpath(
-        "example_setanubis_interface.py"
-    ).is_file()
+    assert (
+        resources.files("SetAnubis.examples.ModelCore")
+        .joinpath("example_setanubis_interface.py")
+        .is_file()
+    )
     assert SetAnubis.ufo_path("UFO_HNL").joinpath("write_param_card.py").is_file()
 
 
@@ -59,7 +71,9 @@ def test_architecture_interfaces_have_class_and_method_docstrings():
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in tree.body:
-            if not isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(
+                node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+            ):
                 continue
             if node.name.startswith("_"):
                 continue
@@ -77,7 +91,6 @@ def test_architecture_interfaces_have_class_and_method_docstrings():
                         )
 
     assert not missing, "Missing interface docstrings:\n" + "\n".join(missing)
-
 
 
 def test_all_example_modules_have_explanatory_docstrings():
@@ -105,8 +118,52 @@ def test_all_example_modules_import_without_running_optional_workflows():
         try:
             runpy.run_path(str(path), run_name="setanubis_example_import_check")
         except Exception as exc:
-            failures.append(f"{path.relative_to(examples)}: {type(exc).__name__}: {exc}")
+            failures.append(
+                f"{path.relative_to(examples)}: {type(exc).__name__}: {exc}"
+            )
     assert not failures, "Example import failures:\n" + "\n".join(failures)
+
+
+def test_local_pytest_configuration_preserves_release_gates():
+    """Keep tests deterministic when pytest starts inside the source directory."""
+    config = Path(__file__).parents[2] / "pytest.ini"
+    text = config.read_text(encoding="utf-8")
+    assert "testpaths = tests" in text
+    assert "error::ResourceWarning" in text
+    assert "SwigPyPacked" in text and "swigvarlink" in text
+
+
+def test_source_tree_contains_no_macos_metadata_files():
+    """Prevent AppleDouble and Finder metadata from entering release inputs.
+
+    Generated runtime directories such as ``db/Temp`` are deliberately excluded:
+    they are ignored by Git and are never included in the wheel or source
+    distribution.  The test focuses on files that can enter a release archive.
+    """
+    root = Path(__file__).parents[3]
+    release_roots = [
+        root / ".github",
+        root / "Assets",
+        root / "Docs",
+        root / "External_Integration",
+        root / "MacOS",
+        root / "reproducibility",
+        root / "setanubis",
+    ]
+    candidates = [path for path in root.iterdir() if path.is_file()]
+    for release_root in release_roots:
+        if release_root.exists():
+            candidates.extend(
+                path for path in release_root.rglob("*") if path.is_file()
+            )
+
+    metadata = sorted(
+        path.relative_to(root)
+        for path in candidates
+        if path.name.startswith("._") or path.name == ".DS_Store"
+    )
+    assert not metadata, f"Remove macOS metadata files: {metadata}"
+
 
 def test_hnl_branching_ratio_table_has_single_canonical_copy():
     """Keep the large HNL branching-ratio table in one packaged location."""
@@ -114,7 +171,12 @@ def test_hnl_branching_ratio_table_has_single_canonical_copy():
     canonical = root / "examples" / "Pythia" / "TestFiles" / "N1_branchingratios.dat"
     duplicates = [
         root / "core" / "Pythia" / "app" / "TestFiles" / "N1_branchingratios.dat",
-        root / "core" / "BranchingRatio" / "app" / "hnl_files" / "N1_branchingratios.dat",
+        root
+        / "core"
+        / "BranchingRatio"
+        / "app"
+        / "hnl_files"
+        / "N1_branchingratios.dat",
     ]
     assert canonical.is_file()
     assert canonical.stat().st_size > 5_000_000
@@ -125,17 +187,19 @@ def test_hnl_branching_ratio_table_has_single_canonical_copy():
     )
 
 
-def test_selection_example_uses_the_current_geometry_stack():
-    """Prevent examples from reintroducing the removed legacy geometry path."""
-    example = (
-        Path(__file__).resolve().parents[2]
-        / "SetAnubis/examples/Selection/example_selection_pipeline.py"
-    )
-    source = example.read_text(encoding="utf-8")
-    assert "ATLASCavernGeometry.create" in source
-    assert "SelectionGeometryAdapter(geometry)" in source
-    assert "GeometrySelectionAdapter" not in source
-    assert "SelectionEnginev2" not in source
+def test_selection_examples_use_the_current_geometry_stack():
+    """Prevent examples from reintroducing removed geometry or engine adapters."""
+    examples = Path(__file__).resolve().parents[2] / "SetAnubis/examples/Selection"
+    current_stack_examples = [
+        examples / "example_selection_pipeline.py",
+        examples / "dev_examples/example_jets_and_pT_deltaR_cuts.py",
+    ]
+    for example in current_stack_examples:
+        source = example.read_text(encoding="utf-8")
+        assert "ATLASCavernGeometry.create" in source
+        assert "SelectionGeometryAdapter(geometry)" in source
+        assert "GeometrySelectionAdapter" not in source
+        assert "SelectionEnginev2" not in source
 
 
 def test_maintained_comments_and_docstrings_are_written_in_english():
@@ -152,6 +216,8 @@ def test_maintained_comments_and_docstrings_are_written_in_english():
         "supprime",
         "génère",
         "renvoie",
+        "remplace",
+        "introuvable",
         "détermination",
         "écriture",
         "mère",
@@ -179,10 +245,42 @@ def test_maintained_comments_and_docstrings_are_written_in_english():
                 if token.type not in {tokenize.COMMENT, tokenize.STRING}:
                     continue
                 lowered = token.string.lower()
-                marker = next((item for item in french_markers if item in lowered), None)
+                marker = next(
+                    (item for item in french_markers if item in lowered), None
+                )
                 if marker:
                     failures.append(
                         f"{path.relative_to(root)}:{token.start[0]} contains {marker!r}"
                     )
 
     assert not failures, "French comments/docstrings remain:\n" + "\n".join(failures)
+
+
+def test_release_python_files_parse_with_supported_minimum_version():
+    """Reject Python syntax that is newer or older than the supported baseline."""
+    root = Path(__file__).parents[3]
+    release_roots = [
+        root / "Assets",
+        root / "Docs",
+        root / "External_Integration",
+        root / "MacOS",
+        root / "reproducibility",
+        root / "setanubis",
+    ]
+    python_files = [path for path in root.iterdir() if path.suffix == ".py"]
+    for release_root in release_roots:
+        if release_root.exists():
+            python_files.extend(release_root.rglob("*.py"))
+
+    failures: list[str] = []
+    for path in sorted(set(python_files)):
+        try:
+            ast.parse(
+                path.read_text(encoding="utf-8"),
+                filename=str(path),
+                feature_version=(3, 10),
+            )
+        except (SyntaxError, UnicodeDecodeError) as exc:
+            failures.append(f"{path.relative_to(root)}: {exc}")
+
+    assert not failures, "Python 3.10 syntax failures:\n" + "\n".join(failures)

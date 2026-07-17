@@ -462,7 +462,7 @@ def plotShaftRPCsXZ(self, ax, ANUBISrpcs, localCoords=False):
         ax.plot(pltX, pltZ, color=self.LayerColours[idx%len(self.LayerColours)], ls=self.LayerLS[idx%len(self.LayerLS)], label=f"Layer {idx}")
 
 def plotShaftRPCs3D(self, ax, ANUBISrpcs):
-    #TODO: Fix, Not working properly at the moment to display the shaft layers
+    # NOTE: Shaft-layer rendering is not yet reliable in this legacy plotter.
     for idx in range(len(ANUBISrpcs["x"])):
         pltX, pltZ = self.shaftRPCshape(ANUBISrpcs["x"][idx], ANUBISrpcs["z"][idx], ANUBISrpcs["pipeCutoff"], ANUBISrpcs["RPCradius"][idx])
         pltY, theta = np.meshgrid(np.linspace(ANUBISrpcs["y"][idx][0], ANUBISrpcs["y"][idx][1], len(pltX)), np.linspace(0,360,len(pltX)))

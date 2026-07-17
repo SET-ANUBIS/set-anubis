@@ -1,87 +1,108 @@
-from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
-from SetAnubis.core.Common.MultiSet import MultiSet
-from pathlib import Path
-import yaml
+"""Mapping and deterministic naming helpers for MARTY workspaces."""
+
+from __future__ import annotations
+
 import json
-from typing import Dict
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, Iterable
 
-def decay_name(mother : int, daugthers : MultiSet, nsa : SetAnubisInterface, mapping : dict):
-    """Build a filename from the mother and daughters, such as ``b_c_cbar``.
+import yaml
 
-    ``mapping`` converts UFO database names to MARTY database names.
+from SetAnubis.resources import asset_path
+
+
+def decay_name(
+    mother: int | Iterable[int],
+    daughters: Iterable[int],
+    nsa: Any,
+    mapping: dict,
+) -> str:
+    """Build a stable process name from mother and daughter PDG identifiers.
+
+    ``nsa`` and ``mapping`` remain in the signature for compatibility with the
+    existing MARTY orchestration API. Names currently use absolute PDG codes so
+    that generated paths stay independent of model display names.
     """
-    if isinstance(mother, list):
-        mother_names = [str(abs(m)) for m in mother]
-    else:
-        mother_names = [str(abs(mother))]
-        
-    daugther_names = [str(abs(d)) for d in daugthers]
-    
-    return "_".join(mother_names + ["s"] + daugther_names)
+    del nsa, mapping
+    mothers = list(mother) if isinstance(mother, (list, tuple, set)) else [mother]
+    mother_names = [str(abs(int(value))) for value in mothers]
+    daughter_names = [str(abs(int(value))) for value in daughters]
+    return "_".join(mother_names + ["s"] + daughter_names)
 
+
+def _model_assets_path() -> Path:
+    """Return the bundled or checkout MARTY model mapping directory."""
+    return asset_path("MARTY", "model")
 
 
 @lru_cache(maxsize=2)
 def _load_ufo_mappings(reversed: bool) -> Dict[str, str]:
-    base_path = Path(__file__).resolve()
-    for _ in range(6):
-        base_path = base_path.parent
-    assets_path = base_path / "Assets" / "MARTY" / "model"
+    """Load merged MARTY-to-UFO parameter mappings from JSON and YAML."""
+    assets_path = _model_assets_path()
+    mapping: Dict[str, str] = {}
 
     json_file = assets_path / "conversion_sm.json"
+    if json_file.is_file():
+        data = json.loads(json_file.read_text(encoding="utf-8"))
+        mapping.update(
+            {
+                entry["name"]: entry["ufo_name"]
+                for entry in data
+                if "name" in entry and "ufo_name" in entry
+            }
+        )
+
     yaml_file = assets_path / "conversion_model.yaml"
-    mapping = {}
+    if yaml_file.is_file():
+        data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or []
+        mapping.update(
+            {
+                entry["name"]: entry["ufo_name"]
+                for entry in data
+                if "name" in entry and "ufo_name" in entry
+            }
+        )
 
-    if json_file.exists():
-        with open(json_file, "r") as f:
-            data = json.load(f)
-            mapping.update({entry["name"]: entry["ufo_name"]
-                            for entry in data if "name" in entry and "ufo_name" in entry})
+    return {value: key for key, value in mapping.items()} if reversed else mapping
 
-    if yaml_file.exists():
-        with open(yaml_file, "r") as f:
-            data = yaml.safe_load(f)
-            if data:
-                mapping.update({entry["name"]: entry["ufo_name"]
-                                for entry in data if "name" in entry and "ufo_name" in entry})
-    
-    if reversed:
-        return {v: k for k, v in mapping.items()}
-    return mapping
 
 def load_ufo_mappings(reversed: bool = False) -> Dict[str, str]:
+    """Return cached MARTY/UFO parameter-name mappings."""
     return _load_ufo_mappings(reversed)
 
 
 @lru_cache(maxsize=2)
 def _load_particle_mappings(reversed: bool) -> Dict[str, str]:
-    base_path = Path(__file__).resolve()
-    for _ in range(6):
-        base_path = base_path.parent
-    assets_path = base_path / "Assets" / "MARTY" / "model"
+    """Load merged PDG-to-MARTY particle mappings from JSON and YAML."""
+    assets_path = _model_assets_path()
+    mapping: Dict[str, str] = {}
 
     json_file = assets_path / "sm_particle.json"
+    if json_file.is_file():
+        data = json.loads(json_file.read_text(encoding="utf-8"))
+        mapping.update(
+            {
+                str(entry["pdg_code"]): entry["name"]
+                for entry in data
+                if "pdg_code" in entry and "name" in entry
+            }
+        )
+
     yaml_file = assets_path / "model_particle.yaml"
-    mapping = {}
+    if yaml_file.is_file():
+        data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or []
+        mapping.update(
+            {
+                str(entry["pdg_code"]): entry["name"]
+                for entry in data
+                if "pdg_code" in entry and "name" in entry
+            }
+        )
 
-    if json_file.exists():
-        with open(json_file, "r") as f:
-            data = json.load(f)
-            mapping.update({entry["pdg_code"]: entry["name"]
-                            for entry in data if "pdg_code" in entry and "name" in entry})
+    return {value: key for key, value in mapping.items()} if reversed else mapping
 
-    if yaml_file.exists():
-        with open(yaml_file, "r") as f:
-            data = yaml.safe_load(f)
-            if data:
-                mapping.update({entry["pdg_code"]: entry["name"]
-                                for entry in data if "pdg_code" in entry and "name" in entry})
-    
-    if reversed:
-        return {v: k for k, v in mapping.items()}
-    return mapping
 
 def load_particle_mappings(reversed: bool = False) -> Dict[str, str]:
+    """Return cached PDG/MARTY particle-name mappings."""
     return _load_particle_mappings(reversed)
-

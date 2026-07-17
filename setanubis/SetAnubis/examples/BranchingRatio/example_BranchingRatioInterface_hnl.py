@@ -1,48 +1,65 @@
 """Combine Python and CSV decay providers through the branching-ratio interface."""
 
-from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import DecayInterface, CalculationDecayStrategy
-from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
-from SetAnubis import assets_dir
-import os
+from __future__ import annotations
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PY_SCRIPT_PATH = os.path.join(CURRENT_DIR, "TestFiles", "test_BR.py")
-CSV_FILE_PATH  = os.path.join(CURRENT_DIR, "TestFiles", "test_BR.csv")
+from importlib.resources import as_file, files
+
+from SetAnubis import assets_dir
+from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import (
+    CalculationDecayStrategy,
+    DecayInterface,
+)
+from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import (
+    SetAnubisInterface,
+)
+
+
+def main() -> None:
+    """Register Python and CSV providers and evaluate representative channels."""
+    model = SetAnubisInterface(str(assets_dir() / "UFO" / "UFO_HNL"))
+
+    # The bundled CSV grid covers mN1 and VeN1 in [1, 2].  Pick an interior
+    # point so the example demonstrates interpolation instead of extrapolation.
+    model.set_leaf_param("mN1", 1.5)
+    model.set_leaf_param("VeN1", 1.5)
+    model.set_leaf_param("ZERO", 0.0)
+
+    resources_root = files("SetAnubis.examples.BranchingRatio").joinpath("TestFiles")
+    with (
+        as_file(resources_root.joinpath("test_BR.py")) as python_script,
+        as_file(resources_root.joinpath("test_BR.csv")) as csv_file,
+    ):
+        decays = DecayInterface(model)
+        decays.add_decays(
+            [{"mother": 25, "daughters": [5, -5]}],
+            CalculationDecayStrategy.PYTHON,
+            {"script_path": str(python_script)},
+        )
+        decays.add_decays(
+            [
+                {"mother": 25, "daughters": [-13, 13]},
+                {"mother": 25, "daughters": [22, 22]},
+            ],
+            CalculationDecayStrategy.FILE_INTERPOLATION,
+            {
+                "file_path": str(csv_file),
+                "varying_params": ["mN1", "VeN1"],
+                "format_type": "csv",
+            },
+        )
+
+        # Query each provider independently before deriving the normalized BRs.
+        gamma_bb_python = decays.get_decay(25, [5, -5])
+        gamma_mumu_csv = decays.get_decay(25, [-13, 13])
+        gamma_gamma_csv = decays.get_decay(25, [22, 22])
+        print(f"[PYTHON] Gamma(H -> b bbar) = {gamma_bb_python}")
+        print(f"[CSV] Gamma(H -> mu+ mu-) = {gamma_mumu_csv}")
+        print(f"[CSV] Gamma(H -> gamma gamma) = {gamma_gamma_csv}")
+        print(f"Total registered width Gamma(H) = {decays.get_decay_tot(25)}")
+
+        for result in decays.get_brs(25):
+            print(result)
+
 
 if __name__ == "__main__":
-    # Load the packaged HNL UFO and register two independent decay providers.
-    setanubis = SetAnubisInterface(os.path.join(assets_dir(),"UFO","UFO_HNL"))
-    
-    setanubis.set_leaf_param("ZERO", 0)
-    all_particles = setanubis.get_all_particles()
-    all_params = setanubis.get_all_parameters()
-    
-    br = DecayInterface(setanubis)
-    br.add_decays([{"mother" : 25, "daughters" : [24,-24]}], CalculationDecayStrategy.PYTHON, config={"script_path" : PY_SCRIPT_PATH})
-    
-    decay_list = [
-        {"mother": 25, "daughters": [-13, 13]},
-        {"mother": 25, "daughters": [22, 22]},
-    ]
-    common_config = {
-        "file_path": CSV_FILE_PATH,
-        "varying_params": ["mN1", "VeN1"], 
-        "format_type": "csv"
-    }
-    
-    br.add_decays(decay_list, CalculationDecayStrategy.FILE_INTERPOLATION, common_config)
-    
-    
-    # Query individual widths, the total width, and normalized branching ratios.
-    gamma_mumu_script = br.get_decay(25, [-13, 13])
-    print(f"[SCRIPT PYTHON] Gamma(H->mu+mu-) = {gamma_mumu_script}")
-
-    gamma_gamma_csv = br.get_decay(25, [22, 22])
-    print(f"[CSV FILE] Gamma(H->gamma gamma) = {gamma_gamma_csv}")
-
-    total_width = br.get_decay_tot(25)
-    print(f"Total width Gamma(H) = {total_width}")
-
-    brs = br.get_brs(25)
-    for item in brs:
-        print(item)
+    main()

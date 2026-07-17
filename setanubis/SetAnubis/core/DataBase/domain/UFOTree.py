@@ -412,7 +412,6 @@ class ExpressionTree:
         overwrite: Raise an error if *name* exists when false.
         """
         if name in self.nodes and not overwrite:
-            return #TODO : for now no warning
             raise ValueError(f"Node '{name}' already exists. Use overwrite=True to replace it.")
 
 

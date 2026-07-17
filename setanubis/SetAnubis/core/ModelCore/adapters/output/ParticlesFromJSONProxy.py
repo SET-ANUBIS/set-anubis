@@ -52,7 +52,7 @@ class ParticlesFromJSONProxy(IParticleJSONProxy) :
     def _normalize_payload(self, pdg: int, raw: Mapping[str, Any]) -> Dict[str, Any]:
         """
         JSON Scheme normalized with manager needs:
-        Normalise le schéma du JSON vers celui attendu par ton manager.
+        Normalize the JSON schema to the structure expected by the manager.
         {
           "1": {"name": "d", "antiName": "dbar", "spin": 2.0, "charge": -0.333..., "colour": 1.0, "mass": 0.33},
           ...

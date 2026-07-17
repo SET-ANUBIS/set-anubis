@@ -57,4 +57,4 @@ def test_raises_runtime_error_on_missing_class(tmp_path):
     gen = ParamCardGenerator(str(path))
     with pytest.raises(RuntimeError) as exc:
         gen.generate_param_card()
-    assert "ParamCardWriter" in str(exc.value) or "génération du param_card" in str(exc.value)
+    assert "ParamCardWriter" in str(exc.value) or "Failed to generate param_card" in str(exc.value)

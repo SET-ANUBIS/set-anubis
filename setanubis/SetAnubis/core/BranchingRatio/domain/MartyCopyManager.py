@@ -1,8 +1,13 @@
+"""Prepare helper sources inside a generated MARTY library workspace."""
+
 from pathlib import Path
 from SetAnubis.core.BranchingRatio.adapters.output.MartyFileCopyBuilder import MartyFileCopyBuilder
 
 class CopyManager:
+    """Copy integration helpers and update their generated namespace."""
+
     def __init__(self, ampli_name: str, builder : MartyFileCopyBuilder):
+        """Configure the target library name and copy backend."""
         self.ampli_name = ampli_name
         self.root = Path(__file__).resolve()
         for _ in range(6):
@@ -12,6 +17,7 @@ class CopyManager:
         self.builder = builder
 
     def prepare_files(self):
+        """Queue helper sources, headers, and the generated Makefile update."""
         files_to_copy = [
             "integration.cpp",
             "kinematics.cpp",
@@ -64,9 +70,6 @@ class CopyManager:
         return cpp_path
         
     def execute(self):
+        """Prepare and execute the complete copy plan."""
         self.prepare_files()
         self.builder.execute()
-        
-if __name__ == "__main__":
-    manager = CopyManager("decay_widths_24_2_2")
-    manager.execute()

@@ -63,7 +63,7 @@ jobs:
           --cov-config=pyproject.toml
           --cov-report=term-missing
           --cov-report=xml
-          --cov-fail-under=48
+          --cov-fail-under=54
 
       - name: Audit installed dependencies
         if: matrix.python-version == '3.12'

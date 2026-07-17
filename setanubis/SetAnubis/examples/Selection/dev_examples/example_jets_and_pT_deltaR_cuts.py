@@ -5,10 +5,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from SetAnubis.core.Geometry.adapters.geometry_builder import CavernGeometryBuilder
-from SetAnubis.core.Geometry.adapters.geometry_query import CavernQuery
-from SetAnubis.core.Geometry.adapters.selection_adapter import GeometrySelectionAdapter
-from SetAnubis.core.Geometry.domain.builder import GeometryBuildConfig, GeometryBuilder
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import ATLASCavernGeometry
+from SetAnubis.core.Geometry.adapters.ATLASCavernGeometryConfig import (
+    ATLASCavernGeometryConfig,
+)
 from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import (
     SelectionGeometryAdapter,
 )
@@ -51,30 +51,23 @@ if __name__ == "__main__":
     charged = sample_dfs["chargedFinalStates"].copy()
     neutral = sample_dfs["neutralFinalStates"].copy()
 
-    # Build the cavern geometry once and expose it through the selection adapter.
-    geometry_config = GeometryBuildConfig(
-        geo_cache_file="atlas_cavern.pkl",
-        origin="IP",
-        RPCeff=1.0,
-        nRPCsPerLayer=1,
-        geometryType="",
+    # Build the canonical geometry backend used by the current selection engine.
+    geometry = ATLASCavernGeometry.create(
+        ATLASCavernGeometryConfig(
+            mode="ceiling",
+            origin="IP",
+            rpc_eff=1.0,
+            n_rpcs_per_layer=1,
+            use_cache=False,
+        )
     )
-    geometry: CavernQuery = GeometryBuilder(
-        CavernGeometryBuilder(geometry_config)
-    ).build()
-    selection_geometry = SelectionGeometryAdapter(
-        GeometrySelectionAdapter(geometry)
-    )
+    selection_geometry = SelectionGeometryAdapter(geometry)
 
     selection_config = SelectionConfig(
         geometry=selection_geometry,
         minMET=30.0,
-        minP=MinThresholds(
-            LLP=0.1, chargedTrack=0.1, neutralTrack=0.1, jet=0.1
-        ),
-        minPt=MinThresholds(
-            LLP=0.0, chargedTrack=5.0, neutralTrack=5.0, jet=15.0
-        ),
+        minP=MinThresholds(LLP=0.1, chargedTrack=0.1, neutralTrack=0.1, jet=0.1),
+        minPt=MinThresholds(LLP=0.0, chargedTrack=5.0, neutralTrack=5.0, jet=15.0),
         minDR=MinDR(jet=0.4, chargedTrack=0.4, neutralTrack=0.4),
         nStations=2,
         nIntersections=2,
@@ -96,9 +89,7 @@ if __name__ == "__main__":
     )
 
     isolation = IsolationComputer(selection=selection_config)
-    enriched_bundle["LLPs"] = isolation.attach_min_delta_r(
-        enriched_bundle.copy()
-    )
+    enriched_bundle["LLPs"] = isolation.attach_min_delta_r(enriched_bundle.copy())
 
     print(enriched_bundle["LLPs"].head())
     BundleIO.save_bundle(enriched_bundle, OUTPUT_FILE)

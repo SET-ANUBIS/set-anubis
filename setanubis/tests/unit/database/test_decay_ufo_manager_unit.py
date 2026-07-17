@@ -105,3 +105,21 @@ def test_create_func_caches_and_evaluate():
     funcs, params = mgr.get_caches()
     assert 4000 in funcs and (3000, 1000) in funcs[4000]
     assert params[4000][(3000, 1000)] == ["theta"]
+
+
+def test_ufo_expression_helpers_and_missing_parameters():
+    """Map UFO helper functions to SymPy and reject incomplete inputs."""
+    function, parameters = decay_mod.DecayUFOManager._generate_function_from_expression(
+        "z*complexconjugate(z)/pi"
+    )
+    assert parameters == ["z"]
+    assert function({"z": 2.0 + 0j}) == pytest.approx(4.0 / math.pi)
+    with pytest.raises(KeyError, match="Missing UFO decay parameters"):
+        function({})
+
+
+def test_ufo_expression_rejects_non_real_result():
+    """Decay widths must evaluate to real numerical values."""
+    function, _ = decay_mod.DecayUFOManager._generate_function_from_expression("z")
+    with pytest.raises(ValueError, match="complex value"):
+        function({"z": 1.0 + 2.0j})

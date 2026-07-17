@@ -1,51 +1,92 @@
+"""CSV-backed interpolation strategy for decay widths and branching ratios."""
+
+from __future__ import annotations
+
 import csv
-from SetAnubis.core.BranchingRatio.ports.IFileInterpolationStrategy import IFileInterpolationSubStrategy
-from typing import Dict, Any, Set, List
+from pathlib import Path
+from typing import Dict, List
+
+import numpy as np
+from scipy.interpolate import LinearNDInterpolator
+
+from SetAnubis.core.BranchingRatio.ports.IFileInterpolationStrategy import (
+    IFileInterpolationSubStrategy,
+)
+from SetAnubis.core.Common.MultiSet import MultiSet
 
 
 class CSVInterpolationSubStrategy(IFileInterpolationSubStrategy):
-    def __init__(self):
-        self._data = []
-        self._varying_params = []
+    """Linearly interpolate channel values over one or more model parameters."""
 
-    def load_file(self, file_path: str, varying_params: List[str], is_br = False):
-        self._varying_params = varying_params
-        self._is_br = is_br
-        with open(file_path, "r", newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                self._data.append(row)
+    def __init__(self) -> None:
+        self._data: list[dict[str, str]] = []
+        self._varying_params: list[str] = []
+        self._is_br = False
 
-    def interpolate(self, mother: int, daughters: List[int], param_values: Dict[str, float]) -> float:
-        """Return the requested decay value from the loaded CSV table.
+    def load_file(
+        self,
+        file_path: str,
+        varying_params: List[str],
+        is_br: bool = False,
+    ) -> None:
+        """Load a CSV table and validate its parameter columns."""
+        path = Path(file_path)
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        self._varying_params = list(varying_params)
+        self._is_br = bool(is_br)
+        with path.open("r", newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            fieldnames = set(reader.fieldnames or [])
+            missing = [name for name in self._varying_params if name not in fieldnames]
+            if missing:
+                raise ValueError(f"CSV table is missing parameter columns: {missing}")
+            self._data = list(reader)
+        if not self._data:
+            raise ValueError(f"CSV table is empty: {path}")
 
-        The current implementation selects the first compatible row and reads
-        the column identified by the mother and daughter particle IDs.
-        """
+    def interpolate(
+        self,
+        mother: int,
+        daughters: MultiSet[int],
+        param_values: Dict[str, float],
+    ) -> float:
+        """Interpolate one channel at the requested model-parameter point."""
+        missing = [name for name in self._varying_params if name not in param_values]
+        if missing:
+            raise ValueError(f"Missing interpolation parameters: {missing}")
 
-        for p in self._varying_params:
-            if p not in param_values.keys():
-                raise ValueError(f"Parameter {p} not in varying_params. Can't do interpolation.")
-        
-        best_row = None
-        for row in self._data:
-            match_all = True
+        daughters_str = ";".join(str(value) for value in sorted(daughters))
+        column = f"{mother}:{daughters_str}"
+        if column not in self._data[0]:
+            raise KeyError(
+                f"No column {column!r} in CSV table; available columns are "
+                f"{list(self._data[0])}"
+            )
 
-            if match_all:
-                best_row = row
-                break
-        
-        if best_row is None:
-            raise ValueError("No matching row found in CSV for these parameter values.")
-        
-        mother_str = str(mother)
-        daughters_sorted = list(daughters)
-        daughters_str = ";".join(str(d) for d in daughters_sorted)
-        col_name = f"{mother_str}:{daughters_str}"
+        points = np.asarray(
+            [
+                [float(row[name]) for name in self._varying_params]
+                for row in self._data
+            ],
+            dtype=float,
+        )
+        values = np.asarray([float(row[column]) for row in self._data], dtype=float)
+        query = np.asarray([float(param_values[name]) for name in self._varying_params])
 
-        if col_name not in best_row:
-            raise KeyError(f"No column '{col_name}' in CSV row. Available columns: {list(best_row.keys())}")
+        exact = np.all(np.isclose(points, query, rtol=0.0, atol=1e-12), axis=1)
+        if exact.any():
+            return float(values[np.flatnonzero(exact)[0]])
 
-        partial_width_str = best_row[col_name]
-        partial_width = float(partial_width_str)
-        return partial_width
+        if points.shape[1] == 1:
+            order = np.argsort(points[:, 0])
+            coordinates = points[order, 0]
+            if query[0] < coordinates[0] or query[0] > coordinates[-1]:
+                raise ValueError("Interpolation point lies outside the CSV parameter range")
+            return float(np.interp(query[0], coordinates, values[order]))
+
+        interpolator = LinearNDInterpolator(points, values, fill_value=np.nan)
+        result = float(np.asarray(interpolator(query)).reshape(-1)[0])
+        if np.isnan(result):
+            raise ValueError("Interpolation point lies outside the CSV parameter grid")
+        return result

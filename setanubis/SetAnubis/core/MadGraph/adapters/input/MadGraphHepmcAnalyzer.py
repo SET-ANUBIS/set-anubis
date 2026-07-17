@@ -30,7 +30,7 @@ class HepMCFileSource:
     """
     Event source based on pyhepmc.open()
 
-    path: path to the .hepmc file (HepMC2/3 ASCII, éventuellement .gz, .bz2, .xz)
+    path: path to a HepMC2/3 ASCII file, optionally compressed as .gz, .bz2, or .xz
     """
 
     path: str

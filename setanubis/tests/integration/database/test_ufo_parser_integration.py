@@ -30,14 +30,14 @@ def test_parse_realistic_file_with_noise(tmp_path):
 import math as m
 from collections import namedtuple
 SOMETHING = 42
-Foo = SomethingElse(a=1, b=2)  # non supporté -> ignoré
+Foo = SomethingElse(a=1, b=2)  # unsupported -> ignored
 
 # Objets UFO
 d_quark = Particle(pdg_code=1, name='d', antiname='d~', mass=P.Md, width=0, charge='-1/3')
 zwidths = Decay(name='Z', particle='Z', partial_widths=[('e-','e+'), ('mu-','mu+')])
 Gf      = Parameter(name='Gf', nature='external', type='real', value=1.16639e-5)
 
-X = 3.14  # assign simple -> ignoré
+X = 3.14  # simple assignment -> ignored
 '''
     path = _write(tmp_path, noisy_src)
 

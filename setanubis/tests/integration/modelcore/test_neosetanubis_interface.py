@@ -48,7 +48,7 @@ class FakeExpressionTree:
         overwrite: bool = False):
         
         if name in self.nodes and not overwrite:
-            return #TODO : for now no warning
+            return  # The fake keeps the existing node unless overwrite is requested.
         
         self.nodes[name] = FakeNode(value=value, block=lha_block, code=lha_code)
 

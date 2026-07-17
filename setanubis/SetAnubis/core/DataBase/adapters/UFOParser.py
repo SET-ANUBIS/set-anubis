@@ -46,11 +46,11 @@ class UFOParser(IParser):
                                             if isinstance(kw.value.op, ast.Div): 
                                                 args["charge"] = float(Fraction(left, right))
                                             else:
-                                                raise ValueError("Opération non supportée pour 'charge'")
+                                                raise ValueError("Unsupported operation for charge")
                                         else:
                                             args["charge"] = float(Fraction(kw.value.s))
                                     except Exception as e:
-                                        print(f"Erreur pour la charge: {e}")
+                                        print(f"Could not parse particle charge: {e}")
                                         args["charge"] = 0
 
                         particle = Particle(**args)

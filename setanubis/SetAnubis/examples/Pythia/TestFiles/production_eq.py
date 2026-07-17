@@ -5,7 +5,8 @@ import re
 import numpy as np
 import scipy.interpolate
 import six
-from typing import Dict, Set, Tuple
+from collections.abc import Mapping
+from typing import Any, Dict, Tuple
 from SetAnubis.core.Common.MultiSet import MultiSet
 from SetAnubis.core.BranchingRatio.domain.IDecayCalculation import IDecayCalculation
 
@@ -24,10 +25,16 @@ class HNLDecayBRCalculator(IDecayCalculation):
         if interpolator is None:
             raise ValueError(f"No interpolator found for decay '{decay_str}'")
 
-        mass = parameters.get("mN1")["value"]
+        mass: Any = parameters.get("mN1")
+        # BranchingRatioManager supplies flattened numerical values.  Accept the
+        # historical {"value": ...} wrapper as well so older user scripts remain
+        # compatible with the packaged calculator.
+        if isinstance(mass, Mapping):
+            mass = mass.get("value")
         if mass is None:
             raise ValueError("Parameter 'mN1' is required")
-        return float(interpolator(float(mass.real)))
+        mass_value = float(mass.real if isinstance(mass, complex) else mass)
+        return float(interpolator(mass_value))
 
     def _make_interpolators(self, kind: str = "linear") -> Dict[str, scipy.interpolate.interp1d]:
         # Load the canonical HNL table shipped next to this support module.
@@ -46,8 +53,8 @@ class HNLDecayBRCalculator(IDecayCalculation):
 
         th1f_exp = re.compile(r'^TH1F\|.+')
         header_exp = re.compile(r'^TH1F\|(.+?)\|B(?:R|F)/U2(.+?)\|.+? mass \(GeV\)\|?')
-        subheader_exp = re.compile(r'^\s*?(\d+?),\s*(\d+?\.\d+?),\s*(\d+\.\d+)\s*$')
-        data_exp = re.compile(r'^\s*(\d+)\s*,\s*(\d+\.\d+)\s*$')
+        subheader_exp = re.compile(r'^\s*(\d+)\s*,\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s*,\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s*$')
+        data_exp = re.compile(r'^\s*(\d+)\s*,\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s*$')
 
         header_line_idx = [i for i in range(len(lines)) if th1f_exp.match(lines[i]) is not None]
 
@@ -64,12 +71,12 @@ class HNLDecayBRCalculator(IDecayCalculation):
 
             npoints = int(ms.group(1))
             min_mass = float(ms.group(2))
-            max_mass = float(ms.group(1))
+            max_mass = float(ms.group(3))
 
             masses = np.linspace(min_mass, max_mass, npoints, endpoint=False)
             branching_ratios = np.zeros(npoints)
 
-            for line in lines[offset + 2:offset + 1 + npoints]:
+            for line in lines[offset + 2 : offset + 2 + npoints]:
                 md = data_exp.match(line)
                 if md is None or len(md.groups()) != 2:
                     raise ValueError(f"Malformed data line: {line}")
@@ -164,4 +171,4 @@ class HNLDecayBRCalculator(IDecayCalculation):
 if __name__ == "__main__":
     test = HNLDecayBRCalculator()
     
-    print(test.calculate(4132, (-11, 3312, 9900012), {"mN1" : 0.5}))
+    print(test.calculate(4132, (-11, 3312, 9900012), {"mN1": 0.5}))

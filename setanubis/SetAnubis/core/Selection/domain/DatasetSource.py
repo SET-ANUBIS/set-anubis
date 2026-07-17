@@ -70,9 +70,7 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()[:16]
 
 def _fingerprint_paths(paths: List[str]) -> str:
-    """
-    for cache (figerprint noms + tailles + mtimes)
-    """
+    """Fingerprint file names, sizes, and modification times for caching."""
     h = hashlib.sha256()
     for p in sorted(map(str, paths)):
         try:
@@ -85,9 +83,7 @@ def _fingerprint_paths(paths: List[str]) -> str:
     return h.hexdigest()[:16]
 
 def _fingerprint_df(df: pd.DataFrame) -> str:
-    """
-    Fingerprint for df (light) : shape + columns + hash of buff csv. Can be change to parquet+hash
-    """
+    """Build a lightweight dataframe fingerprint from metadata and CSV bytes."""
     buf = io.BytesIO()
 
     df.head(min(len(df), 5000)).to_csv(buf, index=False)

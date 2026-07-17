@@ -1,5 +1,6 @@
+"""Port for validating decay channels before registration."""
+
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
 from SetAnubis.core.Common.MultiSet import MultiSet
 

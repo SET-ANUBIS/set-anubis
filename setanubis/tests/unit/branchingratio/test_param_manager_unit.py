@@ -25,9 +25,9 @@ csl::InitSanitizer<real_t> alpha0 {
 csl::InitSanitizer<complex_t> Ve1 {
     // ...
 };
-csl::InitSanitizer<real_t> s_12 { };     // exclu
-csl::InitSanitizer<real_t> reg_prop { }; // spécial
-csl::InitSanitizer<real_t> theta_W { };  // spécial, dépend de sw
+csl::InitSanitizer<real_t> s_12 { };     // excluded
+csl::InitSanitizer<real_t> reg_prop { }; // special
+csl::InitSanitizer<real_t> theta_W { };  // special, depends on sw
 """
     p = tmp_path / "params.h"
     p.write_text(text, encoding="utf-8")
@@ -77,3 +77,26 @@ def test_param_manager_parses_and_fetches_values(header_file, monkeypatch):
     csv = mgr.create_csv()
     assert "alpha0,127.9" in csv
     assert "reg_prop,1e-05" in csv
+
+
+def test_particle_csv_and_finite_special_value(header_file, monkeypatch):
+    """Serialize process particles and resolve the generated Finite constant."""
+    monkeypatch.setattr(pm_mod, "load_ufo_mappings", lambda reversed=False: {})
+    monkeypatch.setattr(pm_mod, "load_particle_mappings", lambda reversed=False: {})
+
+    class ParticleNSA(FakeNSA):
+        def get_particle_info(self, pdg):
+            return {"name": {23: "Z", 5: "b", -5: "b~"}[pdg]}
+
+        def get_particle_mass(self, pdg):
+            return {23: 91.2, 5: 4.2, -5: 4.2}[pdg]
+
+    finite_header = header_file.parent / "finite.h"
+    finite_header.write_text(
+        "csl::InitSanitizer<real_t> Finite { };\n", encoding="utf-8"
+    )
+    manager = pm_mod.ParamManager(finite_header, ParticleNSA({}))
+    assert manager.get_parameters()[0].value == 1.0 + 0j
+    assert manager.create_particle_csv([23], [5, -5]) == (
+        "Z_in,91.2\nb_out,4.2\nb~_out,4.2\n"
+    )

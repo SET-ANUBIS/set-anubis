@@ -57,7 +57,7 @@ def _fmt_s(x: float) -> str:
 # acceleration factor
 eps = 1e-12
 if builder_time + old_time < eps:
-    winner = "Égalité"
+    winner = "Tie"
     speedup = 1.0
 elif builder_time <= old_time:
     winner = "HepmcFrameBuilder"
@@ -69,7 +69,7 @@ else:
 print("\n=== Timing ===")
 print(f"HepmcFrameBuilder      : {_fmt_s(builder_time)}")
 print(f"createDFfromHEPMC      : {_fmt_s(old_time)}")
-print(f"Gagnant                : {winner} ({speedup:.2f}× plus rapide)")
+print(f"Winner                 : {winner} ({speedup:.2f}× faster)")
 print("================\n")
 
 
@@ -131,8 +131,8 @@ report = quick_df_compare(df, df_old, sort_keys=("eventNumber","particleIndex"))
 print(json.dumps(report, indent=2, default=str))
 
 rtol, atol = 1e-6, 1e-12
-assert "PID" in df.columns and "charge" in df.columns, "df doit contenir PID/charge"
-assert "PID" in df_old.columns and "charge" in df_old.columns, "df_old doit contenir PID/charge"
+assert "PID" in df.columns and "charge" in df.columns, "df must contain PID/charge"
+assert "PID" in df_old.columns and "charge" in df_old.columns, "df_old must contain PID/charge"
 
 common_cols = list(set(df.columns) & set(df_old.columns))
 keys = [k for k in ("eventNumber","particleIndex") if k in common_cols]
@@ -163,12 +163,12 @@ print(M["sign_flip"].value_counts(dropna=False).rename({True:"sign_flip", False:
 
 # Count by PID
 top_pid = (M.groupby("PID").size().sort_values(ascending=False).head(20))
-print("\nTop 20 PIDs causant des écarts:")
+print("\nTop 20 PIDs causing differences:")
 print(top_pid)
 
 # Sample
 sample_rows = M[M["PID"].isin(top_pid.index)].head(20)
-print("\nÉchantillon (PID, eventNumber, particleIndex, new, old):")
+print("\nSample (PID, eventNumber, particleIndex, new, old):")
 print(sample_rows[["PID","eventNumber","particleIndex","charge_new","charge_old"]])
 
 # Check pid
@@ -187,7 +187,7 @@ try:
         "new_ok": [M["new_matches_PDG"].sum(), len(M) - M["new_matches_PDG"].sum()],
         "old_ok": [M["old_matches_PDG"].sum(), len(M) - M["old_matches_PDG"].sum()],
     }, index=["matches","mismatches"])
-    print("\nConformité PDG (sur les lignes en désaccord):")
+    print("\nPDG consistency for disagreeing rows:")
     print(pdg_check)
 except Exception as e:
     print("\n[Info] The 'particle' package is unavailable; skipping the PDG check.", e)

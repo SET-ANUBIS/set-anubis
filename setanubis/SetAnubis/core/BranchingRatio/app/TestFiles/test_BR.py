@@ -1,14 +1,14 @@
 # ===========================
-# Fichier : my_python_calc.py
+# File: my_python_calc.py
 # ===========================
 from typing import Dict, Any, Set
 from SetAnubis.core.BranchingRatio.domain.IDecayCalculation import IDecayCalculation
 
 class MyPythonDecayCalc(IDecayCalculation):
     """
-    Exemple trivial de calcul. 
-    On suppose que la largeur partielle dépend d'un param "alpha_em" 
-    et de la masse mother. Purement fictif !
+    Minimal demonstration calculation.
+    The toy partial width depends on the ``alpha_em`` parameter and the mother
+    particle mass. The formula is intentionally illustrative rather than physical.
     """
 
     def calculate(self, 

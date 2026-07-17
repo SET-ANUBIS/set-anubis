@@ -13,6 +13,19 @@ from SetAnubis.core.BranchingRatio.domain.IDecayCalculation import IDecayCalcula
 
 # ------- Functions
 
+
+def _numeric_parameter(parameters, name):
+    """Return a numerical model parameter from flat or legacy metadata input."""
+    value = parameters[name]
+    if isinstance(value, dict):
+        value = value.get("value")
+    if value is None:
+        raise ValueError(f"Parameter {name!r} is required")
+    if isinstance(value, complex):
+        value = value.real
+    return float(value)
+
+
 def xSqrt(x):
     return np.sqrt(1 - 4*x**2)
 
@@ -265,8 +278,12 @@ class DecayFunctions(IDecayCalculation):
         float
             Decay width for the specified channel.
         """
-        self.MX = float(params["mN1"]["value"].real)
-        self.couplings = {11 : float(params["VeN1"]["value"].real), 13 : float(params["VmuN1"]["value"].real), 15 : float(params["VtaN1"]["value"].real)}
+        self.MX = _numeric_parameter(params, "mN1")
+        self.couplings = {
+            11: _numeric_parameter(params, "VeN1"),
+            13: _numeric_parameter(params, "VmuN1"),
+            15: _numeric_parameter(params, "VtaN1"),
+        }
         charge_sum = sum([1 if p > 0 else -1 for p in particles if abs(p) in self.params.leplist + self.params.quarklist+self.params.nulist])
         if charge_sum != 1:
             raise ValueError("The difference between the number of positive and negative charges must be one.")

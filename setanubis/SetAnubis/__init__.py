@@ -98,6 +98,7 @@ _EXPORTS: dict[str, str | tuple[str, str]] = {
     "FileCache": "SetAnubis.core.Selection.domain.SelectionPipeline",
     "IDataSource": "SetAnubis.core.Selection.domain.SelectionPipeline",
     "SelectionManager": "SetAnubis.core.Selection.domain.SelectionManager",
+    "SelectionTrace": "SetAnubis.core.Selection.domain.SelectionTrace",
     "DatasetSpec": "SetAnubis.core.Selection.domain.SelectionManager",
     "EventsBundleSource": "SetAnubis.core.Selection.domain.DatasetSource",
     "SourceConfig": "SetAnubis.core.Selection.domain.DatasetSource",

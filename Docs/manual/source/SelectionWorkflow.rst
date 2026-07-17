@@ -112,6 +112,39 @@ Minimal configuration
 
    print(combined.cutflow_sum)
 
+Intermediate-stage tracing
+--------------------------
+
+Tracing is disabled by default so normal scans do not retain duplicate
+dataframes.  Enable it for debugging, validation, or cutflow studies:
+
+.. code-block:: python
+
+   result = pipeline.run(
+       source,
+       selection,
+       RunConfig(capture_intermediate=True),
+   )
+   trace = result["trace"]
+
+   # Ordered pandas DataFrames are available for interactive analysis.
+   met_candidates = trace.stage_dataframes["MET"]
+   print(trace.candidate_summary)
+   print(trace.event_summary)
+
+   # The report is standalone and embeds its JSON summary in the HTML page.
+   trace.write_report("selection_trace_output")
+
+The candidate summary records every stage passed by each LLP, the first failed
+stage and the last stage reached.  The event summary aggregates those flags and
+candidate counts by ``eventNumber``.  The full stage DataFrames remain available
+in Python and can optionally be included as records in the JSON output.
+
+The runnable
+``examples/Selection/example_selection_trace_report.py`` example uses synthetic
+events that intentionally fail at successive cuts, making the report easy to
+inspect.
+
 .. warning::
 
    Pickle-based bundles can execute arbitrary Python code while loading. Only
@@ -155,3 +188,4 @@ Recommended examples
 * ``setanubis/SetAnubis/examples/Selection/dev_examples/example_jets_and_pT_deltaR_cuts.py``
 * ``setanubis/SetAnubis/examples/Selection/example_hepmc_from_db.py``
 * ``setanubis/SetAnubis/examples/Selection/example_selection_pipeline.py``
+* ``setanubis/SetAnubis/examples/Selection/example_selection_trace_report.py``

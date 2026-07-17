@@ -54,11 +54,11 @@ class ScanProcessor:
         for param in self.param_names:
             match = re.search(rf"{param}([\de\-p]+)", filename)
             if not match:
-                logging.warning(f"Paramètre {param} manquant dans : {filename}")
+                logging.warning(f"Parameter {param} is missing from {filename}")
                 return None
             value = self._extract_float(match.group(1))
             if value is None:
-                logging.warning(f"Erreur de parsing pour {param} dans : {filename}")
+                logging.warning(f"Could not parse {param} from {filename}")
                 return None
             values[param] = value
 
@@ -85,7 +85,7 @@ class ScanProcessor:
                     if self.particle_id is None:
                         break
         except Exception as e:
-            logging.error(f"Erreur lecture fichier {filepath}: {e}")
+            logging.error(f"Could not read file {filepath}: {e}")
         return cross, width
 
     def _copy_hepmc_file(self, base_filename: str, target_dir: Path) -> None:

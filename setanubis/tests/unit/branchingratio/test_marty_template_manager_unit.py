@@ -10,31 +10,37 @@ import SetAnubis.core.BranchingRatio.domain.MartyTemplateManager as mtm_mod
 class FakeNSA:
     def __init__(self, masses):
         self._m = dict(masses)
+
     def get_particle_mass(self, pdg: int) -> float:
         return float(self._m.get(abs(pdg), 0.0))
 
 
 @pytest.fixture
 def patch_mappings_and_names(monkeypatch, tmp_path):
-    monkeypatch.setattr(mtm_mod, "decay_name",
-                        lambda mother, daug, nsa, mapping: "fake",
-                        raising=True)
-    monkeypatch.setattr(mtm_mod, "load_particle_mappings",
-                        lambda: {"23": "Z", "2": "u", "11": "e"},
-                        raising=True)
-    monkeypatch.setattr(mtm_mod, "load_ufo_mappings",
-                        lambda reversed=True: {},
-                        raising=True)
+    monkeypatch.setattr(
+        mtm_mod, "decay_name", lambda mother, daug, nsa, mapping: "fake", raising=True
+    )
+    monkeypatch.setattr(
+        mtm_mod,
+        "load_particle_mappings",
+        lambda: {"23": "Z", "2": "u", "11": "e"},
+        raising=True,
+    )
+    monkeypatch.setattr(
+        mtm_mod, "load_ufo_mappings", lambda reversed=True: {}, raising=True
+    )
 
     real_abspath = os.path.abspath
     module_file = mtm_mod.__file__
     fake_root = tmp_path
     nested = fake_root / "a" / "b" / "c" / "d" / "e" / "f" / "module.cpp"
     nested.parent.mkdir(parents=True, exist_ok=True)
+
     def fake_abspath(p):
         if p == module_file:
             return str(nested)
         return real_abspath(p)
+
     monkeypatch.setattr(mtm_mod.os.path, "abspath", fake_abspath, raising=True)
 
     return {"root": fake_root}
@@ -56,9 +62,10 @@ def test_analytic_change_model_and_particles_and_paths(patch_mappings_and_names)
 
     out = mgr._temp
 
-    assert re.search(r'#include\s+".*/Assets/MARTY/model/sm\.h"', out)
+    assert '#include "marty/models/sm.h"' in out
+    assert '#include "marty.h"' in out
 
-    assert re.search(r'\bSM_Model\s+model\s*;', out)
+    assert re.search(r"\bSM_Model\s+model\s*;", out)
 
     assert 'Incoming("Z")' in out
     assert 'Outgoing("u")' in out
@@ -84,6 +91,54 @@ def test_numeric_include_namespace_paramlist_and_masses(patch_mappings_and_names
     out = mgr._temp
 
     assert '#include "decay_widths_fake.h"' in out
-    assert 'using namespace decay_widths_fake;' in out
-    assert re.search(r'std::string ParamFilePath = ".*/Assets/MARTY/MartyTemp/libs/decay_widths_fake/bin/paramlist\.csv";', out)
+    assert "using namespace decay_widths_fake;" in out
+    assert re.search(
+        r'std::string ParamFilePath = ".*/Assets/MARTY/MartyTemp/libs/decay_widths_fake/bin/paramlist\.csv";',
+        out,
+    )
     assert "{{91.1876}, {0.000511, 0.000511}," in out
+
+
+def test_public_prepare_and_render_helpers(patch_mappings_and_names):
+    nsa = FakeNSA(masses={23: 91.1876, 11: 0.000511})
+    analytic = mtm_mod.MartyTemplateManager(
+        model_name="SM",
+        mothers=MultiSet([23]),
+        daugthers=MultiSet([11, -11]),
+        template_type=mtm_mod.TemplateType.ANALYTIC,
+        nsa=nsa,
+    )
+    rendered = analytic.prepare()
+    assert rendered == analytic.render()
+    assert 'Incoming("Z")' in rendered
+    assert "decay_widths_fake" in rendered
+
+    numeric = mtm_mod.MartyTemplateManager(
+        model_name="SM",
+        mothers=MultiSet([23]),
+        daugthers=MultiSet([11, -11]),
+        template_type=mtm_mod.TemplateType.NUMERIC,
+        nsa=nsa,
+    )
+    numeric_source = numeric.prepare()
+    assert '#include "decay_widths_fake.h"' in numeric_source
+    assert "paramlist.csv" in numeric_source
+
+
+def test_explicit_marty_include_directory(
+    monkeypatch, patch_mappings_and_names, tmp_path
+):
+    """Embed a concrete marty.h path only when explicitly configured."""
+    include_dir = tmp_path / "marty-include"
+    monkeypatch.setenv("SETANUBIS_MARTY_INCLUDE_DIR", str(include_dir))
+    mgr = mtm_mod.MartyTemplateManager(
+        model_name="SM",
+        mothers=MultiSet([23]),
+        daugthers=MultiSet([2, -2]),
+        template_type=mtm_mod.TemplateType.ANALYTIC,
+        nsa=FakeNSA(masses={}),
+    )
+
+    source = mgr.prepare()
+
+    assert f'#include "{(include_dir / "marty.h").resolve().as_posix()}"' in source

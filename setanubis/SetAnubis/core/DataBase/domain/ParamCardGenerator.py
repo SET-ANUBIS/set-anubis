@@ -158,7 +158,7 @@ class ParamCardGenerator:
             return writer.fsock.getvalue()
 
         except Exception as e:
-            raise RuntimeError(f"Erreur lors de la génération du param_card : {e}") from e
+            raise RuntimeError(f"Failed to generate param_card: {e}") from e
 
         finally:
             os.chdir(original_cwd)

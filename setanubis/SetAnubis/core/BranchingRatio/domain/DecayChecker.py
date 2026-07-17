@@ -1,4 +1,5 @@
-from typing import List, Dict, Any
+"""Physical validation of registered particle decay channels."""
+
 from SetAnubis.core.Common.MultiSet import MultiSet
 from SetAnubis.core.BranchingRatio.domain.IDecayChecker import IDecayChecker
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface

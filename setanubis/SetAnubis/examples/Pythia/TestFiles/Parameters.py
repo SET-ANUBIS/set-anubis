@@ -26,7 +26,7 @@ class SimulationParameters:
     """
     _instance = None
 
-    def __new__(cls, db_file='db/db.json'):
+    def __new__(cls, db_file=None):
         """
         Ensure a single instance of the SimulationParameters class (Singleton pattern).
 
@@ -37,7 +37,7 @@ class SimulationParameters:
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self, db_file='db/db.json'):
+    def __init__(self, db_file=None):
         """
         Initialize the SimulationParameters instance.
 
@@ -70,13 +70,15 @@ class SimulationParameters:
         """
         Load simulation parameters from a file if it exists; otherwise, create a new one from the Particle librairy.
         """
-        if os.path.exists(self.db_file):
+        if self.db_file and os.path.exists(self.db_file):
             self.load_from_file()
         else:
-            print(f"No db file, creating one now in {self.db_file}")
+            # Build the lightweight lookup table in memory by default.  A JSON
+            # cache is written only when the caller explicitly supplies a path.
             self.load_from_particle_package()
             self.add_decay_const()
-            self.save_to_file()
+            if self.db_file:
+                self.save_to_file()
         
 
     def load_from_particle_package(self) -> None:
@@ -89,14 +91,24 @@ class SimulationParameters:
 
             pdgid = int(particle.pdgid)
             if particle.mass is not None:
-                self.params[pdgid] = {"mass" : particle.mass* 10**(-3), "charge" : particle.charge, "width" : particle.width}
+                self.params[pdgid] = {
+                    "mass": float(particle.mass) * 1e-3,
+                    "charge": None if particle.charge is None else float(particle.charge),
+                    "width": None if particle.width is None else float(particle.width),
+                }
             else:
-                self.params[pdgid] = {"mass" : particle.mass, "charge" : particle.charge, "width" : particle.width}
+                self.params[pdgid] = {
+                    "mass": None,
+                    "charge": None if particle.charge is None else float(particle.charge),
+                    "width": None if particle.width is None else float(particle.width),
+                }
 
     def load_from_file(self) -> None:
         """
         Load simulation parameters from a JSON file.
         """
+        if not self.db_file:
+            raise ValueError("A database path is required to load parameters")
         with open(self.db_file, 'r') as f:
             self.params = json.load(f)
         for category in self.params:
@@ -106,9 +118,13 @@ class SimulationParameters:
         """
         Save simulation parameters to a JSON file.
         """
-        os.makedirs(os.path.dirname(self.db_file), exist_ok=True)
-        with open(self.db_file, 'w') as f:
-            json.dump(self.params, f, indent = 4)
+        if not self.db_file:
+            return
+        directory = os.path.dirname(self.db_file)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        with open(self.db_file, "w", encoding="utf-8") as f:
+            json.dump(self.params, f, indent=4, default=float)
 
     def get_parameter(self, code : int , category : str):
         """

@@ -30,4 +30,4 @@ if __name__ == "__main__":
     # plotter = MatplotlibPlotter()
     # plotter.plot(geom.cavern, show=True, savepath="geom_new.png")
     plt.show()
-    print("Plot enregistré -> geom_new.png")
+    print("Plot saved -> geom_new.png")

@@ -120,3 +120,13 @@ def test_get_value_returns_node_or_zero():
     tree = ExpressionTree(make_params())
     assert isinstance(tree.get_value("a"), Node)
     assert tree.get_value("does_not_exist") == 0
+
+
+def test_add_leaf_rejects_duplicate_without_overwrite():
+    """Do not silently ignore duplicate leaf definitions."""
+    tree = ExpressionTree([])
+    tree.add_leaf("mass", 1.0)
+    with pytest.raises(ValueError, match="already exists"):
+        tree.add_leaf("mass", 2.0)
+    tree.add_leaf("mass", 2.0, overwrite=True)
+    assert tree.get_value("mass").value == 2.0

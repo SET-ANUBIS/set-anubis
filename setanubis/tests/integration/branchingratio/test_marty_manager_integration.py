@@ -40,6 +40,8 @@ class StubTemplateManager:
     def _change_particles(self): pass
     def _update_marty_include_path(self): pass
     def _change_paramlist(self): pass
+    def prepare(self):
+        return self._temp
 
 
 class StubParamManager:

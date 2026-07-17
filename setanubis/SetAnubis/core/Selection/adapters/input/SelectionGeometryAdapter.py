@@ -376,7 +376,8 @@ class SelectionGeometryAdapter(ISelectionGeometry):
             theta = _theta_from_eta(eta)
 
             try:
-                #TODO : paul is this normal ?
+                # The current selection trace starts at the production vertex;
+                # ``stop_m`` is retained for future bounded-ray support.
                 # result = self._geometry.trace(
                 #     theta,
                 #     phi,

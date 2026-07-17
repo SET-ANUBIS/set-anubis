@@ -15,11 +15,11 @@ class DotFake:
 
 class ExpressionTreeFake:
     """
-    Fake d'ExpressionTree correspondant à l'API utilisée par UFOManager :
-      - constructeur(params)
+    ExpressionTree fake matching the API used by UFOManager:
+      - constructor(params)
       - evaluate_from_leaves(list[str]) -> self
-      - get_subgraph_from_leaves(list[str]) -> nouveau ExpressionTreeFake
-      - visualize() -> obj avec .render(...)
+      - get_subgraph_from_leaves(list[str]) -> new ExpressionTreeFake
+      - visualize() -> object exposing .render(...)
       - convert_tree_to_list() -> list[dict]
     """
     def __init__(self, params):

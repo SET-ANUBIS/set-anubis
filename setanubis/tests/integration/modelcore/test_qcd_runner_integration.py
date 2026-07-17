@@ -4,8 +4,8 @@ from SetAnubis.core.ModelCore.domain.QCDRunner import QCDRunner, MassType
 
 class FakeManager:
     """
-    Fake minimaliste compatible avec QCDRunner.from_manager (get_mass uniquement).
-    Les masses sont en GeV et cohérentes avec le test unitaire.
+    Minimal fake compatible with QCDRunner.from_manager (get_mass only).
+    Masses are expressed in GeV and match the unit-test assumptions.
     PDG: 23=Z, 1=d, 2=u, 3=s, 4=c
     """
     def __init__(self):

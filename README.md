@@ -244,6 +244,29 @@ combined = SelectionManager(pipeline).run_many(
 print(combined.cutflow_sum)
 ```
 
+Intermediate DataFrames and pass/fail summaries are opt-in.  Run one source
+with ``capture_intermediate=True`` and export a standalone JSON/HTML report:
+
+```python
+result = pipeline.run(
+    source,
+    selection,
+    RunConfig(capture_intermediate=True),
+)
+trace = result["trace"]
+print(trace.stage_dataframes["MET"])
+print(trace.event_summary)
+trace.write_report("selection_trace_output")
+```
+
+The synthetic demonstration intentionally makes different events fail at
+different cuts:
+
+```bash
+python setanubis/SetAnubis/examples/Selection/example_selection_trace_report.py \
+  --output-dir selection_trace_output
+```
+
 > **Trusted-input note:** pickle-based selection/database bundles can execute
 > arbitrary Python code when loaded. Only open bundles produced by a trusted
 > workflow or obtained from a verified source; see [`SECURITY.md`](SECURITY.md).
@@ -256,6 +279,22 @@ files named `.pkl` remain readable. New generated bundles use the clearer
 python setanubis/SetAnubis/examples/Selection/dev_examples/example_sampledfs_from_df.py
 python setanubis/SetAnubis/examples/Selection/dev_examples/example_jets_and_pT_deltaR_cuts.py
 ```
+
+### Branching-ratio developer examples
+
+Additional examples cover manual widths and lifetimes, trusted Python
+calculators, CSV interpolation, UFO decay functions, MadGraph card preparation
+and MARTY source preparation without running the external generators:
+
+```bash
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_manual_values_and_lifetime.py
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_file_interpolation.py
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_madgraph_preparation.py --output-dir prepared_widths
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_marty_preparation.py --output prepared_marty/z_to_ddbar.cpp
+```
+
+The preparation examples do not launch MadGraph, Docker, a compiler, or MARTY.
+Python calculators and UFO models must be treated as trusted executable inputs.
 
 ## Reproducibility and CPC examples
 

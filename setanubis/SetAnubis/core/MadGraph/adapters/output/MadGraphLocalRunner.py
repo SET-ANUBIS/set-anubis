@@ -61,9 +61,9 @@ class MadGraphLocalRunner(IMadGraphRunner):
     def __change_jobscript_card_path(self, jobscript, param_card_path, run_card_path, pythia_card_path, madspin_card_path):
         def _replace_path(script, filename, new_path):
             """
-            Remplace dans `script` tout token du type 'qqch/filename'
-            par `new_path`. Le token est défini comme une suite de
-            caractères non blancs finissant par filename.
+            Replace every ``directory/filename`` token in ``script`` with
+            ``new_path``.  A token is any non-whitespace sequence ending in
+            the requested filename.
             """
             pattern = re.compile(r'\S*' + re.escape(filename))
             return pattern.sub(new_path, script)

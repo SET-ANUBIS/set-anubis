@@ -8,6 +8,7 @@ import pandas as pd
 
 from SetAnubis.core.Selection.ports.input.ISelectionGeometry import ISelectionGeometry
 from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import GeometryRegion, GeometryIntersections
+from SetAnubis.core.Selection.domain.SelectionTrace import SelectionTrace
 
 
 def _vertex_col_in_df(df: pd.DataFrame, base: str, run_cfg: "RunConfig") -> str:
@@ -129,8 +130,11 @@ class SelectionConfig:
 
 @dataclass(frozen=True)
 class RunConfig:
+    """Runtime switches for one selection execution."""
+
     reweightLifetime: bool = False
     plotTrajectory: bool = False
+    capture_intermediate: bool = False
 
 
 class SelectionEngine:
@@ -216,8 +220,14 @@ class SelectionEngine:
 
         cut_flow: Dict[str, float | int] = {}
         cut_indices: Dict[str, List[int]] = {}
+        stage_dataframes: Dict[str, pd.DataFrame] = {}
+
+        def capture(stage_name: str, dataframe: pd.DataFrame) -> None:
+            if run_config.capture_intermediate:
+                stage_dataframes[stage_name] = dataframe.copy(deep=True)
 
         llps = SDFs["LLPs"]
+        capture("Original", llps)
         cut_flow["nLLP_original"] = len(llps.index)
         cut_flow["nLLP_original_weighted"] = float(
             llps["weight"].sum() if "weight" in llps.columns else 0.0
@@ -227,26 +237,31 @@ class SelectionEngine:
         cut_flow.update(step["cutFlow"])
         cut_indices.update(step["cutIndices"])
         df_decay = step["dataframe"]
+        capture("LLPDecay", df_decay)
 
         step = self._select_in_decay_region(df_decay, selection, run_config)
         cut_flow.update(step["cutFlow"])
         cut_indices.update(step["cutIndices"])
         df_in_geom = step["dataframe"]
+        capture(self._region_cut_key(selection.geometry.default_decay_region), df_in_geom)
 
         step = self._select_not_in_detector(df_in_geom, selection, run_config)
         cut_flow.update(step["cutFlow"])
         cut_indices.update(step["cutIndices"])
         df_not_in_detector = step["dataframe"]
+        capture("NotInATLAS", df_not_in_detector)
 
         step = self._select_geometry_intersection(df_not_in_detector, selection, run_config)
         cut_flow.update(step["cutFlow"])
         cut_indices.update(step["cutIndices"])
         df_inter = step["dataframe"]
+        capture("Geometry", df_inter)
 
         step = self._select_tracks(df_inter, SDFs["LLPchildren"], selection, run_config)
         cut_flow.update(step["cutFlow"])
         cut_indices.update(step["cutIndices"])
         df_tracks = step["dataframe"]
+        capture("Tracker", df_tracks)
 
         df_after_met = df_tracks
         if do_met:
@@ -254,11 +269,16 @@ class SelectionEngine:
             cut_flow.update(step["cutFlow"])
             cut_indices.update(step["cutIndices"])
             df_after_met = step["dataframe"]
+            capture("MET", df_after_met)
 
         step = self._select_isolation(df_after_met, selection, SDFs)
         cut_flow.update(step["cutFlow"])
         cut_indices.update(step["cutIndices"])
         df_iso = step["dataframe"]
+        additional = step.get("additionalDataframes", {})
+        capture("IsoJets", additional.get("IsoJets", df_iso))
+        capture("IsoCharged", additional.get("IsoCharged", df_iso))
+        capture("IsoAll", df_iso)
 
         pd.options.mode.chained_assignment = "warn"
         return {
@@ -267,6 +287,7 @@ class SelectionEngine:
             "df_iso": df_iso,
             "df_in_geometry": df_in_geom,
             "df_not_in_atlas": df_not_in_detector,  # keep legacy key for regression tests
+            "stageDataFrames": stage_dataframes,
         }
 
     def apply_selection(
@@ -287,7 +308,16 @@ class SelectionEngine:
         )
         cut_indices["nLLP_Final"] = df.index.tolist()
 
-        return {"cutFlow": cut_flow, "cutIndices": cut_indices, "finalDF": df}
+        result: Dict[str, Any] = {
+            "cutFlow": cut_flow,
+            "cutIndices": cut_indices,
+            "finalDF": df,
+        }
+        if run_config.capture_intermediate:
+            stages = dict(core["stageDataFrames"])
+            stages["Final"] = df.copy(deep=True)
+            result["trace"] = SelectionTrace.from_stages(stages, cut_flow)
+        return result
 
     def apply_selection_2dv(
         self,
@@ -333,7 +363,17 @@ class SelectionEngine:
         )
         cut_indices["nLLP_Final"] = df_final.index.tolist()
 
-        return {"cutFlow": cut_flow, "cutIndices": cut_indices, "finalDF": df_final}
+        result: Dict[str, Any] = {
+            "cutFlow": cut_flow,
+            "cutIndices": cut_indices,
+            "finalDF": df_final,
+        }
+        if run_config.capture_intermediate:
+            stages = dict(core["stageDataFrames"])
+            stages["Partners"] = df_final.copy(deep=True)
+            stages["Final"] = df_final.copy(deep=True)
+            result["trace"] = SelectionTrace.from_stages(stages, cut_flow)
+        return result
 
     @staticmethod
     def _select_decaying_llps(llps: pd.DataFrame) -> Dict[str, Any]:

@@ -110,7 +110,7 @@ class ATLASCavern():
                             "z": 13.5} #metres - From Axial View and edms 2149688
 
         self.PX14_Radius = 18/2 # metres
-        self.PX14_Height = 57.85 # metres 
+        self.PX14_Height = 57.85  # metres
         self.PX14_LowestY = np.sqrt(np.power(self.archRadius,2) - (np.power(self.PX14_Radius - self.PX14_Centre["x"],2))) + self.centreOfCurvature["y"]
 
         self.PX16_Centre = {"x": 0, #metres - aligns with cavern axis from edms 2149688

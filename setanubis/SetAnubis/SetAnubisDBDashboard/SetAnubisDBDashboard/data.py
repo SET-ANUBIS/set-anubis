@@ -101,7 +101,7 @@ def make_accessor(db_path: str, storage_dir: str):
     manager_cls = getattr(mod, "EventDatabaseManager", None) or getattr(mod, "EventDataBaseManager", None)
     accessor_cls = getattr(mod, "EventAccessor")
     if manager_cls is None:
-        raise AttributeError("EventDatabaseManager/EventDataBaseManager introuvable dans EventDatabaseManager")
+        raise AttributeError("EventDatabaseManager/EventDataBaseManager was not found in EventDatabaseManager")
     return accessor_cls(manager_cls(db_path, storage_dir))
 
 

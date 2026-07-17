@@ -17,7 +17,7 @@ def test_add_remove_contains_len_iter():
     m.add(2)
     assert len(m) == 3
     assert 2 in m
-    # itérable
+    # iterable
     assert list(iter(m)) == [1, 2, 2]
     # remove deletes a single occurrence
     m.remove(2)

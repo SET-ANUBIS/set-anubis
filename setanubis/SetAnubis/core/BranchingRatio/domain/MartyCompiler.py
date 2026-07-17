@@ -17,12 +17,17 @@ from typing import Sequence
 
 
 class CompilerType(Enum):
+    """Supported compilation modes for generated MARTY code."""
+
     MAKE = "MAKE"
     GCC = "GCC"
 
 
 class MartyCompiler:
+    """Compile and execute generated MARTY programs without invoking a shell."""
+
     def __init__(self, compiler_type: CompilerType, ampli_name: str | None = None):
+        """Configure a direct GCC build or a generated-library Make build."""
         self.compiler_type = compiler_type
         self.project_root = Path(__file__).resolve().parents[5]
         self.libs_path: Path | None = None
@@ -49,6 +54,7 @@ class MartyCompiler:
             raise ValueError("ampli_name needs to be specified for compiler if make mode.")
 
     def check_if_compile(self, output_binary: str | os.PathLike[str] | None) -> bool:
+        """Return whether the expected executable already exists and is runnable."""
         if self.compiler_type == CompilerType.MAKE:
             assert self.libs_path is not None
             assert self.ampli_name is not None
@@ -77,6 +83,7 @@ class MartyCompiler:
         output_dir: str | os.PathLike[str] | None = None,
         pattern: str | None = None,
     ):
+        """Compile the source when required, execute it, and optionally parse output."""
         if not self.check_if_compile(output_binary):
             self.compile(source_file, output_binary)
 
@@ -102,6 +109,7 @@ class MartyCompiler:
         source_file: str | os.PathLike[str],
         output_binary: str | os.PathLike[str] | None,
     ):
+        """Compile a generated source with GCC or run Make in a MARTY library."""
         if self.compiler_type == CompilerType.GCC:
             if output_binary is None:
                 raise ValueError("output_binary is required in GCC mode")
@@ -129,6 +137,7 @@ class MartyCompiler:
         return self.execute_command(command, cwd=cwd)
 
     def check_if_executed(self) -> bool:
+        """Return whether MARTY has already generated the library example source."""
         if self.libs_path is None or self.ampli_name is None:
             return False
         return (self.libs_path / "script" / f"example_{self.ampli_name}.cpp").exists()
@@ -177,8 +186,3 @@ class MartyCompiler:
             if match:
                 return match.group(1)
         return None
-
-
-if __name__ == "__main__":
-    compiler = MartyCompiler(CompilerType.MAKE, "decay_widths_24_2_2")
-    compiler.compile_run(compiler.libs_path, "example_decay_widths_24_2_2.x")

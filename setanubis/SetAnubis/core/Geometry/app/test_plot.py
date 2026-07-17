@@ -37,4 +37,4 @@ if __name__ == "__main__":
     except Exception as e:
         print("plot_3d indisponible:", e)
 
-    print("Plots générés: geom_new_xy/xz/zy(.png) (+ 3d si dispo)")
+    print("Plots generated: geom_new_xy/xz/zy(.png) (+ 3D when available)")
