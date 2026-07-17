@@ -106,8 +106,21 @@ class SelectionTrace:
                     return name
             return None
 
-        summary["last_passed_stage"] = summary.apply(last_passed, axis=1)
-        summary["first_failed_stage"] = summary.apply(first_failed, axis=1)
+        # pandas 3 infers the dedicated string dtype for mixed ``str``/``None``
+        # results and converts missing values to ``NaN``.  These report columns
+        # intentionally expose Python ``None`` for candidates without a failed
+        # stage, so construct explicit object-dtype Series for a stable public
+        # contract across pandas 2 and 3.
+        summary["last_passed_stage"] = pd.Series(
+            (last_passed(row) for _, row in summary.iterrows()),
+            index=summary.index,
+            dtype=object,
+        )
+        summary["first_failed_stage"] = pd.Series(
+            (first_failed(row) for _, row in summary.iterrows()),
+            index=summary.index,
+            dtype=object,
+        )
         return summary.reset_index(drop=True)
 
     @staticmethod

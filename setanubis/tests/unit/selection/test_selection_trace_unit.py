@@ -78,6 +78,8 @@ def test_selection_trace_records_each_stage_and_failure_reason():
     assert candidates.loc[105, "first_failed_stage"] == "MET"
     assert candidates.loc[106, "first_failed_stage"] == "IsoJets"
     assert candidates.loc[107, "first_failed_stage"] is None
+    assert candidates["first_failed_stage"].dtype == object
+    assert candidates["last_passed_stage"].dtype == object
     assert candidates.loc[107, "last_passed_stage"] == "Final"
 
     events = trace.event_summary.set_index("eventNumber")
