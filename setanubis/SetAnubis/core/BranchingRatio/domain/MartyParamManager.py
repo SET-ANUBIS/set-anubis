@@ -119,10 +119,9 @@ class ParamManager:
         return out
 
     def create_csv(self) -> str:
-        """
-        Construit le CSV. Les paramètres complexes donnent deux lignes:
-        name_rel,<Re(value)>
-        name_img,<Im(value)>
+        """Serialize parameters to CSV, splitting complex values into two rows.
+
+        Complex parameters are written as ``name_rel`` and ``name_img``.
         """
         lines: List[str] = []
         for p in self.get_parameters():

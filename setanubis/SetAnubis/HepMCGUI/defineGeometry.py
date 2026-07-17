@@ -1489,21 +1489,21 @@ if __name__=="__main__":
         rp = getattr(self, "ANUBIS_RPCs", None)
         if rp is None:
             raise RuntimeError(
-                "ANUBIS stations non initialisées. "
-                "Appelle createSimpleRPCs() ou createShaftRPCs() avant d'interroger la géométrie."
+                "ANUBIS stations are not initialized. "
+                "Call createSimpleRPCs() or createShaftRPCs() before querying the geometry."
             )
 
-        # Déjà au bon format (simple ceiling)
+        # Already in the expected simple-ceiling format
         if isinstance(rp, dict) and ("r" in rp and "theta" in rp and "phi" in rp):
             return rp
 
-        # Déjà au bon format (shaft)
+        # Already in the expected shaft format
         if isinstance(rp, dict) and ("x" in rp and "y" in rp and "z" in rp and "RPCradius" in rp):
             return rp
 
-        # Cas "full ceiling" : liste d’objets → convertis en dict “corners/midPoint/plane/...”
+        # Full-ceiling case: convert the object list to corner/midpoint/plane dictionaries
         if isinstance(rp, list):
             return self.convertRPCList(rp)
 
-        # Fallback défensif
+        # Defensive fallback
         return rp

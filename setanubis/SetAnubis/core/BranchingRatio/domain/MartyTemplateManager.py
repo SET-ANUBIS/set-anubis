@@ -114,12 +114,12 @@ int main() {
         """
         
     def _change_namespace(self):
-        """Change 'using namespace decay_widths;' selon le nom du fichier généré"""
+        """Update the decay-width namespace for the generated filename."""
         namespace_name = f'decay_widths_{decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))}'
         self._temp = re.sub(r'using namespace decay_widths;', f'using namespace {namespace_name};', self._temp)
 
     # def _decay_name(self):
-    #     """Génère un nom de fichier basé sur la mère et les filles (ex: b_c_cbar)"""
+    #     Build a filename from the mother and daughter particles.
     #     names = [convert_particle(self.mother)] + [convert_particle(d) for d in self.daugthers]
     #     return "_".join(names)
     
@@ -158,7 +158,7 @@ int main() {
     def _change_particles(self):
         if self.template_type == TemplateType.ANALYTIC:
             # --------- Partie ANALYTIC ----------
-            # === 1. Remplacer les particules dans computeAmplitude ===
+            # 1. Replace particles in computeAmplitude.
             mapping = load_particle_mappings()
             # mother_name = mapping.get(str(self.mother), "")
             # if mother_name == "":
@@ -196,7 +196,7 @@ int main() {
                     outgoings.append(f'Outgoing("{name}")')
             # particle_list = ",\n             ".join([incoming] + outgoings)
             particle_list = ",\n             ".join(incomings + outgoings)
-            # === 2. Nettoyer et remplacer le bloc computeAmplitude(...) ===
+            # 2. Normalize and replace the computeAmplitude block.
             pattern = r'auto\s+ampli\s*=\s*model\.computeAmplitude\([^;]+?\);\s*'
             replacement = f'''auto ampli = model.computeAmplitude(mty::Order::TreeLevel, {{
                 {particle_list}
@@ -204,7 +204,7 @@ int main() {
     '''
             self._temp = re.sub(pattern, replacement, self._temp, flags=re.DOTALL)
 
-            # === 2. Modifier les chemins pour decayLib ===
+            # 3. Update decayLib paths.
             decay = decay_name(self.mothers, self.daugthers, self.nsa, load_ufo_mappings(True))
             print(incomings, outgoings)
             self._temp = re.sub(
@@ -257,7 +257,7 @@ int main() {
             #     return f"{{{{{', '.join(map(str, mother_masses))}}}, {{{', '.join(map(str, daugther_masses))}}},"
 
             # self._temp = re.sub(
-            #     r'\{\{[^\}]*\},\s*\{[^\}]*\},',  # match juste les deux listes
+            #     r'\{\{[^\}]*\},\s*\{[^\}]*\},',  # match only the two lists
             #     replace_kinematics_masses,
             #     self._temp
             # )
@@ -267,17 +267,17 @@ int main() {
                 indent = re.match(r'\s*', match.group(0)).group(0)
 
                 if is_list_mothers:
-                    # avec s paramétrable + vérification ∑m < s
+                    # use configurable s and require sum(m) < s
                     return (
-                        f"{indent}double s = 400; // librement modifiable\n"
+                        f"{indent}double s = 400; // can be modified\n"
                         f"{indent}if ({sum_mothers} >= s) {{\n"
-                        f"{indent}    std::cerr << \"[Erreur] Somme des masses des mères (={sum_mothers}) >= s=\" << s << std::endl;\n"
+                        f"{indent}    std::cerr << \"[Error] Sum of mothers masses (={sum_mothers}) >= s=\" << s << std::endl;\n"
                         f"{indent}    return 1;\n"
                         f"{indent}}}\n"
                         f"{indent}Kinematics kin{{{mothers_block}, {daughters_block}, s, &param}};"
                     )
                 else:
-                    # sans s quand mothers n'est pas une liste
+                    # omit s when mothers is not a list
                     return f"{indent}Kinematics kin{{{mothers_block}, {daughters_block}, &param}};"
 
             self._temp = re.sub(
@@ -288,7 +288,7 @@ int main() {
             )
             
     def _update_marty_include_path(self):
-        """Met à jour le chemin absolu de l'include marty.h dans le template"""
+        """Update the absolute marty.h include path in the template."""
         base_path = os.path.abspath(__file__)
         root_path = os.path.abspath(os.path.join(base_path, *(['..'] * 6)))
         marty_header_path = os.path.join(
@@ -313,13 +313,13 @@ if __name__ == "__main__":
     from pathlib import Path
     
     def build_and_run(m : MartyTemplateManager, nsa):
-        """Génère le fichier C++, compile et exécute avec MartyCompiler (GCC)"""
+        """Generate, compile, and execute C++ code with MartyCompiler."""
 
         decay = decay_name(m.mother, m.daugthers, nsa, load_ufo_mappings(True))
         cpp_filename = f"{decay}.cpp"
         binary_filename = decay
 
-        # === Détermination des chemins ===
+        # Resolve input and output paths.
         base_path = Path(__file__).resolve()
         root_path = base_path.parents[5]
         output_dir = root_path / "Assets" / "MARTY" / "MartyTemp"
@@ -329,12 +329,12 @@ if __name__ == "__main__":
         cpp_path = output_dir / cpp_filename
         bin_path = output_dir / binary_filename
 
-        # === Écriture du fichier C++ ===
+        # Write the generated C++ source.
         with open(cpp_path, "w") as f:
             f.write(m._temp)
         print(f"✅ C++ file written: {cpp_path}")
 
-        # === Compilation & exécution avec MartyCompiler ===
+        # Compile and execute with MartyCompiler.
         compiler = MartyCompiler(CompilerType.GCC)
         compiler.compile_run(
             source_file=str(cpp_path),

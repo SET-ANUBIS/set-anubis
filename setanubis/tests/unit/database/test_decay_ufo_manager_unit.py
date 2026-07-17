@@ -16,9 +16,6 @@ class FakeSMTree:
         self.nodes = {k: _Node(k, v) for k, v in mapping.items()}
 
 class FakeUFOManager:
-    """
-    Fournit des décays et des paramètres SM contrôlés.
-    """
     def __init__(self, path):
         self._path = path
         self._decays = {

@@ -17,12 +17,11 @@ class CSVInterpolationSubStrategy(IFileInterpolationSubStrategy):
                 self._data.append(row)
 
     def interpolate(self, mother: int, daughters: List[int], param_values: Dict[str, float]) -> float:
+        """Return the requested decay value from the loaded CSV table.
+
+        The current implementation selects the first compatible row and reads
+        the column identified by the mother and daughter particle IDs.
         """
-        Exemple d'implémentation:
-        - On trouve la ligne la plus proche (ou on fait une interpolation multi-D).
-        - On récupère la colonne mother:daughters. 
-        - On renvoie la valeur correspondante comme "largeur partielle".
-                """
 
         for p in self._varying_params:
             if p not in param_values.keys():

@@ -7,7 +7,7 @@ import SetAnubis.core.BranchingRatio.domain.MartyCopyManager as cm_mod
 
 
 class CopyingBuilder:
-    """Builder d'intégration : applique les remplacements puis écrit dest."""
+    """Integration builder that applies replacements before writing the destination."""
     def __init__(self):
         self.tasks = []
     def add_file(self, src, dest, modifications):
@@ -25,7 +25,7 @@ class CopyingBuilder:
 
 
 def _patch_root(monkeypatch, tmp_path: Path, module):
-    """Force Path(__file__).resolve() à renvoyer un chemin profond dans tmp_path."""
+    """Make Path.resolve return a deep path inside tmp_path."""
     nested = tmp_path / "p" / "q" / "r" / "s" / "t" / "u" / "module.py"
     nested.parent.mkdir(parents=True, exist_ok=True)
 

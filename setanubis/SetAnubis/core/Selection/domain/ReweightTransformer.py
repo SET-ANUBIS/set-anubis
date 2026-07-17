@@ -75,7 +75,7 @@ class RandomProvider:
     Injected RNG service (avoid global state from numpy)
     """
     def __init__(self, seed: Optional[int | str] = None) -> None:
-        # string → hash stable
+        # Convert strings to a stable hash
         if seed is None or seed == "":
             self._rng = np.random.default_rng()
         else:
@@ -317,7 +317,7 @@ class ReweightDecayPositions(Transformer):
             col_dist = f"decayVertexDist_{name}"
             col_ctau = f"ctau_{name}"
             llps[col_dist] = dist
-            # ctau in mm : L(mm) / (γβ)
+            # Proper decay length in mm: L(mm) / (gamma * beta)
             gamma = llps["boost"].to_numpy(dtype=float, copy=False)
             beta = llps["beta"].to_numpy(dtype=float, copy=False)
             denom = np.maximum(gamma * beta, 1e-300)
@@ -327,8 +327,8 @@ class ReweightDecayPositions(Transformer):
                 _get_reweighted_decay_position_row(row, col_dist) for _, row in llps.iterrows()
             ]
 
-        # Principal vector for translation based on the kernel “weighted”
-        # Δ = decayVertex_weighted - decayVertex ; Δt = 0
+        # Translation vector derived from the weighted kernel
+        # delta = weighted decay vertex - original decay vertex; delta_t = 0
         if "decayVertex_weighted" not in llps.columns:
             raise RuntimeError("Kernel 'weighted' needed for decayVertex_translation.")
         llps["decayVertex_translation"] = self._build_translation(llps["decayVertex"], llps["decayVertex_weighted"])

@@ -1,7 +1,5 @@
-# tests/unit/utils/test_multiset_unit.py
 import pytest
 
-# ⚠️ ADAPTE ICI l'import vers l'endroit où vit ta classe
 from SetAnubis.core.Common.MultiSet import MultiSet
 
 
@@ -21,7 +19,7 @@ def test_add_remove_contains_len_iter():
     assert 2 in m
     # itérable
     assert list(iter(m)) == [1, 2, 2]
-    # remove enlève une seule occurrence
+    # remove deletes a single occurrence
     m.remove(2)
     assert list(iter(m)) == [1, 2]
     # remove inexistant -> ValueError de list.remove
@@ -48,17 +46,17 @@ def test_union_intersection_difference():
     m1 = MultiSet([1, 1, 2, 3])
     m2 = MultiSet([1, 2, 2, 4])
 
-    # union : concaténation des multisets
+    # union concatenates the multisets
     u = m1.union(m2)
     assert u == MultiSet([1, 1, 2, 3, 1, 2, 2, 4])
 
-    # intersection : min des multiplicités (par logique)
+    # intersection keeps the minimum multiplicity
     inter = m1.intersection(m2)
     assert inter == MultiSet([1, 2])  # 1 min(2,1)=1 fois ; 2 min(1,2)=1 fois
 
-    # difference : m1 \ m2 -> retire autant d'occurrences que présentes dans m2
+    # difference removes as many occurrences as are present in m2
     diff = m1.difference(m2)
-    # m1 [1,1,2,3] - [1,2,2,4] = retire un '1' et un '2' -> reste [1,3]
+    # m1 [1,1,2,3] - [1,2,2,4] removes one 1 and one 2, leaving [1,3]
     assert diff == MultiSet([1, 3])
 
     # autre cas : m1 - [1,1,1] -> ne retire que 2 occurrences existantes
@@ -68,4 +66,4 @@ def test_union_intersection_difference():
 
 def test_repr_contains_items_and_current_name():
     m = MultiSet([1, 2])
-    # Le __repr__ actuel renvoie "MultiBag([...])" (
+    # The current __repr__ returns "MultiBag([...])" (

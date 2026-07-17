@@ -15,7 +15,7 @@ class MadSpinCardBuilder:
             self.tail = section
 
     def add_decay(self, decay_line: str):
-        """Ajoute une ligne decay avant le launch"""
+        """Insert a decay directive before the launch directive."""
         new_section = MadSpinSection(MadSpinSectionType.DECAY, decay_line)
 
         current = self.head
@@ -34,7 +34,7 @@ class MadSpinCardBuilder:
             self.head = new_section
 
     def clear_decays(self):
-        """Supprime toutes les lignes de decay"""
+        """Remove every decay directive from the card."""
         dummy = MadSpinSection(MadSpinSectionType.HEADER, "")
         dummy.next = self.head
         current = dummy
@@ -55,7 +55,7 @@ class MadSpinCardBuilder:
 
     @classmethod
     def deserialize(cls, text: str):
-        """Construit un builder à partir d’un texte existant"""
+        """Build a card builder from existing MadSpin text."""
         builder = cls()
         lines = text.strip().split("\n")
         for line in lines:

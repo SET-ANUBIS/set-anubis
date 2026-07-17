@@ -39,7 +39,7 @@ class ScanProcessor:
         parts.extend(["cross", width_label])
         header = "#run_name            " + "    ".join(f"{p:<20}" for p in parts) + "\n"
         self.scan_path.write_text(header)
-        logging.info(f"Fichier de scan initialisé : {self.scan_path}")
+        logging.info(f"Scan file initialized : {self.scan_path}")
 
     def _extract_float(self, val: str) -> Optional[float]:
         val = val.replace("p", ".")
@@ -94,7 +94,7 @@ class ScanProcessor:
         if src.exists():
             shutil.copy(src, dst)
         else:
-            logging.warning(f"Fichier HEPMC manquant : {src}")
+            logging.warning(f"Missing HEPMC file : {src}")
 
     def process_all(self) -> None:
         txt_files = sorted(self.text_dir.glob("*.txt"))
@@ -122,7 +122,7 @@ class ScanProcessor:
 
             run_counter += 1
 
-        logging.info(f"Conversion terminée. Fichiers disponibles dans : {self.output_dir}")
+        logging.info(f"Conversion complete. Files are available in : {self.output_dir}")
 
 
 def example_param_info(param: str) -> tuple[str, str]:

@@ -7,8 +7,10 @@ from typing import Dict
 from functools import lru_cache
 
 def decay_name(mother : int, daugthers : MultiSet, nsa : SetAnubisInterface, mapping : dict):
-    """Génère un nom de fichier basé sur la mère et les filles (ex: b_c_cbar). mapping est utilisé pour passer 
-    de la db ufo à la db Marty."""
+    """Build a filename from the mother and daughters, such as ``b_c_cbar``.
+
+    ``mapping`` converts UFO database names to MARTY database names.
+    """
     if isinstance(mother, list):
         mother_names = [str(abs(m)) for m in mother]
     else:

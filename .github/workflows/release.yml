@@ -62,7 +62,7 @@ jobs:
           setanubis-pythia-smoke --out .release-pythia-smoke
           python -m pytest -q setanubis/tests \
             --cov=SetAnubis --cov-config=pyproject.toml \
-            --cov-report=term-missing --cov-fail-under=35
+            --cov-report=term-missing --cov-fail-under=48
           python reproducibility/run_all.py --output-dir .release-reproducibility
           setanubis-docs --strict
 

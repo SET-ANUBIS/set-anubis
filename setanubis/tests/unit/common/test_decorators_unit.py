@@ -11,7 +11,7 @@ import SetAnubis.core.Common.Decorators as decorators
 
 def test_timing_logging_and_tracing_decorators(monkeypatch, capsys, caplog):
     times = iter([1.0, 1.125])
-    monkeypatch.setattr(decorators.time, "time", lambda: next(times))
+    monkeypatch.setattr(decorators, "perf_counter", lambda: next(times))
 
     @decorators.timing_decorator
     def add(left, right=0):
@@ -80,7 +80,7 @@ def test_exception_retry_and_time_based_cache(monkeypatch, capsys):
     assert "An error occurred" in capsys.readouterr().out
 
     attempts = {"count": 0}
-    monkeypatch.setattr(decorators.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(decorators, "sleep", lambda _delay: None)
 
     @decorators.retry_decorator(max_retries=3, delay=0)
     def eventually_succeeds():
@@ -100,7 +100,7 @@ def test_exception_retry_and_time_based_cache(monkeypatch, capsys):
         always_fails()
 
     clock = {"now": 0.0}
-    monkeypatch.setattr(decorators.time, "time", lambda: clock["now"])
+    monkeypatch.setattr(decorators, "monotonic", lambda: clock["now"])
     cache_calls = []
 
     @decorators.time_based_cache(expiration_time=10)
@@ -113,3 +113,37 @@ def test_exception_retry_and_time_based_cache(monkeypatch, capsys):
     assert compute("x") == 1
     clock["now"] = 11.0
     assert compute("x") == 2
+
+
+def test_decorator_configuration_validation_and_keyword_cache(monkeypatch):
+    with pytest.raises(ValueError, match="at least 1"):
+        decorators.retry_decorator(max_retries=0)
+    with pytest.raises(ValueError, match="non-negative"):
+        decorators.retry_decorator(delay=-1)
+    with pytest.raises(ValueError, match="non-negative"):
+        decorators.time_based_cache(expiration_time=-1)
+
+    calls: list[tuple[int, int]] = []
+
+    @decorators.memoize
+    def add_with_keywords(left, *, right):
+        calls.append((left, right))
+        return left + right
+
+    assert add_with_keywords(2, right=3) == 5
+    assert add_with_keywords(2, right=3) == 5
+    assert calls == [(2, 3)]
+
+    clock = {"now": 0.0}
+    monkeypatch.setattr(decorators, "monotonic", lambda: clock["now"])
+
+    @decorators.time_based_cache(expiration_time=1)
+    def cached(left, *, right):
+        calls.append((left, right))
+        return left + right
+
+    assert cached(1, right=4) == 5
+    assert cached(1, right=4) == 5
+    clock["now"] = 2.0
+    assert cached(1, right=4) == 5
+    assert calls[-2:] == [(1, 4), (1, 4)]

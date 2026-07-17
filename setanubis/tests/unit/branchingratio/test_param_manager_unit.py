@@ -6,7 +6,7 @@ import SetAnubis.core.BranchingRatio.domain.MartyParamManager as pm_mod
 
 
 class FakeNSA:
-    """ Fournit get_parameter_value(name) -> complex """
+    """Provide get_parameter_value(name) returning a complex value."""
     def __init__(self, values):
         self.values = {k: complex(v, 0.0) for k, v in values.items()}
     def get_parameter_value(self, name: str):

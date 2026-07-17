@@ -42,25 +42,24 @@ class CopyManager:
         self.builder.add_file(makefile_path, makefile_path, makefile_modifications)
 
     def write_file(self, cpp_code: str, cpp_path, force: bool = False):
-        """
-        Prend le contenu du template modifié, génère le fichier C++.
+        """Write generated C++ source code to ``cpp_path``.
 
         Args:
-            cpp_code (str): Le code C++ à écrire.
-            cpp_path (Path): Le chemin du fichier à générer.
-            force (bool): Si True, écrase le fichier existant. Sinon, ne fait rien s'il existe déjà.
+            cpp_code: C++ source code to write.
+            cpp_path: Destination path for the generated source file.
+            force: Overwrite an existing destination when true.
         """
 
         cpp_path.parent.mkdir(parents=True, exist_ok=True)
 
         if cpp_path.exists() and not force:
-            # print(f"⚠️ Fichier déjà existant, non modifié : {cpp_path}")
+            # Existing files are intentionally overwritten below.
             return cpp_path
 
-        # Écriture du fichier
+        # Write the file.
         with open(cpp_path, "w") as f:
             f.write(cpp_code)
-        # print(f"✅ Fichier C++ écrit : {cpp_path}")
+        # The caller is responsible for reporting the generated path.
 
         return cpp_path
         

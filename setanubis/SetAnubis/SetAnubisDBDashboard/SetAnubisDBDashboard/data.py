@@ -89,10 +89,10 @@ def load_database_module():
 
     msg = (
         "Impossible d'importer EventDatabaseManager. Lance depuis la racine du repo, "
-        "ou définis SETANUBIS_DB_MANAGER_PATH=/chemin/EventDatabaseManager.py."
+        "or set SETANUBIS_DB_MANAGER_PATH=/path/to/EventDatabaseManager.py."
     )
     if tried_paths:
-        msg += " Chemins testés: " + "; ".join(tried_paths)
+        msg += " Paths checked: " + "; ".join(tried_paths)
     raise ImportError(msg) from last_exc
 
 
@@ -226,7 +226,7 @@ def refresh_storage_metadata(
 ) -> List[Dict[str, Any]]:
     acc = make_accessor(db_path, storage_dir)
     if not hasattr(acc, "refresh_storage_metadata_from_events_root"):
-        raise RuntimeError("La méthode refresh_storage_metadata_from_events_root n'existe pas encore dans EventDatabaseManager")
+        raise RuntimeError("EventDatabaseManager does not yet provide refresh_storage_metadata_from_events_root")
     return acc.refresh_storage_metadata_from_events_root(events_root, event_ids=event_ids, dry_run=dry_run)
 
 

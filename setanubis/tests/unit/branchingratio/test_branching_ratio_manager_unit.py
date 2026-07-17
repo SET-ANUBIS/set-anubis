@@ -95,7 +95,7 @@ def test_mass_threshold_returns_zero():
 def test_total_width_and_branching_ratios():
     mgr, _ = make_mgr(params={"g": 1.0})
     # - PYTHON -> 1.0 + 1.0 = 2.0
-    # - FILE_INTERPOLATION sur ["g"] -> g + 0.5 = 1.5
+    # FILE_INTERPOLATION on ["g"] produces g + 0.5 = 1.5
     mgr.add_decay(100, [1,2], CalculationDecayStrategy.PYTHON, {"script_path": "x.py", "BR": False})
     mgr.add_decay(100, [1,3], CalculationDecayStrategy.FILE_INTERPOLATION, {"file_path": "x.csv", "varying_params": ["g"], "BR": False})
 

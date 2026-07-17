@@ -1,38 +1,53 @@
-from pathlib import Path
+"""File-copy adapter with optional in-place text substitutions."""
+
+from __future__ import annotations
+
 import shutil
-import os
+from pathlib import Path
+
 
 class FileCopyBuilder:
-    def __init__(self):
-        self.files = []
+    """Collect and execute deterministic file-copy operations."""
 
-    def add_file(self, src: Path, dest: Path, modifications: list[tuple[str, str]] = None):
-        """Ajoute un fichier à copier, avec éventuellement des modifications."""
-        self.files.append({
-            "src": src,
-            "dest": dest,
-            "modifications": modifications or []
-        })
+    def __init__(self) -> None:
+        """Create an empty copy plan."""
+
+        self.files: list[dict[str, object]] = []
+
+    def add_file(
+        self,
+        src: Path,
+        dest: Path,
+        modifications: list[tuple[str, str]] | None = None,
+    ) -> "FileCopyBuilder":
+        """Queue a file copy with optional literal text replacements."""
+
+        self.files.append(
+            {
+                "src": Path(src),
+                "dest": Path(dest),
+                "modifications": modifications or [],
+            }
+        )
         return self
 
-    def execute(self):
-        for file_info in self.files:
-            src = file_info["src"]
-            
-            if not os.path.exists(src):
-                raise FileNotFoundError(f"Le fichier source n'existe pas : {src}")
+    def execute(self) -> None:
+        """Execute all queued copy operations in insertion order."""
 
-            dest = file_info["dest"]
-            modifications = file_info["modifications"]
+        for file_info in self.files:
+            src = Path(file_info["src"])
+            dest = Path(file_info["dest"])
+            modifications = list(file_info["modifications"])
+
+            if not src.exists():
+                raise FileNotFoundError(f"The source file does not exist: {src}")
 
             dest.parent.mkdir(parents=True, exist_ok=True)
 
             if modifications:
-                with src.open("r", encoding="utf-8") as f:
-                    content = f.read()
+                content = src.read_text(encoding="utf-8")
                 for pattern, replacement in modifications:
                     content = content.replace(pattern, replacement)
-                with dest.open("w", encoding="utf-8") as f:
-                    f.write(content)
-            elif not os.path.exists(dest) or not os.path.samefile(src, dest):
+                dest.write_text(content, encoding="utf-8")
+            elif not dest.exists() or not src.samefile(dest):
                 shutil.copy2(src, dest)

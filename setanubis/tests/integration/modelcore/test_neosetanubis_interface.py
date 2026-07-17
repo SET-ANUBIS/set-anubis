@@ -59,32 +59,32 @@ class FakeExpressionTree:
         create_missing: bool = True):
 
         if name in self.nodes and not overwrite:
-            raise ValueError(f"Le nœud '{name}' existe déjà. Utilisez overwrite=True pour remplacer.")
+            raise ValueError(f"Node '{name}' already exists. Use overwrite=True to replace it.")
 
 
         cleaned = expression
 
 
-        # Identifier les symboles libres de l'expression
+        # Identify free symbols in the expression
         tmp_locals = {k: sp.Symbol(k) for k in self.nodes.keys() | {name}}
         sympy_expr = sp.sympify(cleaned, locals=tmp_locals)
         deps = {str(s) for s in sympy_expr.free_symbols if str(s) != name}
 
 
-        # Créer les dépendances manquantes si demandé
+        # Create missing dependencies when requested
         missing = [d for d in deps if d not in self.nodes]
         if missing:
             if create_missing:
                 for d in missing:
-                    # Feuille placeholder (value=None, expression=None)
+                    # Placeholder leaf with no value or expression.
                     self.nodes[d] = FakeNode(d)
                     print("d : ", d)
             else:
-                raise KeyError(f"Dépendances absentes pour '{name}': {missing}")
+                raise KeyError(f"Missing dependencies for '{name}': {missing}")
 
         print(cleaned)
 
-        # Installer le nœud
+        # Install the node
         self.nodes[name] = FakeNode(expr=cleaned, block=lha_block, code=lha_code)
         
         
@@ -121,7 +121,7 @@ JSON_PAYLOAD = {
         "antiName": "mu+",
         "spin": 2,
         "charge": -1,
-        "mass": 105.658,  # MeV si on met mass_scale=1e-3 => 0.105658 GeV
+        "mass": 105.658,  # MeV if we put mass_scale=1e-3 => 0.105658 GeV
     },
     "11": {
         "name": "should_not_override",

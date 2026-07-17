@@ -53,7 +53,7 @@ class MadGraphDockerRunner(IMadGraphRunner):
             stderr=subprocess.PIPE
         )
         if result_mkdir.returncode != 0:
-            print("Erreur lors de la création du dossier dans le conteneur :")
+            print("Failed to create the directory in the container:")
             print(result_mkdir.stderr.decode())
             os.remove(path)
             return
@@ -66,7 +66,7 @@ class MadGraphDockerRunner(IMadGraphRunner):
         os.remove(path)
         
         if result_cp.returncode != 0:
-            print("Erreur lors de la copie du fichier dans le conteneur :")
+            print("Failed to copy the file into the container:")
             print(result_cp.stderr.decode())
             return
     

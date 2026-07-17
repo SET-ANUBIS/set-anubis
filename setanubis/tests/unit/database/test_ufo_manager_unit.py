@@ -60,9 +60,9 @@ def patch_expression_tree(monkeypatch):
 
 def make_parser_stub(sm_particles, model_particles, params):
     """
-    Fabrique un parse(path) qui renvoie des dicts selon le fichier demandé.
-    - .../particles.py -> renvoie sm or model selon si 'SM_NLO' (ou '/sm/') apparaît dans le chemin
-    - .../parameters.py -> renvoie params
+    Build a parse(path) function that returns dictionaries for the requested file.
+    - particles.py returns SM or model data depending on whether SM_NLO or /sm/ appears in the path
+    - parameters.py returns the supplied parameter dictionary
     """
     def parse(path):
         lower = path.lower()

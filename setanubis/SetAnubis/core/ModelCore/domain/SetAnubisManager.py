@@ -223,7 +223,7 @@ class SetAnubisManager:
     #     self._expression_tree.add_leaf("V_33", 1.)
         
     def __add_VCKM(self):
-        # Paramètres (mêmes noms/valeurs par défaut que chez toi)
+        # Parameters using the same names and default values as the reference model
         
         self._expression_tree.add_leaf("lamb", 0.22501)
         self._expression_tree.add_leaf("A",    0.826)
@@ -237,7 +237,7 @@ class SetAnubisManager:
         self._expression_tree.add_expression("s12", "lamb")
         self._expression_tree.add_expression("s23", "A*l2")
 
-        # u13 comme dans le C++ : complex_t(rho, eta) == (rho + i*eta)
+        # Match the C++ convention: complex_t(rho, eta) == rho + i*eta
         self._expression_tree.add_expression(
             "u13",
             "A*l3*(rho+I*eta)*sqrt(1-(A*l2)**2) / ( sqrt(1-l2) * (1 - (A*l2)**2*(rho+I*eta)) )"
@@ -248,7 +248,7 @@ class SetAnubisManager:
         self._expression_tree.add_expression("c23",   "sqrt(1 - s23**2)")
         self._expression_tree.add_expression("c13",   "sqrt(1 - s13**2)")
 
-        # Matrice CKM (paramétrisation standard)
+        # CKM matrix using the standard parameterization
         self._expression_tree.add_expression("V_11", "c12*c13")
         self._expression_tree.add_expression("V_12", "s12*c13")
         self._expression_tree.add_expression("V_13", "s13/expid")          # = s13*e^{-iδ}

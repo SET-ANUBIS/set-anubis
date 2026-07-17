@@ -29,7 +29,7 @@ class FakeNSA:
 
 
 class ConstAdapter:
-    """Adapter de calcul qui renvoie une largeur partielle constante."""
+    """Calculation adapter that returns a constant partial width."""
     def __init__(self, *a, **k): self._is_br = False
     def is_br(self): return False
     def calculate(self, mother, daughters, parameters): return 1.0

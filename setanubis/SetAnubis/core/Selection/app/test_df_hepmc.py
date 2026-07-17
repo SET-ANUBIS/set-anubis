@@ -190,8 +190,8 @@ try:
     print("\nConformité PDG (sur les lignes en désaccord):")
     print(pdg_check)
 except Exception as e:
-    print("\n[Info] paquet 'particle' non disponible, saut de la vérification PDG.", e)
+    print("\n[Info] The 'particle' package is unavailable; skipping the PDG check.", e)
 
 # save detail if needed
 M.to_csv("charge_mismatches_detailed.csv", index=False)
-print("\nFichier écrit: charge_mismatches_detailed.csv")
+print("\nWrote file: charge_mismatches_detailed.csv")

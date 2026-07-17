@@ -35,7 +35,7 @@ class MultiSet(Generic[T]):
         return iter(self.items)
     
     def count(self, item: T) -> int:
-        """Renvoie le nombre d'occurrences de l'élément."""
+        """Return the number of occurrences of the element."""
         return self.items.count(item)
 
 
@@ -64,6 +64,6 @@ if __name__ == "__main__":
     a = MultiSet([11, -12])
     b = MultiSet([-12, 11])
 
-    print(a == b)  # True (avec ton __eq__ actuel)
+    print(a == b)  # True with the current __eq__ implementation
     d = {a: "ok"}
-    print(d[b])    # KeyError si __hash__ ne suit pas la même logique
+    print(d[b])    # KeyError if __hash__ does not follow the same equality semantics

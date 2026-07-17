@@ -15,7 +15,7 @@ class FakeBuilder:
 
 
 def _patch_module_root_to_tmp(monkeypatch, tmp_path: Path, module):
-    """Force Path(__file__).resolve() à renvoyer un chemin profond dans tmp_path."""
+    """Make Path.resolve return a deep path inside tmp_path."""
     nested = tmp_path / "a" / "b" / "c" / "d" / "e" / "f" / "module.py"
     nested.parent.mkdir(parents=True, exist_ok=True)
 

@@ -2,10 +2,10 @@ from typing import Callable, Dict, Any, Set
 from SetAnubis.core.BranchingRatio.domain.IDecayCalculation import IDecayCalculation
 
 class DecayUFOManager:
-    """
-    Classe "interne" gérant l'UFO et créant des fonctions de decay 
-    en fonction des paramètres. 
-    (Implémentation simplifiée, à adapter selon ton UFO.)
+    """Manage UFO-backed decay functions for branching-ratio calculations.
+
+    This lightweight implementation provides the cache contract expected by
+    :class:`DecayProvider`; concrete UFO evaluation can populate ``func``.
     """
     def __init__(self, ufo_path: str):
         self.ufo_path = ufo_path
@@ -15,16 +15,14 @@ class DecayUFOManager:
         pass
 
     def create_func_caches(self):
-        # On peuple self.func[mother][frozenset({daughter1, ...})] = fonction
+        # Populate self.func[mother][frozenset({daughter1, ...})] with callables.
         pass
 
     def get_caches(self):
         return self.func
 
 class DecayProvider(IDecayCalculation):
-    """
-    Implémentation concrète de IDecayCalculation basée sur l'UFO.
-    """
+    """Concrete :class:`IDecayCalculation` backed by a UFO decay manager."""
     def __init__(self, ufo_path: str):
         self.decay_manager = DecayUFOManager(ufo_path)
         self.decay_manager.evaluate_with_sm()

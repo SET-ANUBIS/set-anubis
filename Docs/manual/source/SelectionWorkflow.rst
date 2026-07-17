@@ -69,8 +69,8 @@ Minimal configuration
 .. code-block:: python
 
    from setanubis import (
-       ATLASCavern,
-       GeometrySelectionAdapter,
+       ATLASCavernGeometry,
+       ATLASCavernGeometryConfig,
        SelectionGeometryAdapter,
        SelectionConfig,
        RunConfig,
@@ -81,8 +81,10 @@ Minimal configuration
        EventsBundleSource,
    )
 
-   cavern = ATLASCavern()
-   geometry = SelectionGeometryAdapter(GeometrySelectionAdapter(cavern))
+   geometry_backend = ATLASCavernGeometry.create(
+       ATLASCavernGeometryConfig(mode="ceiling", origin="IP", use_cache=False)
+   )
+   geometry = SelectionGeometryAdapter(geometry_backend)
 
    selection = SelectionConfig(
        geometry=geometry,

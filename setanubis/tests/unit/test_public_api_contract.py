@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import inspect
+import io
+import tokenize
 from importlib import resources
 from pathlib import Path
 
@@ -134,3 +136,53 @@ def test_selection_example_uses_the_current_geometry_stack():
     assert "SelectionGeometryAdapter(geometry)" in source
     assert "GeometrySelectionAdapter" not in source
     assert "SelectionEnginev2" not in source
+
+
+def test_maintained_comments_and_docstrings_are_written_in_english():
+    """Keep contributor-facing source documentation consistently in English."""
+
+    root = Path(__file__).parents[2]
+    source_roots = [root / "SetAnubis", root / "tests"]
+    excluded_parts = {
+        "assets",
+        "UFOInterface",
+    }
+    french_markers = (
+        "ajoute",
+        "supprime",
+        "génère",
+        "renvoie",
+        "détermination",
+        "écriture",
+        "mère",
+        "filles",
+        "nœud",
+        "dépendances",
+        "créer",
+        "déjà",
+        "utilisez",
+        "feuille placeholder",
+        "non initialisées",
+        "appelle create",
+        "fournit",
+    )
+    failures: list[str] = []
+
+    for source_root in source_roots:
+        for path in sorted(source_root.rglob("*.py")):
+            if path.resolve() == Path(__file__).resolve():
+                continue
+            if any(part in excluded_parts for part in path.parts):
+                continue
+            stream = io.StringIO(path.read_text(encoding="utf-8"))
+            for token in tokenize.generate_tokens(stream.readline):
+                if token.type not in {tokenize.COMMENT, tokenize.STRING}:
+                    continue
+                lowered = token.string.lower()
+                marker = next((item for item in french_markers if item in lowered), None)
+                if marker:
+                    failures.append(
+                        f"{path.relative_to(root)}:{token.start[0]} contains {marker!r}"
+                    )
+
+    assert not failures, "French comments/docstrings remain:\n" + "\n".join(failures)

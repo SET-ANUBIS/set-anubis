@@ -125,7 +125,7 @@ class ParticleStats:
         return "\n".join(lines) + "\n"
 
     def summary(self) -> str:
-        """Résumé humainement lisible."""
+        """Return a human-readable summary."""
         if self.n_events == 0:
             return " No event analyzed."
 

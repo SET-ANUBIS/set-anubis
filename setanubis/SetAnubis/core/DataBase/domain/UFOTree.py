@@ -342,9 +342,9 @@ class ExpressionTree:
             if not node.expression:
                 node.value = value
             else:
-                raise ValueError(f"Le nœud {leaf_name} n'est pas une feuille !")
+                raise ValueError(f"Node {leaf_name} is not a leaf.")
         else:
-            raise KeyError(f"Le nœud {leaf_name} n'existe pas dans l'arbre.")
+            raise KeyError(f"Node {leaf_name} does not exist in the tree.")
 
     def get_subgraph_from_leaves(self, leaf_names: List[str]) -> "ExpressionTree":
         """Build a subgraph containing only given leaves and nodes derived solely from them.
@@ -401,25 +401,25 @@ class ExpressionTree:
         lha_block: Optional[str] = None,
         lha_code: Optional[List[int]] = None,
         overwrite: bool = False):
-        """Ajoute (ou remplace) un nœud feuille.
+        """Add or replace a leaf node.
 
 
         Args:
-        name: Nom unique du nœud.
-        value: Valeur numérique (peut être None pour une feuille "placeholder").
-        lha_block: Bloc LHA optionnel.
-        lha_code: Code(s) LHA/PDG optionnel(s).
-        overwrite: Si False, lève une erreur si *name* existe déjà.
+        name: Unique node name.
+        value: Numeric value, or None for a placeholder leaf.
+        lha_block: Optional LHA block.
+        lha_code: Optional LHA or PDG codes.
+        overwrite: Raise an error if *name* exists when false.
         """
         if name in self.nodes and not overwrite:
             return #TODO : for now no warning
-            raise ValueError(f"Le nœud '{name}' existe déjà. Utilisez overwrite=True pour remplacer.")
+            raise ValueError(f"Node '{name}' already exists. Use overwrite=True to replace it.")
 
 
         self.nodes[name] = Node(name, value=value, lha_block=lha_block, lha_code=lha_code)
 
 
-        # Relier les dépendances des autres nœuds susceptibles de référencer ce nom
+        # Link dependencies from other nodes that may reference this name
         self._relink_dependencies(only_for={name})
 
 
@@ -428,81 +428,80 @@ class ExpressionTree:
         lha_code: Optional[List[int]] = None,
         overwrite: bool = False,
         create_missing: bool = False):
-        """Ajoute (ou remplace) un nœud défini par une expression symbolique.
+        """Add or replace a node defined by a symbolic expression.
 
 
         Args:
-        name: Nom du nœud à créer/remplacer.
-        expression: Expression (str), p.ex. "2*a + sin(b)".
-        lha_block: Bloc LHA optionnel.
-        lha_code: Code(s) LHA/PDG optionnel(s).
-        overwrite: Si False, lève une erreur si *name* existe déjà.
-        create_missing: Si True, crée automatiquement des feuilles vides pour
-        toute dépendance manquante.
+        name: Name of the node to create or replace.
+        expression: Symbolic expression, for example ``2*a + sin(b)``.
+        lha_block: Optional LHA block.
+        lha_code: Optional LHA or PDG codes.
+        overwrite: Raise an error if *name* exists when false.
+        create_missing: Create placeholder leaves for missing dependencies when true.
 
 
         Raises:
-        KeyError: Si des dépendances sont absentes et *create_missing* est False.
-        ValueError: Si l'ajout introduit une dépendance cyclique.
+        KeyError: If dependencies are missing and *create_missing* is false.
+        ValueError: If the addition introduces a cyclic dependency.
         """
         if name in self.nodes and not overwrite:
-            raise ValueError(f"Le nœud '{name}' existe déjà. Utilisez overwrite=True pour remplacer.")
+            raise ValueError(f"Node '{name}' already exists. Use overwrite=True to replace it.")
 
 
         cleaned = self.clean_expression(expression)
 
 
-        # Identifier les symboles libres de l'expression
+        # Identify free symbols in the expression
         tmp_locals = {k: sp.Symbol(k) for k in self.nodes.keys() | {name}}
         sympy_expr = sp.sympify(cleaned, locals=tmp_locals)
         deps = {str(s) for s in sympy_expr.free_symbols if str(s) != name}
 
 
-        # Créer les dépendances manquantes si demandé
+        # Create missing dependencies when requested
         missing = [d for d in deps if d not in self.nodes]
         if missing:
             if create_missing:
                 for d in missing:
-                    # Feuille placeholder (value=None, expression=None)
+                    # Placeholder leaf with no value or expression.
                     self.nodes[d] = Node(d)
             else:
-                raise KeyError(f"Dépendances absentes pour '{name}': {missing}")
+                raise KeyError(f"Missing dependencies for '{name}': {missing}")
 
 
-        # Installer le nœud
+        # Install the node
         self.nodes[name] = Node(name, expression=cleaned, lha_block=lha_block, lha_code=lha_code)
 
 
-        # (Re)lier toutes les dépendances pertinentes
+        # Re-link all relevant dependencies
         self._relink_dependencies()
 
 
-        # Détecter un éventuel cycle et annuler si nécessaire
+        # Detect a cycle and roll back when necessary
         if self._has_cycle():
-        # rollback simple
+            # Roll back the newly inserted node.
             del self.nodes[name]
             self._relink_dependencies()
-            raise ValueError(f"Ajout de '{name}' rejeté: dépendance cyclique détectée.")
+            raise ValueError(f"Cannot add '{name}': cyclic dependency detected.")
 
 
     def add_nodes(self, params: List[Dict[str, Any]],
         overwrite: bool = False,
         create_missing: bool = False):
-        """Ajout en lot de feuilles et/ou de nœuds d'expression (même format que le ctor).
+        """Add leaf and expression nodes in bulk using the constructor format.
 
 
-        Chaque entrée suit le format:
+        Each entry follows this format:
         {"name": str, "value": number | str, "block": str?, "pdgcode": List[int]?}
-        - Si *value* est numérique → feuille
-        - Si *value* est une str ou si *expression* est fourni → nœud d'expression
+        - A numeric *value* creates a leaf node.
+        - A string *value* or an explicit *expression* creates an expression node.
 
 
         Args:
-        params: Liste de descripteurs de nœuds.
-        overwrite: Autoriser le remplacement si un nom existe déjà.
-        create_missing: Créer automatiquement les dépendances manquantes.
+        params: List of node descriptors.
+        overwrite: Allow replacement when a node name already exists.
+        create_missing: Create missing dependencies automatically.
         """
-        # On ajoute d'abord tous les noms (sans relier), puis on relie à la fin.
+        # Add all names first without links, then connect dependencies at the end.
         staged: Dict[str, Node] = {}
 
 
@@ -513,7 +512,7 @@ class ExpressionTree:
 
 
             if name in self.nodes and not overwrite:
-                raise ValueError(f"Le nœud '{name}' existe déjà. Utilisez overwrite=True pour remplacer.")
+                raise ValueError(f"Node '{name}' already exists. Use overwrite=True to replace it.")
 
 
             if "expression" in p:
@@ -526,17 +525,17 @@ class ExpressionTree:
                 staged[name] = Node(name, value=val, lha_block=lha_block, lha_code=lha_code)
             else:
                 if val is None:
-                    raise ValueError(f"Le nœud '{name}' n'a ni valeur numérique ni expression.")
+                    raise ValueError(f"Node '{name}' has neither a numeric value nor an expression.")
                 cleaned = self.clean_expression(str(val))
                 staged[name] = Node(name, expression=cleaned, lha_block=lha_block, lha_code=lha_code)
 
 
-        # Appliquer dans self.nodes
+        # Apply the changes to self.nodes
         for name, node in staged.items():
             self.nodes[name] = node
 
 
-        # Créer les dépendances manquantes si voulu
+        # Create missing dependencies when requested
         if create_missing:
             all_needed: Set[str] = set()
             for node in self.nodes.values():
@@ -548,26 +547,26 @@ class ExpressionTree:
                     self.nodes[d] = Node(d)
 
 
-        # Relier & vérifier les cycles
+        # Link dependencies and check for cycles
         self._relink_dependencies()
         if self._has_cycle():
-            raise ValueError("Ajout en lot rejeté: dépendance cyclique détectée.")
+            raise ValueError("Bulk addition rejected: cyclic dependency detected.")
 
 
-    # --------------------- Helpers internes ---------------------
+    # --------------------- Internal helpers ---------------------
     def _relink_dependencies(self, only_for: Optional[Set[str]] = None):
-        """(Ré)calcule la liste des dépendances pour les nœuds d'expression.
+        """Recompute dependencies for expression nodes.
 
 
         Args:
-        only_for: Si fourni, ne recalculer que les nœuds dont l'expression
-        mentionne l'un de ces noms (ou ces nœuds eux‑mêmes).
+        only_for: If provided, recompute only nodes whose expression mentions
+            one of these names, including those nodes themselves.
         """
         all_symbols = {k: sp.Symbol(k) for k in self.nodes.keys()}
 
 
         for node in self.nodes.values():
-            # Nettoyage des feuilles
+            # Clean up leaf nodes
             if not node.expression:
                 node.dependencies = []
                 continue
@@ -582,14 +581,14 @@ class ExpressionTree:
 
 
     def _has_cycle(self) -> bool:
-        """Détection de cycle par DFS couleurs (O(N+E))."""
+        """Detect cycles with a color-based depth-first search in O(N + E)."""
         WHITE, GRAY, BLACK = 0, 1, 2
         color: Dict[str, int] = {name: WHITE for name in self.nodes}
 
 
         def visit(u: str) -> bool:
             if color[u] == GRAY:
-                return True # back-edge → cycle
+                return True # A back edge indicates a cycle
             if color[u] == BLACK:
                 return False
             color[u] = GRAY

@@ -6,7 +6,7 @@ class MartyFileCopyBuilder:
         self.builder = FileCopyBuilder()
 
     def add_file(self, src: Path, dest: Path, modifications: list[tuple[str, str]] = None):
-        """Ajoute un fichier à copier, avec éventuellement des modifications."""
+        """Queue a file copy with optional text replacements."""
         return self.builder.add_file(src, dest, modifications)
 
     def execute(self):

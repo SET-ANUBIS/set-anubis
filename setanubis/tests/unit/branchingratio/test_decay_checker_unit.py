@@ -1,18 +1,11 @@
-# tests/unit/branchingratio/test_decay_checker_unit.py
 import pytest
 
 from SetAnubis.core.BranchingRatio.domain.DecayChecker import DecayChecker
 
 # ---- Fake NSA ----
 class FakeNSA:
-    """
-    Simule SetAnubisInterface.get_particle_info(pdg_code) en renvoyant la charge
-    avec la bonne gestion du signe, comme ton manager :
-      - si pdg > 0  -> charge telle que définie dans charges_pos[pdg]
-      - si pdg < 0  -> charge opposée de charges_pos[abs(pdg)]
-    """
     def __init__(self, charges_pos):
-        # charges_pos: dict {pdg(>0): charge(particule)}
+        # charges_pos maps positive PDG IDs to particle charges
         self._c = dict(charges_pos)
 
     def get_particle_info(self, pdg_code):
@@ -28,7 +21,7 @@ def checker():
 
 @pytest.fixture
 def nsa_std():
-    # Quelques particules usuelles : 11(e-), 13(mu-), 22(γ), 23(Z)
+    # 11(e-), 13(mu-), 22(γ), 23(Z)
     return FakeNSA({
         11: -1.0,  # e-
         13: -1.0,  # mu-
@@ -51,6 +44,6 @@ def test_invalid_charge_not_conserved(checker, nsa_std):
         checker.check_decay_validity(23, [11, 11], nsa_std)
 
 def test_negative_mother_sign_handling(checker, nsa_std):
-    # mère = -11 (e+) charge +1, filles = e- (11) + γ (0) => somme -1 : invalide
+    # Mother e+ has charge +1; e- plus gamma totals -1 and is invalid
     with pytest.raises(ValueError):
         checker.check_decay_validity(-11, [11, 22], nsa_std)

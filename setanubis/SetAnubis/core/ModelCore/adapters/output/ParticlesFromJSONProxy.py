@@ -4,9 +4,10 @@ from SetAnubis.core.DataBase.ports.IExtractor import IExtractor
 from SetAnubis.core.ModelCore.ports.output.IParticleJSONProxy import IParticleJSONProxy
 
 class ParticlesFromJSONProxy(IParticleJSONProxy) : 
-    """
-    Proxy qui enrichit un catalogue de particules existant avec des entrées
-    provenant d'une source JSON via un IExtractor. N'ajoute que les PDG manquants.
+
+    """Enrich an existing particle catalog with entries from a JSON extractor.
+
+    Only particles with previously unseen PDG identifiers are added.
     """
 
     def __init__(
