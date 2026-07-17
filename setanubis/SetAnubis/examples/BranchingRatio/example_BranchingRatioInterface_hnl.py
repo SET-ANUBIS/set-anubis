@@ -1,3 +1,5 @@
+"""Combine Python and CSV decay providers through the branching-ratio interface."""
+
 from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import DecayInterface, CalculationDecayStrategy
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
 from SetAnubis import assets_dir
@@ -8,7 +10,7 @@ PY_SCRIPT_PATH = os.path.join(CURRENT_DIR, "TestFiles", "test_BR.py")
 CSV_FILE_PATH  = os.path.join(CURRENT_DIR, "TestFiles", "test_BR.csv")
 
 if __name__ == "__main__":
-
+    # Load the packaged HNL UFO and register two independent decay providers.
     setanubis = SetAnubisInterface(os.path.join(assets_dir(),"UFO","UFO_HNL"))
     
     setanubis.set_leaf_param("ZERO", 0)
@@ -31,6 +33,7 @@ if __name__ == "__main__":
     br.add_decays(decay_list, CalculationDecayStrategy.FILE_INTERPOLATION, common_config)
     
     
+    # Query individual widths, the total width, and normalized branching ratios.
     gamma_mumu_script = br.get_decay(25, [-13, 13])
     print(f"[SCRIPT PYTHON] Gamma(H->mu+mu-) = {gamma_mumu_script}")
 

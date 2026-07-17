@@ -1,3 +1,5 @@
+"""Run the configurable selection pipeline on a prepared event bundle."""
+
 from SetAnubis.core.Selection.domain.SelectionPipeline import SelectionPipelineBuilder, FileCache, IDataSource
 from SetAnubis.core.Selection.domain.SelectionManager import SelectionManager, DatasetSpec
 from SetAnubis.core.Selection.domain.DatasetSource import EventsBundleSource, SourceConfig
@@ -52,11 +54,11 @@ if __name__ == "__main__":
     pipeline = builder.build()
 
 
-    src_bundle = EventsBundleSource.from_bundle_file("paul_dict.pkl.gz")
+    src_bundle = EventsBundleSource.from_bundle_file("/home/theo/set-anubis/setanubis/SetAnubis/examples/Selection/InputFiles/samples_dfs_hnl_with_jet_deltaR.pkl.gz")
 
     mgr = SelectionManager(pipeline)
     combined = mgr.run_many(
-        named_sources=[("paul", src_bundle)],
+        named_sources=[("source_example", src_bundle)],
         sel_cfg=sel_cfg,
         run_cfg=run_cfg,
     )

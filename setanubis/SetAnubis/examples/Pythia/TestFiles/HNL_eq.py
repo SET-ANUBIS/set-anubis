@@ -1,3 +1,5 @@
+"""Define lightweight HNL decay-width formulae loaded by the Pythia examples."""
+
 import numpy as np
 import scipy.integrate as integrate
 import sys, os

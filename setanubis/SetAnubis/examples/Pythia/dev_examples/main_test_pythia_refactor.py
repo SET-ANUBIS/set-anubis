@@ -93,6 +93,7 @@ class FakeDecayInterface:
 
 
 def build_generic_cmnd(pid: int) -> str:
+    # Fake interfaces keep this smoke test independent of a full UFO model.
     master = FakeSetAnubisInterface(pid=pid)
     decay = FakeDecayInterface(pid=pid)
     interface = PythiaCMNDInterface(master, decay)

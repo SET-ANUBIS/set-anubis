@@ -1,5 +1,6 @@
+"""Convert a HepMC event stream into the flat dataframe used by selection."""
+
 import os
-import pyhepmc
 
 from SetAnubis.core.ModelCore.adapters.input.SetAnubisInteface import SetAnubisInterface
 from SetAnubis.core.Selection.domain.HepMCFrameBuilder import HepmcFrameBuilder, HepmcFrameOptions
@@ -10,6 +11,12 @@ HEPMC_PATH = os.path.join(CURRENT_DIR, "..","InputFiles", "tag_1_pythia8_events.
 OUTPUT_CSV_PATH = os.path.join(CURRENT_DIR, "..", "InputFiles", "hnl_df.csv")
 
 if __name__ == "__main__":
+    # pyhepmc is optional and only needed when this conversion is executed.
+    try:
+        import pyhepmc
+    except ImportError as exc:
+        raise SystemExit("Install SetAnubis[selection] to read HepMC files.") from exc
+
     neo = SetAnubisInterface(ufo_path("UFO_HNL"))
 
     def on_progress(n: int):

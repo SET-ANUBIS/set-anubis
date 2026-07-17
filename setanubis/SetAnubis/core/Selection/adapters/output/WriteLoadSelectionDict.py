@@ -1,31 +1,26 @@
-import gzip
-import pickle
+"""Backward-compatible helpers for trusted selection bundle persistence."""
+
+from __future__ import annotations
+
+from os import PathLike
 from typing import Dict
+
 import pandas as pd
 
-def save_bundle(bundle: Dict[str, pd.DataFrame], filepath: str) -> None:
-    """
-    Sauvegarde un dict[str -> DataFrame] dans un seul fichier compressé.
-    Exemple: filepath='events.pkl.gz'
-    """
-    with gzip.open(filepath, "wb") as f:
-        pickle.dump(bundle, f, protocol=pickle.HIGHEST_PROTOCOL)
+from SetAnubis.core.Selection.domain.DatasetSource import BundleIO
 
-def load_bundle(filepath: str) -> Dict[str, pd.DataFrame]:
+
+def save_bundle(
+    bundle: Dict[str, pd.DataFrame], filepath: str | PathLike[str]
+) -> None:
+    """Save a selection bundle as a gzip-compressed pickle file.
+
+    The extension is not used to select the compression format; ``.pkl`` and
+    ``.pkl.gz`` are both accepted for compatibility.  Only load trusted files.
     """
-    Recharge le dict[str -> DataFrame] exactement comme à l’origine.
-    """
-    if filepath.endswith(".gz"):
-        with gzip.open(filepath, "rb") as f:
-            return pickle.load(f)
-    else:
-        import io
-        with io.FileIO(filepath) as f:
-            return pickle.load(f)
-    
-if __name__ == "__main__":
-    dict_load = load_bundle("paul_dict.pkl.gz")
-    
-    print(dict_load.keys())
-    print(dict_load["LLPs"])
-    print(dict_load["LLPchildren"])
+    BundleIO.save_bundle(bundle, filepath)
+
+
+def load_bundle(filepath: str | PathLike[str]) -> Dict[str, pd.DataFrame]:
+    """Load a trusted selection bundle, detecting gzip from its file header."""
+    return BundleIO.load_bundle(filepath)

@@ -1,3 +1,5 @@
+"""Store numerical constants shared by the HNL example formulae."""
+
 import json
 import os, sys
 from particle import PDGID
@@ -45,6 +47,7 @@ class SimulationParameters:
             return
         self._initialized = True
         self.params = {}
+        # Numerical inputs are grouped here so formula modules stay declarative.
         self.constants = {"pi" : 3.141592654, "G_F" : 1.16637e-5, "sw2" : 0.233610, "c" : 299792458.0, "eV" : 1.602176634e-19, "e" : 1.602176634e-19, "kg_to_GeV" : 5.609588603e+26, "hev" : 6.58211928*pow(10.,-16)}
         self.CKM_matrix = [
             [ 0.97373, 0.22500, 0.00369 ],

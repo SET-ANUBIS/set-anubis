@@ -77,6 +77,35 @@ def test_architecture_interfaces_have_class_and_method_docstrings():
     assert not missing, "Missing interface docstrings:\n" + "\n".join(missing)
 
 
+
+def test_all_example_modules_have_explanatory_docstrings():
+    """Keep every shipped example self-describing when opened directly."""
+    examples = Path(__file__).parents[2] / "SetAnubis" / "examples"
+    missing: list[str] = []
+    for path in sorted(examples.rglob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        if not ast.get_docstring(tree):
+            missing.append(str(path.relative_to(examples)))
+    assert not missing, "Examples missing module documentation:\n" + "\n".join(missing)
+
+
+def test_all_example_modules_import_without_running_optional_workflows():
+    """Examples should be inspectable without native runtimes or input files."""
+    import runpy
+
+    examples = Path(__file__).parents[2] / "SetAnubis" / "examples"
+    failures: list[str] = []
+    for path in sorted(examples.rglob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        try:
+            runpy.run_path(str(path), run_name="setanubis_example_import_check")
+        except Exception as exc:
+            failures.append(f"{path.relative_to(examples)}: {type(exc).__name__}: {exc}")
+    assert not failures, "Example import failures:\n" + "\n".join(failures)
+
 def test_hnl_branching_ratio_table_has_single_canonical_copy():
     """Keep the large HNL branching-ratio table in one packaged location."""
     root = Path(__file__).resolve().parents[2] / "SetAnubis"

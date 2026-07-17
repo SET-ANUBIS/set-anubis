@@ -1,3 +1,5 @@
+"""Select HepMC artifacts from the event database and write a CSV processing index."""
+
 from SetAnubis.core.Selection.domain.Models import HepmcSelectionQuery, IndexWriterConfig, HepmcRef
 from SetAnubis.core.Selection.adapters.output.EventsDbHepMCSelector import EventsDbHepmcSelectorAdapter
 from SetAnubis.core.Selection.adapters.output.PandasHepMCIndexWriter import PandasHepmcIndexWriterAdapter

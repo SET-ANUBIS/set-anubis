@@ -1,40 +1,68 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Tuple, Protocol
+from typing import Any, Callable, Dict, List, Optional, Tuple, Protocol
 import gzip
 import hashlib
 import io
 import os
 import pickle
+from pathlib import Path
+from os import PathLike
 import pandas as pd
 
 from SetAnubis.core.Selection.domain.LLPAnalyzer import LLPAnalyzer
 
 class BundleIO:
+    """Persist trusted pandas bundles using gzip-compressed pickle files.
+
+    Loading is based on the file signature rather than the extension.  This keeps
+    older ``.pkl`` files readable when they were written through ``gzip.open``.
+    Pickle files can execute code while loading and must therefore come from a
+    trusted source.
     """
-    Save and load bundles (dict[str->DataFrame] and full df) implementation with gzip+pickle.
-    """
-    @staticmethod
-    def save_bundle(bundle: Dict[str, pd.DataFrame], filepath: str) -> None:
-        os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
-        with gzip.open(filepath, "wb") as f:
-            pickle.dump(bundle, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    GZIP_MAGIC = b"\x1f\x8b"
 
     @staticmethod
-    def load_bundle(filepath: str) -> Dict[str, pd.DataFrame]:
-        with gzip.open(filepath, "rb") as f:
-            return pickle.load(f)
+    def _is_gzip(filepath: str | PathLike[str]) -> bool:
+        """Return whether *filepath* starts with the gzip magic bytes."""
+        with open(filepath, "rb") as stream:
+            return stream.read(2) == BundleIO.GZIP_MAGIC
 
     @staticmethod
-    def save_df(df: pd.DataFrame, filepath: str) -> None:
-        os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
-        with gzip.open(filepath, "wb") as f:
-            pickle.dump(df, f, protocol=pickle.HIGHEST_PROTOCOL)
+    def _dump(value: Any, filepath: str | PathLike[str]) -> None:
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with gzip.open(path, "wb") as stream:
+            pickle.dump(value, stream, protocol=pickle.HIGHEST_PROTOCOL)
 
     @staticmethod
-    def load_df(filepath: str) -> pd.DataFrame:
-        with gzip.open(filepath, "rb") as f:
-            return pickle.load(f)
+    def _load(filepath: str | PathLike[str]) -> Any:
+        opener = gzip.open if BundleIO._is_gzip(filepath) else open
+        with opener(filepath, "rb") as stream:
+            return pickle.load(stream)
+
+    @staticmethod
+    def save_bundle(
+        bundle: Dict[str, pd.DataFrame], filepath: str | PathLike[str]
+    ) -> None:
+        """Write a dataframe bundle as a gzip-compressed trusted pickle."""
+        BundleIO._dump(bundle, filepath)
+
+    @staticmethod
+    def load_bundle(filepath: str | PathLike[str]) -> Dict[str, pd.DataFrame]:
+        """Load a trusted bundle from gzip-compressed or plain pickle data."""
+        return BundleIO._load(filepath)
+
+    @staticmethod
+    def save_df(df: pd.DataFrame, filepath: str | PathLike[str]) -> None:
+        """Write one dataframe as a gzip-compressed trusted pickle."""
+        BundleIO._dump(df, filepath)
+
+    @staticmethod
+    def load_df(filepath: str | PathLike[str]) -> pd.DataFrame:
+        """Load one trusted dataframe from gzip-compressed or plain pickle data."""
+        return BundleIO._load(filepath)
 
 
 def _sha256_bytes(data: bytes) -> str:

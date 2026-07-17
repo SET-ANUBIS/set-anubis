@@ -1,3 +1,4 @@
+from pathlib import Path
 import json
 import os
 
@@ -72,7 +73,7 @@ def test_cas_ingest_and_link(tmp_path):
     event_folder = os.path.join(db._events_root, "dummy")
     out = db._link_into_event_folder(sha, event_folder, "file.bin")
     assert os.path.exists(out)
-    assert open(out, "rb").read() == data
+    assert Path(out).read_bytes() == data
 
     sha2, _ = db._ingest_file_to_cas(str(src), sha256=sha)
     assert sha2 == sha

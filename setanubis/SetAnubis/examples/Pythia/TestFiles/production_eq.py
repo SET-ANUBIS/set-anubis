@@ -1,3 +1,5 @@
+"""Interpolate HNL production branching ratios from the packaged reference table."""
+
 import os
 import re
 import numpy as np
@@ -28,6 +30,7 @@ class HNLDecayBRCalculator(IDecayCalculation):
         return float(interpolator(float(mass.real)))
 
     def _make_interpolators(self, kind: str = "linear") -> Dict[str, scipy.interpolate.interp1d]:
+        # Load the canonical HNL table shipped next to this support module.
         filepath = os.path.join(os.path.dirname(__file__), "N1_branchingratios.dat")
         histogram_data = self._parse_histograms(filepath)
         histograms = {}

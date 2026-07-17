@@ -115,3 +115,7 @@ Recommended examples
 * ``setanubis/SetAnubis/examples/MadGraph/example_run_card.py``
 * ``setanubis/SetAnubis/examples/MadGraph/example_madspin_card.py``
 * ``setanubis/SetAnubis/examples/MadGraph/example_hepmc_plots.py``
+
+  Run it with an explicit HepMC input, for example::
+
+     python -m SetAnubis.examples.MadGraph.example_hepmc_plots path/to/events.hepmc.gz --pdg-id 35

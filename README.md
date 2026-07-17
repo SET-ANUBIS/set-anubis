@@ -246,6 +246,15 @@ print(combined.cutflow_sum)
 > arbitrary Python code when loaded. Only open bundles produced by a trusted
 > workflow or obtained from a verified source; see [`SECURITY.md`](SECURITY.md).
 
+The selection bundle helper detects gzip from the file header, so older compressed
+files named `.pkl` remain readable. New generated bundles use the clearer
+`.pkl.gz` suffix. The runnable development examples are:
+
+```bash
+python setanubis/SetAnubis/examples/Selection/dev_examples/example_sampledfs_from_df.py
+python setanubis/SetAnubis/examples/Selection/dev_examples/example_jets_and_pT_deltaR_cuts.py
+```
+
 ## Reproducibility and CPC examples
 
 The source release contains deterministic examples for ModelCore, branching

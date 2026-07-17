@@ -22,6 +22,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.hepmc_file.is_file():
         parser.error(f"HepMC file does not exist: {args.hepmc_file}")
 
+    # Analysis is separated from plotting so the numerical summary is visible first.
     analyzer = MadGraphHepmcAnalyzer.from_file(str(args.hepmc_file))
     stats = analyzer.analyze(
         pdg_id=args.pdg_id,

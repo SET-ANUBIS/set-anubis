@@ -11,14 +11,14 @@ Release checklist
 
 * update ``pyproject.toml``, ``SetAnubis/_version.py``, ``CHANGELOG.md`` and
   ``CITATION.cff``;
-* run the local CI commands from :doc:`CIAndDocs`;
+* run the lint, dependency audit, high-severity security scan, 35 percent coverage gate and local CI commands from :doc:`CIAndDocs`;
 * build and check the distribution with ``python -m build`` and
   ``python -m twine check dist/*``;
 * run the complete ``reproducibility/`` validation package;
 * build one immutable sdist/wheel set and record SHA-256 checksums;
 * upload those artifacts to TestPyPI first;
 * download the TestPyPI wheel, verify its SHA-256, then install and smoke-test it in a clean environment;
-* approve promotion of the same artifacts to PyPI;
+* approve promotion of the same artifacts to PyPI from the protected ``main`` branch;
 * create the matching GitHub tag/release with those same artifacts.
 
 Scientific provenance

@@ -105,7 +105,7 @@ def test_import_two_runs_scan_cas_and_transforms(tmp_path):
     assert any(path.endswith(".txt") for path in written)
 
     jpath = [p for p in written if p.endswith(".json")][0]
-    payload = json.loads(open(jpath, "r").read())
+    payload = json.loads(Path(jpath).read_text(encoding="utf-8"))
     assert payload["id"] == first_id
     assert isinstance(payload["artifacts"], list)
 

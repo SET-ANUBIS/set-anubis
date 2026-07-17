@@ -105,6 +105,10 @@ markers = [
 ]
 filterwarnings = [
   "error::ResourceWarning",
+  # SWIG types from optional native dependencies omit __module__ on Python 3.10+.
+  "ignore:builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning",
+  "ignore:builtin type SwigPyObject has no __module__ attribute:DeprecationWarning",
+  "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
 ]
 
 
@@ -139,4 +143,4 @@ omit = [
 show_missing = true
 skip_covered = true
 precision = 1
-fail_under = 35
+fail_under = 40

@@ -88,3 +88,11 @@ Resource helpers
 
 These helpers resolve packaged assets after ``pip install`` and should be
 preferred over hard-coded repository-relative paths.
+
+
+Documentation contract
+----------------------
+
+Every name exported by ``setanubis.__all__`` is imported in CI and must expose a
+non-empty docstring.  The same release test checks the abstract ports used by the
+hexagonal architecture so that adapters have a documented behavioural contract.

@@ -1,7 +1,10 @@
+"""Run the optional native Pythia interface with a user-editable CMND card."""
+
 from SetAnubis.core.Pythia.adapters.input.PythiaRunInterface import PythiaRunInterface
 import os
 
 if __name__ == "__main__":
+    # This example requires the optional compiled Pythia/HepMC3 binding.
     py_interface = PythiaRunInterface(os.path.join(os.path.dirname(__file__), "outputs"))
 
     output_lhe, output_hepmc = py_interface.ensure_directories(["lhe", "hepmc"])

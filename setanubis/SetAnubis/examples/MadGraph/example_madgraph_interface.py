@@ -1,105 +1,69 @@
-from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import GeneralCardInterface, MadGraphCommandConfig
+"""Build all MadGraph cards in memory and optionally launch the Docker runner."""
+
+from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import (
+    GeneralCardInterface,
+    MadGraphCommandConfig,
+)
 from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphInterface
 from SetAnubis.core.interfaces import SetAnubisInterface
 from SetAnubis.resources import ufo_path
 
+
 if __name__ == "__main__":
-
-    hnl_ufo_path = ufo_path("UFO_HNL")
-
-    """
-    Paramater use to choose if we want to produce the card only (True) or run madgraph on docker.
-    """
+    # Keep this True to inspect generated cards without requiring Docker/MadGraph.
     dry_run = True
-    
-    """
-    General interface of the SET-ANUBIS pipeline. Need the path to the UFO as an input.
-    
-    Everything concerning this interface is available in the ModelCore.example_setanubis_interface.py example.
-    """
-    neo = SetAnubisInterface(hnl_ufo_path)
 
-    """
-    Configuration for the MagraphInterface (for writing cards). Few inputs are needed :
-    
-        -   neo_set_anubis : General SetAnubis interface, with the ufo_path and all the particles/parameters.
-        -   cards_path  :   Path to the cards in the docker container. No need to change it it will only break things (or be sure of what you're doing !).
-        -   cache : If we want to use what's already in MadGraph, Generally put it to False only you're sure or doing the same scan than before.
-        -   model_in_madgraph : name of the UFO, used in madgraph to import the model (from Feynrule).
-        -   shower  :   shower option in madgraph, tell it which software will deal with the shower (use pythia by default).
-        -   madspin :   madspin option, whether to use it for the decay of the LLP or not.
-    """
+    # The model interface supplies UFO parameters to all card builders.
+    model = SetAnubisInterface(ufo_path("UFO_HNL"))
     config = MadGraphCommandConfig(
-        neo_set_anubis=neo,
+        neo_set_anubis=model,
         cache=False,
         model_in_madgraph="SM_HeavyN_CKM_AllMasses_LO",
         shower="py8",
-        madspin="ON")
-    
-    """
-    General interface for the cards creation. Everything on the heap, no file writing or anything.
-    
-    The three main cards are the runcard, param_card and the jobcard.
-    
-    param_card : The param_card is automatically created by the UFO (writing part) and will use the default value of the parameters. In order to change a parameters value, either change it in the UFO or 
-    in the jobscard (parameter scan can be used with one value to set the parameters's value).
-    
-    run_card : The run_card can be edited to change the number of events, the parton distribution function, the energy of the beam, some cuts or other general parameters.
-    
-    jobcard : The jobcard is used to select the differents process to generate the LLP, and choose the parameters for the scan. See below the example.
-    
-    Two other cards are used for madspin and pythia : 
-    
-    pythia_card : The pythia_card is automatically generated and shouldn't be changed
-    """
-    card_interface = GeneralCardInterface(config)
-    
-    param_card = card_interface.param_card
+        madspin="ON",
+    )
+    cards = GeneralCardInterface(config)
 
-    runcard_editor = card_interface.run_card_builder
-    runcard_editor.set("nevents", 2000)
-    runcard_str = runcard_editor.serialize()
+    # Customize each card through its dedicated builder before serialization.
+    param_card = cards.param_card
+    cards.run_card_builder.set("nevents", 2000)
+    run_card = cards.run_card_builder.serialize()
 
-    builder_madspin = card_interface.madspin_builder
-    builder_madspin.add_decay("decay n1 > ell ell vv")
-    madspin_str = builder_madspin.serialize()
-    
-    pythia_str = card_interface.pythia_builder.serialize()
+    cards.madspin_builder.add_decay("decay n1 > ell ell vv")
+    madspin_card = cards.madspin_builder.serialize()
+    pythia_card = cards.pythia_builder.serialize()
 
-    
-    jobcard = card_interface.jobscript_builder
-    jobcard.add_process("generate p p > n1 ell # [QCD]")
-    jobcard.set_output_launch("HNL_Condor_CCDY_qqe")
-    jobcard.configure_cards()
-    jobcard.add_parameter_scan("VeN1", "[1e-6, 1.]")
-    jobcard.add_parameter_scan("MN1", "[0.5, 1.0]")
-    jobscript_str = jobcard.serialize()
+    job_card = cards.jobscript_builder
+    job_card.add_process("generate p p > n1 ell # [QCD]")
+    job_card.set_output_launch("HNL_Condor_CCDY_qqe")
+    job_card.configure_cards()
+    job_card.add_parameter_scan("VeN1", "[1e-6, 1.]")
+    job_card.add_parameter_scan("MN1", "[0.5, 1.0]")
+    job_script = job_card.serialize()
 
-    print("------------------------------------------------------------------------------------------")
-    print(jobscript_str)
-    print("------------------------------------------------------------------------------------------")
-    print(madspin_str)
-    print("------------------------------------------------------------------------------------------")
-    print(pythia_str)
-    print("------------------------------------------------------------------------------------------")
-    
-    print(runcard_str)
-    print("------------------------------------------------------------------------------------------")
-    
-    print(param_card)
-    print("------------------------------------------------------------------------------------------")
-    
+    for title, content in (
+        ("job card", job_script),
+        ("MadSpin card", madspin_card),
+        ("Pythia card", pythia_card),
+        ("run card", run_card),
+        ("param card", param_card),
+    ):
+        print(f"--- {title} ---")
+        print(content)
+
     if not dry_run:
-        from SetAnubis.core.MadGraph.adapters.output.MadGraphDockerRunner import MadGraphDockerRunner
-        madgraph_runner = MadGraphDockerRunner()
-        mg = MadgraphInterface(
-            madgraph_runner=madgraph_runner,
-            jobscript_str=jobscript_str,
-            param_card_str=param_card,
-            run_card_str=runcard_str,
-            pythia_card_str=pythia_str,
-            madspin_card_str=madspin_str
+        # Import Docker support only when the external execution is requested.
+        from SetAnubis.core.MadGraph.adapters.output.MadGraphDockerRunner import (
+            MadGraphDockerRunner,
         )
 
-        mg.run()
-        mg.retrieve_events()
+        interface = MadgraphInterface(
+            madgraph_runner=MadGraphDockerRunner(),
+            jobscript_str=job_script,
+            param_card_str=param_card,
+            run_card_str=run_card,
+            pythia_card_str=pythia_card,
+            madspin_card_str=madspin_card,
+        )
+        interface.run()
+        interface.retrieve_events()

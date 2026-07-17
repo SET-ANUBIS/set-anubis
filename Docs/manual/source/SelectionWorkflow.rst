@@ -117,6 +117,10 @@ Minimal configuration
    verified source. Use CSV/JSON/Parquet for exchange across trust boundaries
    where the dataframe schema permits it. See the repository ``SECURITY.md``.
 
+``BundleIO`` writes gzip-compressed pickle data and detects gzip from the file
+signature when loading.  Legacy compressed files named ``*.pkl`` therefore remain
+readable, although new files should use the explicit ``*.pkl.gz`` suffix.
+
 Lifetime reweighting
 --------------------
 
@@ -144,7 +148,8 @@ ANUBIS background estimates.
 Recommended examples
 --------------------
 
-* ``setanubis/SetAnubis/examples/Selection/example_df_creation.py``
-* ``setanubis/SetAnubis/examples/Selection/example_df_to_sampledfs.py``
+* ``setanubis/SetAnubis/examples/Selection/dev_examples/example_df_event_from_hepmc.py``
+* ``setanubis/SetAnubis/examples/Selection/dev_examples/example_sampledfs_from_df.py``
+* ``setanubis/SetAnubis/examples/Selection/dev_examples/example_jets_and_pT_deltaR_cuts.py``
+* ``setanubis/SetAnubis/examples/Selection/example_hepmc_from_db.py``
 * ``setanubis/SetAnubis/examples/Selection/example_selection_pipeline.py``
-* ``setanubis/SetAnubis/examples/Selection/example_jets_and_pT_deltaR_cuts.py``

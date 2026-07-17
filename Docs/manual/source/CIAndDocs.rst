@@ -38,7 +38,29 @@ Local CI equivalent
 
    python -m pip install -e ".[dev,docs,selection,madgraph]"
    python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
-   python -m pytest -q setanubis/tests
-   sphinx-build -b html Docs/manual/source Docs/manual/build/html
+   setanubis-pythia-smoke --out .ci-pythia-smoke
+   python -m ruff check .
+   python -m pip_audit
+   python -m bandit -q -lll -r setanubis/SetAnubis/core \
+      -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
+   python -m pytest -q setanubis/tests --cov=SetAnubis --cov-config=pyproject.toml --cov-fail-under=35
+   python reproducibility/run_all.py --output-dir .ci-reproducibility
+   sphinx-build -W --keep-going -b html Docs/manual/source Docs/manual/build/html
    python -m build
    python -m twine check dist/*
+
+
+Release gates
+-------------
+
+The Python 3.12 CI job audits installed dependencies for known vulnerabilities,
+runs the high-severity source scan, and enforces a minimum 35 percent coverage over production
+modules after excluding generated UFO code, GUI applications, examples and the
+legacy v2 database compatibility implementation.  Contract tests also import
+every symbol in the public facade, require a public docstring, inspect the
+hexagonal port interfaces, and confirm that the documented lightweight examples
+and data files are present in the installed package.
+
+The packaging job installs the built wheel with its runtime dependencies in a
+source-independent temporary directory.  This avoids a checkout shadowing a
+missing file in the wheel.

@@ -5,6 +5,7 @@ from setanubis import SetAnubisInterface, ufo_path
 
 def main() -> None:
     """Run a lightweight tour of the HNL UFO parameter interface."""
+    # The public interface hides the underlying UFO parser and parameter tree.
     interface = SetAnubisInterface(ufo_path("UFO_HNL"))
 
     print(interface.get_all_parameters())
