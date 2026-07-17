@@ -2,14 +2,14 @@ name: Documentation
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "Docs/**"
       - "README.md"
       - "pyproject.toml"
       - ".github/workflows/docs.yml"
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "Docs/**"
       - "README.md"
@@ -55,14 +55,14 @@ jobs:
           path: Docs/manual/build/html
 
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
         with:
           path: Docs/manual/build/html
 
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
 

@@ -40,13 +40,13 @@ python -m pip install "SetAnubis[app,selection]"
 
 ## Running
 
-From this directory:
+After installing ``SetAnubis[app,selection]``:
 
 ```bash
-python app.py
+setanubis-hepmc-explorer --host 127.0.0.1 --port 8050
 ```
 
-Then open the local Dash URL printed in the terminal, usually:
+From a source checkout, ``python app.py`` remains available. Open the local Dash URL printed in the terminal, usually:
 
 ```text
 http://127.0.0.1:8050

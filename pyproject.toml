@@ -8,8 +8,8 @@ version = "1.0.0"
 description = "Physics-simulation toolkit for ANUBIS LLP sensitivity studies"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
-license-files = ["LICENSE", "AUTHORS.md"]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 authors = [
   {name = "The SetAnubis contributors"},
 ]
@@ -64,6 +64,8 @@ Issues = "https://github.com/SET-ANUBIS/set-anubis/issues"
 setanubis-pythia-check = "SetAnubis.core.Pythia.tools.check_install:main"
 setanubis-pythia-smoke = "SetAnubis.examples.Pythia.dev_examples.main_test_pythia_refactor:main"
 setanubis-docs = "SetAnubis.tools.docs:main"
+setanubis-hepmc-explorer = "SetAnubis.HepMCGUI.app:main"
+setanubis-db-dashboard = "SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard.app:main"
 
 [tool.setuptools]
 package-dir = {"" = "setanubis"}
@@ -75,14 +77,14 @@ where = ["setanubis"]
 namespaces = true
 exclude = [
   "tests", "tests.*",
-  "SetAnubis.HepMCGUI", "SetAnubis.HepMCGUI.*",
-  "SetAnubis.SetAnubisDBDashboard", "SetAnubis.SetAnubisDBDashboard.*",
   "SetAnubis.core.*.app", "SetAnubis.core.*.app.*",
 ]
 
 [tool.setuptools.package-data]
 "SetAnubis" = ["py.typed", "**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt", "**/*.csv", "**/*.gz", "**/*.pkl"]
 "SetAnubis.core.Pythia.bindings" = ["*.so", "*.pyd", "*.dylib"]
+"SetAnubis.HepMCGUI" = ["assets/*.css", "assets/*.png"]
+"SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard" = ["assets/*.css", "assets/*.png"]
 
 [tool.setuptools.exclude-package-data]
 "SetAnubis" = [
@@ -90,10 +92,6 @@ exclude = [
   "core/Pythia/app/scan_cmnd_files*",
   "core/*/app/*",
   "core/*/app/**/*",
-  "HepMCGUI/*",
-  "HepMCGUI/**/*",
-  "SetAnubisDBDashboard/*",
-  "SetAnubisDBDashboard/**/*",
   "**/._*",
   "**/.DS_Store",
 ]

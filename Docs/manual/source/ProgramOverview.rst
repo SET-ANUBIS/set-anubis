@@ -1,91 +1,92 @@
 Program overview
 ================
 
-SET-ANUBIS is designed as a modular pipeline for LLP sensitivity studies in the
-proposed ANUBIS detector.  The software paper describes two guiding goals:
+SET-ANUBIS was developed to perform ANUBIS sensitivity studies for different
+BSM scenarios without rebuilding the complete analysis for every model. The
+model-dependent information is introduced at the beginning of the workflow,
+whereas event representation, detector geometry, selection and provenance are
+shared.
 
-* keep the physics workflow end-to-end, from model parameters to selection
-  acceptance;
-* keep the code architecture modular, testable and replaceable.
+Scientific workflow
+-------------------
 
-Those two goals shape the repository layout and the public API.
+A complete analysis can be divided into three connected tasks.
 
-End-to-end analysis flow
-------------------------
+Signal-sample preparation
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A typical study proceeds as follows:
+A UFO model provides particles, parameters and interactions. The relevant scan
+parameters are set through the model interface, and the corresponding widths,
+branching ratios and lifetimes are obtained from one of the supported
+calculation strategies. SET-ANUBIS then prepares generator inputs for MadGraph
+or, where appropriate, an optional Pythia workflow. Generated samples are
+expected to be available in HepMC format before detector acceptance is
+evaluated.
 
-1. **Model definition** – load a UFO model and set scan parameters through the
-   public model interface.
-2. **Decay information** – compute or prepare widths, branching ratios and
-   lifetimes using a Python calculator, interpolation table, UFO-derived helper,
+Geometric acceptance and event selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+HepMC events are converted into dataframe-based analysis objects. LLP decay
+vertices and charged decay products are propagated through a model of the ATLAS
+cavern, ATLAS exclusion volume, service shafts and ANUBIS RPC stations. The
+selection first evaluates whether a decay is geometrically observable and then
+applies missing-transverse-momentum and isolation requirements associated with
+the accompanying ATLAS event.
+
+Sensitivity inputs and provenance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The selected fraction provides the acceptance for the specified model point,
+geometry and cut configuration. It can be combined with luminosity, production
+cross section, branching fraction and signal efficiency to estimate an expected
+event yield. Generator cards, scan parameters, event metadata and compact
+selection-ready bundles can be stored in an SQLite catalogue and a
+content-addressed store so that the analysis inputs remain auditable.
+
+Software architecture
+---------------------
+
+The framework follows a ports-and-adapters design. Each domain defines a small
+interface describing the required behaviour; adapters implement file I/O,
+database access, external programs and visualisation. This organisation serves a
+scientific purpose rather than only a software-engineering one:
+
+* physics logic can be tested independently of large external toolchains;
+* alternative width calculators or generators can be compared through the same
+  domain interface;
+* model scans share one geometry and selection implementation;
+* provenance and validation are not tied to a single execution environment.
+
+Main domains
+------------
+
+``ModelCore`` and UFO interface
+   Load the model, expose particle content and parameters, and generate
+   parameter-card information.
+
+``BranchingRatio``
+   Evaluate partial and total widths, branching ratios and lifetimes from
+   explicit values, Python functions, interpolation tables, UFO information,
    MadGraph preparation or MARTY preparation.
-3. **Event generation** – prepare MadGraph cards and commands, or use the
-   optional Pythia-oriented tools for dedicated workflows.
-4. **Event ingestion** – convert HepMC outputs into dataframe-based objects and,
-   when useful, store compact selection-ready bundles.
-5. **Geometry and selection** – propagate LLP decays through the ATLAS cavern /
-   ANUBIS geometry, apply the truth-level cutflow, and optionally capture a full
-   stage-by-stage trace.
-6. **Sensitivity inputs** – combine acceptance with luminosity, production cross
-   section, branching fractions and signal-efficiency assumptions.
 
-Architecture and design principles
-----------------------------------
+``MadGraph`` and ``Pythia``
+   Prepare event-generation inputs. MadGraph is the principal documented
+   campaign workflow; Pythia command generation and an optional native binding
+   are available for dedicated studies and cross-checks.
 
-The code follows a ports-and-adapters style (often called hexagonal
-architecture).  Domain code aims to describe *what* the framework should do,
-while adapters encapsulate *how* it talks to files, external tools, or storage
-formats.
+``Geometry`` and ``Selection``
+   Construct the cavern and ANUBIS station geometry, transform HepMC events into
+   analysis objects, and apply the ordered acceptance and selection criteria.
 
-This has several practical benefits for a release-quality scientific codebase:
+``DataBase``
+   Relate model points, cards, banners, event samples and compact dataframe
+   bundles. Large artefacts can be addressed by content while the SQL catalogue
+   retains queryable metadata.
 
-* domain objects remain easier to test in isolation;
-* workflows can swap calculation or generation backends without rewriting the
-  whole pipeline;
-* the public API stays relatively stable even when internal adapters evolve;
-* examples and validation tests can target domain behaviour rather than the
-  quirks of one external executable.
+Validation examples
+-------------------
 
-Main subsystems
----------------
-
-``SetAnubis`` exposes several user-visible subsystems:
-
-* **Model core** – public access to UFO parameters and particle content.
-* **Branching ratio layer** – widths, partial widths, branching ratios and
-  lifetimes.
-* **MadGraph layer** – scan-aware card generation and command preparation.
-* **Selection layer** – HepMC ingestion, dataframe bundles, geometry cuts,
-  isolation and trace reporting.
-* **Database layer** – content-addressed artifacts, scan metadata and compact
-  event bundles.
-* **Dash applications** – one app for event-level HepMC / geometry inspection
-  and one app for database auditing and storage analysis.
-
-Examples as release assets
---------------------------
-
-The example suite is a first-class part of the release.  It is intended to show
-realistic usage patterns rather than only minimal import smoke tests.  In the
-current release this includes:
-
-* branching-ratio developer examples for manual values, Python calculators,
-  interpolation, UFO helpers, MadGraph preparation and MARTY preparation;
-* selection examples for HepMC conversion, bundle creation, cutflow execution,
-  and trace-report generation;
-* compact real-event samples chosen to illustrate representative selection
-  outcomes while keeping the repository size under control.
-
-Dash applications
------------------
-
-Two optional Dash applications are bundled in the repository:
-
-* **SET-ANUBIS HepMC explorer** for event-by-event visual inspection in the
-  ATLAS cavern / ANUBIS geometry;
-* **SET-ANUBIS DB dashboard** for browsing stored runs, bundle sizes, storage
-  savings and metadata consistency.
-
-They are especially useful for validation, debugging and demonstrations, while
-the documented Python API remains the primary route for scripted analyses.
+The examples are part of the scientific validation of the release. They include
+small, deterministic workflows for every main domain and a compact sample of
+seven real HNL events. The selected events illustrate the observed stopping
+points of the nominal cutflow while keeping the distributed data below 1 MB.

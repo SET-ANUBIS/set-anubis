@@ -1,7 +1,7 @@
 # SET-ANUBIS
 
 <p align="center">
-  <img src="Docs/assets/set-anubis-logo.png" alt="SET-ANUBIS logo" width="220">
+  <img src="https://raw.githubusercontent.com/SET-ANUBIS/set-anubis/main/Docs/assets/set-anubis-logo.png" alt="SET-ANUBIS logo" width="220">
 </p>
 
 <p align="center"><strong>Simulation, accEptance and sensiTivity studies framework for ANUBIS</strong></p>
@@ -12,76 +12,55 @@
 [![Release](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/release.yml/badge.svg)](https://github.com/SET-ANUBIS/set-anubis/actions/workflows/release.yml)
 [![PyPI](https://img.shields.io/pypi/v/SetAnubis.svg)](https://pypi.org/project/SetAnubis/)
 [![Python](https://img.shields.io/pypi/pyversions/SetAnubis.svg)](https://pypi.org/project/SetAnubis/)
-[![Wheel](https://img.shields.io/pypi/wheel/SetAnubis.svg)](https://pypi.org/project/SetAnubis/)
 [![GitHub Release](https://img.shields.io/github/v/release/SET-ANUBIS/set-anubis?sort=semver)](https://github.com/SET-ANUBIS/set-anubis/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Citation](https://img.shields.io/badge/cite-arXiv%3A2512.14942-b31b1b.svg)](https://arxiv.org/abs/2512.14942)
+[![License: GPL v3+](https://img.shields.io/badge/License-GPL%20v3%2B-blue.svg)](LICENSE)
+[![Citation](https://img.shields.io/badge/citation-CITATION.cff-b31b1b.svg)](CITATION.cff)
 
-**SET-ANUBIS** is an end-to-end framework for long-lived-particle sensitivity studies in the proposed **ANUBIS** detector. It follows the workflow described in the SET-ANUBIS software paper: start from a UFO model, expose the model parameters and particle content, compute widths / branching ratios / lifetimes, generate events, ingest HepMC output, propagate LLP decays through an ATLAS-cavern / ANUBIS geometry description, and finally apply the truth-level selection used to estimate geometric and kinematic acceptance.
+**SET-ANUBIS** is a modular framework for studying the sensitivity of the proposed **ANUBIS** detector to scenarios containing long-lived particles (LLPs). It provides a common analysis chain from the definition of a beyond-the-Standard-Model (BSM) spectrum to the calculation of decay properties, event generation, event ingestion, detector-geometry acceptance and truth-level event selection.
 
-The codebase is organised around small domain APIs and replaceable adapters. In practice this means that generator backends, decay calculators, storage backends and geometry-aware selection tools can evolve independently while still fitting into one reproducible analysis pipeline. Optional Dash applications complement the command-line and Python APIs with interactive event inspection and database auditing tools.
+The framework was developed to reduce the model-specific code normally required for LLP sensitivity studies. A model supplied in Universal Feynman Output (UFO) format can be connected to several calculation and generation strategies, while the downstream geometry and selection stages remain common. This makes it possible to compare models using the same detector description, selection logic and provenance machinery.
 
-## At a glance
+## Scientific scope
 
-- **Model interface**: load UFO models and work with scan parameters through a user-facing Python facade.
-- **Branching ratios and lifetimes**: mix Python formulas, interpolation tables, UFO-derived information, MadGraph preparation and MARTY preparation workflows.
-- **Generation**: prepare MadGraph campaigns and keep optional Pythia-based studies available for dedicated workflows and cross-checks.
-- **Geometry-aware selection**: convert HepMC events into dataframe bundles, apply the ANUBIS cutflow, and optionally capture intermediate cutflow stages.
-- **Reproducibility**: store compact selection-ready bundles together with scan metadata, content-addressed artifacts and import/export helpers.
-- **Interactive inspection**: use the bundled Dash applications to inspect HepMC events in the cavern geometry and to audit the event database.
-
-## ANUBIS detector context
-
-ANUBIS is a proposed transverse LLP detector at LHC Point 1, designed to instrument the ATLAS cavern and nearby shafts with RPC tracking stations. Its physics motivation is to recover neutral LLP decays that can occur outside the main ATLAS detector volume but still inside the cavern infrastructure, where displaced charged decay products could be reconstructed.
+ANUBIS is a proposed transverse LLP detector at LHC Point 1. The detector concept uses resistive-plate-chamber tracking stations in the ATLAS cavern and service-shaft infrastructure. It is intended to provide sensitivity to neutral LLPs that escape the main ATLAS detector before decaying into charged final states in the surrounding cavern volume.
 
 <p align="center">
-  <img src="Docs/assets/anubis-detector-concept.jpeg" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
+  <img src="https://raw.githubusercontent.com/SET-ANUBIS/set-anubis/main/Docs/assets/anubis-detector-concept.jpeg" alt="ANUBIS detector concept in the ATLAS cavern" width="620">
 </p>
 
-## Workflow overview
+SET-ANUBIS addresses three connected parts of an ANUBIS sensitivity study:
 
-SET-ANUBIS is organised around the analysis workflow rather than around a single generator executable.
+1. **Signal-sample preparation.** Model parameters and particle properties are read from UFO inputs; decay widths, branching ratios and lifetimes are supplied through interchangeable calculation strategies; MadGraph or optional Pythia workflows are then prepared for event generation.
+2. **Geometric acceptance and event selection.** HepMC events are converted into analysis objects and propagated through a model of the ATLAS cavern and ANUBIS tracking stations. The selection applies decay-volume, station-intersection, tracking, missing-transverse-momentum and isolation requirements.
+3. **Sensitivity inputs and provenance.** Acceptances can be combined with luminosities, production cross sections, branching fractions and signal efficiencies. Cards, scan metadata, compact event bundles and derived artefacts can be stored with content-based identifiers for later inspection or reproduction.
+
+## Software organisation
+
+The code is organised using ports and adapters. Each physics domain exposes a small interface, while file formats, databases, external programs and visualisation tools are implemented as adapters. This separation keeps the physics logic testable and allows individual backends to be replaced without rewriting the complete workflow.
 
 <p align="center">
-  <img src="Docs/assets/set-anubis-architecture.jpg" alt="SET-ANUBIS architecture" width="900">
+  <img src="https://raw.githubusercontent.com/SET-ANUBIS/set-anubis/main/Docs/assets/set-anubis-architecture.jpg" alt="SET-ANUBIS software architecture" width="900">
 </p>
 
-The principal release-ready components are:
+The principal subsystems are:
 
-- **UFO and model interface**: inspect the model content and produce parameter cards.
-- **Branching-ratio / width / lifetime layer**: provide one consistent source of decay information for scans, generation and sensitivity calculations.
-- **MadGraph campaign generation**: generate cards, command scripts and scan metadata for LLP production studies.
-- **Database and provenance**: track runs, stored bundles, cards, banners and metadata with reproducible identifiers.
-- **ATLAS cavern and ANUBIS geometry**: describe the UX1 cavern, the ATLAS exclusion region, the shaft options and the RPC tracking stations.
-- **Selection cutflow**: apply decay-location, station-intersection, tracking, MET and isolation requirements in the order used by the analysis.
-- **Sensitivity inputs**: combine acceptance with luminosity, cross sections, branching fractions and efficiency assumptions.
-
-## Release highlights
-
-This repository is prepared for a public release around four user-visible workflows:
-
-1. **MadGraph setup and scan preparation**
-2. **Branching-ratio / decay-width / lifetime studies**
-3. **Selection and cutflow validation**
-4. **Reproducibility, storage and inspection dashboards**
-
-The example suite includes real and synthetic selection traces, compact bundled datasets, branching-ratio developer examples, and validation scripts intended to make the release self-documenting.
-
-## Documentation and dashboards
-
-- **Sphinx manual**: <https://set-anubis.github.io/set-anubis/>
-- **DB dashboard**: inspect stored events, artifacts, bundle compression and scan metadata.
-- **HepMC explorer**: visualise LLP decays, geometry intersections and event-by-event kinematics in the ATLAS cavern.
-
-The documentation has been aligned with the current examples and with the software paper draft. It now emphasises the end-to-end workflow, the role of the public API, and the way the branching-ratio, selection and reproducibility layers fit together.
+- **Model core and UFO interface** — expose scan parameters, particle content and packaged model resources.
+- **Decay-property layer** — evaluate or prepare partial widths, total widths, branching ratios and lifetimes using Python functions, interpolation tables, UFO information, MadGraph or MARTY-oriented workflows.
+- **MadGraph layer** — construct process commands, run cards, parameter cards, MadSpin cards and shower configuration for scan points.
+- **Pythia layer** — prepare `.cmnd` files and optionally build a native Pythia8/HepMC3 interface for dedicated studies.
+- **Geometry and selection** — convert HepMC events into dataframe bundles, build prompt jets and isolation variables, evaluate the ANUBIS geometry and apply the analysis cutflow.
+- **Database and content-addressed storage** — retain scan metadata and compact, selection-ready event bundles while avoiding unnecessary duplication of large generator outputs.
+- **Dash applications** — inspect HepMC events in the cavern geometry and audit the database, stored artefacts and bundle sizes.
 
 ## Installation
+
+The Python distribution is named `SetAnubis`:
 
 ```bash
 python -m pip install SetAnubis
 ```
 
-For development:
+For a development checkout:
 
 ```bash
 git clone https://github.com/SET-ANUBIS/set-anubis.git
@@ -90,19 +69,18 @@ python -m pip install -e ".[dev,docs,selection,madgraph]"
 python -m pytest -q setanubis/tests
 ```
 
-Useful optional extras:
+Optional feature groups are available through extras:
 
 ```bash
-python -m pip install "SetAnubis[selection]"  # adds pyhepmc integration
-python -m pip install "SetAnubis[madgraph]"   # compatibility extra; Docker SDK is already included
-python -m pip install "SetAnubis[app]"        # Dash event/database inspection tools
+python -m pip install "SetAnubis[selection]"  # HepMC ingestion and selection helpers
+python -m pip install "SetAnubis[madgraph]"   # MadGraph/Docker helpers
+python -m pip install "SetAnubis[app]"        # Dash applications
 python -m pip install "SetAnubis[docs]"       # local Sphinx documentation
 ```
 
-### Optional Pythia/HepMC3 binding
+### Optional Pythia8/HepMC3 extension
 
-The default wheel is Python-only.  The native Pythia8/HepMC3 extension is built
-only when explicitly requested:
+The standard wheel is Python-only. The native interface is built only when it is explicitly requested and the external installations are supplied:
 
 ```bash
 SETANUBIS_BUILD_PYTHIA=1 \
@@ -111,7 +89,7 @@ SETANUBIS_HEPMC3_DIR=/path/to/hepmc3 \
 python -m pip install --no-binary SetAnubis "SetAnubis[pythia]"
 ```
 
-For a local checkout, helpers are provided to build external copies first:
+For a local checkout, the external helper can build HepMC3 and Pythia8 before the editable installation:
 
 ```bash
 ./External_Integration/install.sh HepMC3 Pythia
@@ -122,12 +100,11 @@ python -m pip install -e ".[pythia]"
 setanubis-pythia-check
 ```
 
-See [`PYTHIA_PACKAGING.md`](PYTHIA_PACKAGING.md) for the native-extension policy.
+The native-build policy and supported environment variables are described in [`PYTHIA_PACKAGING.md`](PYTHIA_PACKAGING.md).
 
-## Official import layer
+## Public Python interface
 
-The PyPI distribution is named **SetAnubis**, but the recommended user-facing
-Python import is the lower-case facade:
+The recommended import layer is the lower-case module `setanubis`:
 
 ```python
 from setanubis import (
@@ -142,16 +119,13 @@ from setanubis import (
 )
 ```
 
-This follows the usual Python convention for importable modules and is the API
-used in the public documentation.  The internal `SetAnubis.core...` package paths
-remain available for advanced users and backwards compatibility, but examples
-should prefer `from setanubis import ...`.
+Internal modules under `SetAnubis.core` remain available for advanced development, but analysis scripts and public examples should use the stable facade whenever possible.
 
-## Example: HNL-oriented MadGraph card generation
+## Worked workflows
 
-This example constructs the text artefacts needed for a Heavy Neutral Lepton
-(HNL) scan without launching MadGraph.  The same cards can be passed to the local
-or Docker runner once a MadGraph installation is configured.
+### MadGraph card preparation
+
+The following example prepares an HNL scan without launching MadGraph:
 
 ```python
 from setanubis import (
@@ -162,7 +136,6 @@ from setanubis import (
 )
 
 model = SetAnubisInterface(str(ufo_path("UFO_HNL")))
-
 config = MadGraphCommandConfig(
     neo_set_anubis=model,
     model_in_madgraph="UFO_HNL",
@@ -187,23 +160,26 @@ job.add_parameter_scan("MN1", "[0.5, 1.0, 2.0]")
 job.add_parameter_scan("VeN1", "[1e-6, 1e-5]")
 
 print(job.serialize())
-print(cards.run_card_builder.serialize())
-print(cards.madspin_builder.serialize())
 ```
 
-More examples are in [`setanubis/SetAnubis/examples/MadGraph`](setanubis/SetAnubis/examples/MadGraph).
+Additional examples are available in [`setanubis/SetAnubis/examples/MadGraph`](setanubis/SetAnubis/examples/MadGraph).
 
-## Example: selection configuration matching the nominal cutflow
+### Branching ratios, decay widths and lifetimes
 
-The nominal selection follows the physics ordering described in the paper:
+The branching-ratio examples demonstrate each supported preparation path: explicit values, trusted Python calculators, interpolation tables, UFO-derived functions, MadGraph preparation and MARTY source preparation.
 
-1. keep decaying LLP candidates;
-2. require the decay vertex to be in the cavern or selected shaft geometry;
-3. reject decays inside the ATLAS detector volume;
-4. require the LLP trajectory and charged decay products to hit the ANUBIS RPC
-   stations;
-5. apply MET, by default `MET > 30 GeV`;
-6. apply jet/charged-track isolation using `Delta R` thresholds.
+```bash
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_manual_values_and_lifetime.py
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_file_interpolation.py
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_madgraph_preparation.py --output-dir prepared_widths
+python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_marty_preparation.py --output prepared_marty/z_to_ddbar.cpp
+```
+
+The preparation examples do not run MadGraph, Docker, a compiler or MARTY. Python calculators and UFO models are executable inputs and should only be loaded from trusted sources.
+
+### Geometry-aware selection and cutflow tracing
+
+The nominal cutflow first identifies LLP decays in the relevant cavern or shaft volume, rejects vertices inside ATLAS, evaluates the ANUBIS station and track intersections, and finally applies missing-transverse-momentum and isolation requirements.
 
 ```python
 from setanubis import (
@@ -215,14 +191,14 @@ from setanubis import (
     MinThresholds,
     MinDR,
     SelectionPipelineBuilder,
-    SelectionManager,
     EventsBundleSource,
 )
 
-geometry_backend = ATLASCavernGeometry.create(
-    ATLASCavernGeometryConfig(mode="ceiling", origin="IP", use_cache=False)
+geometry = SelectionGeometryAdapter(
+    ATLASCavernGeometry.create(
+        ATLASCavernGeometryConfig(mode="ceiling", origin="IP", use_cache=False)
+    )
 )
-geometry = SelectionGeometryAdapter(geometry_backend)
 
 selection = SelectionConfig(
     geometry=geometry,
@@ -240,136 +216,74 @@ pipeline = (
     .set_options(add_jets=True, compute_isolation=True, selection_mode="standard")
     .build()
 )
-
 source = EventsBundleSource.from_bundle_file("sample_bundle.pkl.gz")
-combined = SelectionManager(pipeline).run_many(
-    named_sources=[("HNL_scan_point", source)],
-    sel_cfg=selection,
-    run_cfg=RunConfig(reweightLifetime=False, plotTrajectory=False),
-)
-print(combined.cutflow_sum)
-```
+result = pipeline.run(source, selection, RunConfig(capture_intermediate=True))
 
-Intermediate DataFrames and pass/fail summaries are opt-in.  Run one source
-with ``capture_intermediate=True`` and export a standalone JSON/HTML report:
-
-```python
-result = pipeline.run(
-    source,
-    selection,
-    RunConfig(capture_intermediate=True),
-)
 trace = result["trace"]
-print(trace.stage_dataframes["MET"])
+print(trace.candidate_summary)
 print(trace.event_summary)
 trace.write_report("selection_trace_output")
 ```
 
-The packaged real-event sample contains seven HNL events selected from a
-4,000-event corpus.  It keeps the smallest event found for every observed
-outcome: failures at `InCavern`, `NotInATLAS`, `Geometry`, `Tracker`, `MET`, and
-`IsoJets`, plus one event passing the full selection.  Generate its report with:
+The repository includes a compact seven-event HNL sample selected from a 4,000-event corpus. It contains representative events that fail at `InCavern`, `NotInATLAS`, `Geometry`, `Tracker`, `MET` and `IsoJets`, together with one event that reaches the final selection. The aligned HepMC, compressed CSV, trusted compressed-pickle bundle and provenance manifest occupy less than 1 MB.
 
 ```bash
 python setanubis/SetAnubis/examples/Selection/example_real_selection_trace_report.py \
   --output-dir selection_trace_output
 ```
 
-A separate synthetic example remains available when a deterministic event is
-needed for every logical branch, including outcomes absent from the real corpus:
+> **Security note:** loading a pickle can execute arbitrary Python code. Only load bundles produced by a trusted SET-ANUBIS workflow or obtained from a verified source. See [`SECURITY.md`](SECURITY.md).
 
-```bash
-python setanubis/SetAnubis/examples/Selection/example_selection_trace_report.py \
-  --output-dir synthetic_selection_trace_output
-```
+## Reproducibility
 
-
-The compact sample is shipped in four aligned representations under
-`SetAnubis/examples/Selection/InputFiles`: HepMC2, gzip CSV, trusted gzip-pickle
-bundle, and a JSON provenance manifest. Together they occupy less than 1 MB;
-the previous multi-megabyte CSV-only fixture has been removed.
-
-> **Trusted-input note:** pickle-based selection/database bundles can execute
-> arbitrary Python code when loaded. Only open bundles produced by a trusted
-> workflow or obtained from a verified source; see [`SECURITY.md`](SECURITY.md).
-
-The selection bundle helper detects gzip from the file header, so older compressed
-files named `.pkl` remain readable. New generated bundles use the clearer
-`.pkl.gz` suffix. The runnable development examples are:
-
-```bash
-python setanubis/SetAnubis/examples/Selection/dev_examples/example_sampledfs_from_df.py
-python setanubis/SetAnubis/examples/Selection/dev_examples/example_jets_and_pT_deltaR_cuts.py
-```
-
-### Branching-ratio developer examples
-
-Additional examples cover manual widths and lifetimes, trusted Python
-calculators, CSV interpolation, UFO decay functions, MadGraph card preparation
-and MARTY source preparation without running the external generators:
-
-```bash
-python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_manual_values_and_lifetime.py
-python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_file_interpolation.py
-python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_madgraph_preparation.py --output-dir prepared_widths
-python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_marty_preparation.py --output prepared_marty/z_to_ddbar.cpp
-```
-
-The preparation examples do not launch MadGraph, Docker, a compiler, or MARTY.
-Python calculators and UFO models must be treated as trusted executable inputs.
-
-## Reproducibility and CPC examples
-
-The source release contains deterministic examples for ModelCore, branching
-ratios without MARTY, Pythia CMND construction, MadGraph card construction and
-selection from the bundled seven-event real HNL sample. They do not launch external
-generators.
+The `reproducibility/` directory contains deterministic examples for the model interface, branching-ratio layer, Pythia command generation, MadGraph card preparation and selection workflow. External generators are not launched.
 
 ```bash
 python -m pip install -e .
 python reproducibility/run_all.py --output-dir reproducibility_outputs
 ```
 
-A successful run creates `reproducibility_outputs/VALIDATED` after comparing the
-outputs with [`reproducibility/expected_results.json`](reproducibility/expected_results.json).
-See [`reproducibility/README.md`](reproducibility/README.md) for scope, provenance
-and trusted-input notes.
+A successful run creates `reproducibility_outputs/VALIDATED` after comparing the generated results with [`reproducibility/expected_results.json`](reproducibility/expected_results.json).
 
-## Documentation
+## Interactive applications
 
-Build locally with:
+The optional Dash applications support inspection and validation:
+
+- **SET-ANUBIS HepMC explorer** — event-by-event kinematics, decay vertices, tracks and 2D/3D cavern overlays.
+- **SET-ANUBIS DB dashboard** — stored events, scan metadata, content-addressed artefacts, bundle sizes and storage savings.
+
+Install the application dependencies with:
+
+```bash
+python -m pip install "SetAnubis[app,selection]"
+```
+
+Launch the applications with:
+
+```bash
+setanubis-hepmc-explorer --host 127.0.0.1 --port 8050
+setanubis-db-dashboard --db db/EventsDatabase.db --storage db/EventsStorage --port 8051
+```
+
+The applications are inspection layers; the version-controlled geometry and selection code remains the source of truth for physics results.
+
+## Documentation and validation
+
+The Sphinx manual is hosted at <https://set-anubis.github.io/set-anubis/>. A strict local build can be run with:
 
 ```bash
 python -m pip install -e ".[docs]"
-setanubis-docs --open
+setanubis-docs --strict
 ```
 
-The hosted documentation is expected at:
+The release gate includes the Python 3.10–3.13 test matrix, public-API contract tests, static checks, dependency and source security scans, deterministic reproducibility examples, documentation warnings as errors, package construction and clean-wheel installation.
 
-```text
-https://set-anubis.github.io/set-anubis/
-```
+Maintainer-side GitHub environment, branch-protection and Trusted Publisher settings are documented in [`GITHUB_RELEASE_SETUP.md`](GITHUB_RELEASE_SETUP.md).
 
 ## Citation
 
-If SET-ANUBIS contributes to your work, please cite the software preprint and the
-ANUBIS detector references relevant to your study:
-
-```bibtex
-@article{SETANUBIS2025,
-  title   = {SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies},
-  author  = {SET-ANUBIS contributors},
-  year    = {2025},
-  url     = {https://arxiv.org/abs/2512.14942}
-}
-```
-
-Recommended ANUBIS references:
-
-- M. Bauer, O. Brandt, L. Lee and C. Ohm, *ANUBIS: Proposal to search for long-lived neutral particles in CERN service shafts*, arXiv:1909.13022.
-- ANUBIS Collaboration, *The ANUBIS detector and its sensitivity to neutral long-lived particles*, arXiv:2510.26932.
-- T. Reymermier et al., *ANUBIS: Projected Sensitivities and Initial Results from the proANUBIS demonstrator with Run 3 LHC data*, arXiv:2512.14942.
+Citation metadata is provided in [`CITATION.cff`](CITATION.cff). The final CPC article reference should replace the temporary pre-publication reference when the article identifier becomes available. Please also cite the ANUBIS detector papers relevant to the analysis being performed.
 
 ## License
 
-SET-ANUBIS is distributed under the MIT License.  See [`LICENSE`](LICENSE).
+SET-ANUBIS is free software distributed under the **GNU General Public License, version 3 or any later version** (`GPL-3.0-or-later`). See [`LICENSE`](LICENSE). Files originating from external projects remain subject to their respective upstream terms where indicated.

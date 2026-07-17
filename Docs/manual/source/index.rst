@@ -8,60 +8,52 @@ SET-ANUBIS documentation
    </div>
 
 SET-ANUBIS (*Simulation, accEptance and sensiTivity studies framework for
-ANUBIS*) is a modular software pipeline for long-lived-particle sensitivity
-studies in the proposed ANUBIS detector.  The framework mirrors the workflow
-described in the SET-ANUBIS paper: define a BSM model, compute widths and
-branching ratios, generate events, ingest HepMC output, evaluate the ANUBIS
-geometry acceptance and apply the truth-level selection used in sensitivity
-studies.
+ANUBIS*) is a modular framework for evaluating the sensitivity of the proposed
+ANUBIS detector to long-lived-particle (LLP) scenarios. It connects the model,
+generation and detector-analysis stages of a sensitivity study through a common
+set of Python interfaces.
+
+The framework begins from a BSM model, typically supplied in Universal Feynman
+Output (UFO) format. It can evaluate or ingest decay widths, branching ratios
+and lifetimes; prepare MadGraph and optional Pythia workflows; convert HepMC
+events into analysis objects; model the ATLAS cavern and ANUBIS tracking
+stations; and apply the truth-level selection used to estimate acceptance.
 
 .. raw:: html
 
    <div class="setanubis-callout">
-     <strong>What this manual covers.</strong> The manual is organised around the
-     public analysis workflow: model handling, branching ratios, generation,
-     geometry-aware selection, reproducibility and release tooling.  It also
-     points to the curated example suite and the optional Dash applications.
+     <strong>How to use this manual.</strong> Start with the program overview and
+     installation pages. The remaining chapters follow the scientific workflow:
+     generation, decay properties, geometry-aware selection, reproducibility and
+     release validation.
    </div>
 
-ANUBIS context
---------------
+Physics context
+---------------
 
-ANUBIS is a proposed transverse LLP detector at LHC Point 1.  Its purpose is to
-instrument the ATLAS underground cavern and shaft regions with RPC tracking
-stations so that LLP decays missed by the main ATLAS detector can still be
-observed through charged decay products.
+ANUBIS is a proposed transverse LLP detector at LHC Point 1. The detector
+concept places resistive-plate-chamber tracking stations in the ATLAS cavern and
+service-shaft infrastructure. This provides sensitivity to neutral LLPs that
+leave the main ATLAS detector before decaying into charged final states in the
+surrounding cavern volume.
 
 .. image:: images/anubis-detector-concept.jpeg
    :width: 72%
    :align: center
    :alt: ANUBIS detector concept in the ATLAS cavern
 
-SET-ANUBIS turns that detector concept into an analysis workflow: UFO models,
-branching-ratio calculations, MadGraph or Pythia-driven event generation,
-compact storage, geometry-aware selection and sensitivity inputs are kept in one
-reproducible environment.
+The purpose of SET-ANUBIS is to express this detector concept as a reproducible
+analysis pipeline. Model parameters, generator cards, event samples, geometry
+configurations and selection outputs can be related through explicit interfaces
+and recorded provenance.
 
 .. image:: images/set-anubis-architecture.jpg
    :width: 95%
    :align: center
    :alt: SET-ANUBIS software architecture
 
-Main capabilities
------------------
-
-* expose a stable public Python API through ``from setanubis import ...``;
-* handle widths, branching ratios and lifetimes using multiple interchangeable
-  strategies;
-* prepare MadGraph campaigns and optional Pythia-oriented studies;
-* convert HepMC data into selection-ready dataframe bundles;
-* model the ATLAS cavern, shaft regions and ANUBIS RPC station geometry;
-* trace the full selection cutflow and optionally export HTML / JSON reports;
-* store run metadata and compact event bundles with reproducible provenance;
-* inspect events and storage through optional Dash dashboards.
-
-Documentation contents
-----------------------
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -69,19 +61,20 @@ Documentation contents
    ProgramOverview
    Installation
    MadGraphGeneration
-   SelectionWorkflow
    BranchingRatioCalculation
+   SelectionWorkflow
    Pythia
-   CIAndDocs
+   DashApplications
    Reproducibility
+   CIAndDocs
    ReleaseUpdate
    api/public_api
 
-Recommended import style
-------------------------
+Public import layer
+-------------------
 
-The PyPI project is named ``SetAnubis``, but the recommended user-facing import
-layer is the lower-case facade ``setanubis``:
+The Python distribution is named ``SetAnubis``. User code should normally import
+from the lower-case facade:
 
 .. code-block:: python
 
@@ -96,32 +89,34 @@ layer is the lower-case facade ``setanubis``:
        ufo_path,
    )
 
-The internal ``SetAnubis.core`` paths remain available for advanced development,
-but new analysis scripts should prefer the public facade so that they stay close
-to the documented release API.
+The internal ``SetAnubis.core`` modules remain available for framework
+development, but the facade defines the documented public API and is the most
+stable entry point for analyses.
 
-Examples and dashboards
------------------------
+Examples and interactive tools
+------------------------------
 
-The repository ships curated examples for the principal public workflows:
+The repository contains worked examples for the main scientific workflows:
 
-* ``examples/MadGraph`` for campaign setup;
-* ``examples/BranchingRatio`` for widths, branching ratios and lifetimes;
-* ``examples/Selection`` for HepMC ingestion, cutflows and trace reports;
-* ``HepMCGUI`` and ``SetAnubisDBDashboard`` for interactive inspection.
+* model and UFO inspection;
+* branching-ratio, decay-width and lifetime calculations;
+* MadGraph card and scan preparation;
+* Pythia command-file generation;
+* HepMC ingestion and ANUBIS selection;
+* stage-by-stage selection reports using real and synthetic events.
 
-The manual pages link directly to the relevant examples and explain the expected
-inputs, outputs and external-runtime requirements.
+Two optional Dash applications provide complementary visual checks. The HepMC
+explorer displays LLP decays and tracks in the cavern geometry, while the
+database dashboard audits stored runs, content-addressed artefacts and compact
+selection bundles.
 
-References
-----------
+Citation and licence
+--------------------
 
-Please cite the software and the relevant ANUBIS detector papers when using this
-framework:
-
-* SET-ANUBIS software preprint: https://arxiv.org/abs/2512.14942
-* ANUBIS proposal: https://arxiv.org/abs/1909.13022
-* ANUBIS detector/sensitivity paper: https://arxiv.org/abs/2510.26932
+Citation metadata is provided in the repository ``CITATION.cff`` file. The
+final CPC article identifier should replace the temporary pre-publication
+reference when it becomes available. SET-ANUBIS is distributed under
+GPL-3.0-or-later.
 
 Indices and tables
 ------------------

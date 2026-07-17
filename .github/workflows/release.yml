@@ -36,19 +36,38 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Require main branch for final promotion
-        if: github.event.inputs.target == 'testpypi-and-pypi'
-        run: test "$GITHUB_REF" = "refs/heads/main"
-
-      - name: Read package version
+      - name: Read and validate release metadata
         id: package-version
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
+          import re
           import tomllib
           from pathlib import Path
-          version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+
+          root = Path.cwd()
+          project = tomllib.loads((root / "pyproject.toml").read_text())["project"]
+          version = project["version"]
+          version_source = (root / "setanubis/SetAnubis/_version.py").read_text()
+          source_match = re.search(r'__version__\s*=\s*"([^"]+)"', version_source)
+          if not source_match or source_match.group(1) != version:
+              raise SystemExit("pyproject.toml and _version.py disagree")
+          cff = (root / "CITATION.cff").read_text()
+          if f'version: "{version}"' not in cff:
+              raise SystemExit("CITATION.cff version does not match")
+          if project.get("license") != "GPL-3.0-or-later":
+              raise SystemExit("release license must be GPL-3.0-or-later")
+          if "license: GPL-3.0-or-later" not in cff:
+              raise SystemExit("CITATION.cff license does not match")
           print(f"version={version}")
           PY
+
+      - name: Require a matching tag for final promotion
+        if: github.event.inputs.target == 'testpypi-and-pypi'
+        env:
+          SETANUBIS_VERSION: ${{ steps.package-version.outputs.version }}
+        run: |
+          test "$GITHUB_REF" = "refs/tags/v${SETANUBIS_VERSION}"
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
       - name: Run release checks
         run: |
@@ -76,7 +95,7 @@ jobs:
       - name: Upload immutable distribution artifact
         uses: actions/upload-artifact@v7
         with:
-          name: release-dist
+          name: release-dist-${{ steps.package-version.outputs.version }}
           path: |
             dist/*
             SHA256SUMS
@@ -93,7 +112,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: release-dist
+          name: release-dist-${{ needs.build.outputs.version }}
           path: release-artifact
 
       - name: Publish package to TestPyPI
@@ -113,7 +132,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: release-dist
+          name: release-dist-${{ needs.build.outputs.version }}
           path: release-artifact
 
       - name: Download and verify the TestPyPI wheel
@@ -154,6 +173,7 @@ jobs:
           python - <<'PY'
           import os
           import setanubis
+
           assert setanubis.__version__ == os.environ["SETANUBIS_VERSION"]
           from setanubis import MadGraphDockerRunner, SelectionPipelineBuilder
           print("SetAnubis", setanubis.__version__)
@@ -172,7 +192,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: release-dist
+          name: release-dist-${{ needs.build.outputs.version }}
           path: release-artifact
 
       - name: Verify retained checksums
@@ -193,14 +213,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: release-dist
+          name: release-dist-${{ needs.build.outputs.version }}
           path: release-artifact
 
-      - name: Create tag and attach distributions
+      - name: Attach distributions to the existing release tag
         uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.build.outputs.version }}
-          target_commitish: ${{ github.sha }}
           files: |
             release-artifact/dist/*
             release-artifact/SHA256SUMS

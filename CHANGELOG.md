@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 - 2026-07-15
+## 1.0.0 - 2026-07-18
 
 First public stable release of SET-ANUBIS.
 
@@ -25,6 +25,11 @@ First public stable release of SET-ANUBIS.
 
 ### Changed
 
+- Reworked the README and Sphinx manual in a scientific, workflow-oriented style aligned with the software article.
+- Added project branding to the README, documentation and both Dash applications.
+- Changed the project licence from MIT to GPL-3.0-or-later.
+- Packaged the two optional Dash applications and added console entry points with bundled branding assets.
+- Documented the protected-tag, Trusted Publisher and immutable-artifact release process.
 - Public examples now use HNL-oriented MadGraph, branching-ratio and selection
   configurations rather than Pythia-first examples.
 - Pythia documentation repositioned as an optional support layer.
@@ -54,5 +59,5 @@ First public stable release of SET-ANUBIS.
 
 ### Notes
 
-- The repository license is MIT.  Older draft text in the paper mentioning GPLv2
-  should be updated before article submission.
+- SET-ANUBIS is distributed under GPL-3.0-or-later. The CPC manuscript and any
+  archived release metadata should use the same licence identifier.

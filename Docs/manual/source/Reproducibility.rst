@@ -1,25 +1,29 @@
-Reproducibility package
-=======================
+Reproducibility and validation examples
+=======================================
 
-SET-ANUBIS 1.0.0 includes a lightweight reproducibility package in the repository
-root under ``reproducibility/``.  It is intended both for release validation and
-for the planned *Computer Physics Communications* software submission.
+The repository contains a lightweight reproducibility package under
+``reproducibility/``. Its purpose is to verify the deterministic parts of the
+software release without requiring a large Monte Carlo campaign or external
+generator installation.
 
-The package produces deterministic outputs for five framework components:
+Covered workflows
+-----------------
 
-* ModelCore: parse the bundled HNL UFO, inspect its content and update ``mN1``;
-* branching ratios: interpolate two partial widths without invoking MARTY;
-* Pythia: generate and validate a generic ``.cmnd`` card without the native
+The validation package exercises five components:
+
+* **model interface** — load the bundled HNL UFO, inspect model content and
+  modify ``mN1``;
+* **branching ratios** — interpolate partial widths from a version-controlled
+  table without invoking MARTY;
+* **Pythia** — construct and validate a ``.cmnd`` file without the native
   Pythia8/HepMC3 runtime;
-* MadGraph: generate command, run, parameter, Pythia8 and MadSpin cards without
-  launching MadGraph or Docker;
-* selection: build the standard sample dataframes from the bundled
-  ``hnl_selection_cutflow_df.csv.gz`` input.
+* **MadGraph** — construct process commands, run, parameter, Pythia8 and MadSpin
+  cards without launching MadGraph or Docker;
+* **selection** — run the standard analysis objects and cutflow using the
+  compact real-event HNL sample distributed with the package.
 
-Run all examples
-----------------
-
-From a source checkout:
+Running the validation
+----------------------
 
 .. code-block:: bash
 
@@ -29,30 +33,36 @@ From a source checkout:
    python -m pip install -e .
    python reproducibility/run_all.py --output-dir reproducibility_outputs
 
-A successful run creates ``reproducibility_outputs/VALIDATED``.  The combined
-``results.json`` is compared to the version-controlled
-``reproducibility/expected_results.json``. Numerical values use a relative
-comparison tolerance of ``1e-12``; generated cards and the selected LLP table are
-identified by SHA-256 hashes.
+A successful run creates ``reproducibility_outputs/VALIDATED``. The combined
+``results.json`` is compared with
+``reproducibility/expected_results.json``. Numerical values are compared with a
+relative tolerance of ``1e-12``; generated cards and selected tables are
+identified by SHA-256 digests.
 
-Inputs
-------
+Distributed inputs
+------------------
 
-The examples use only inputs shipped with the source distribution:
+Only small, version-controlled inputs are used:
 
-* ``SetAnubis/assets/UFO/UFO_HNL``;
-* ``SetAnubis/examples/BranchingRatio/TestFiles/test_BR.csv``;
-* ``SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow_df.csv.gz``.
+* the bundled HNL UFO model;
+* the branching-ratio interpolation table;
+* the seven-event real HNL selection sample and its provenance manifest.
 
-The selection example reads the compact gzip CSV and deliberately does not load a pickle. The matching manifest preserves the source-event provenance. UFO
-models are executable Python definitions and must still be obtained from a
-trusted source; see :doc:`Installation` and the repository ``SECURITY.md``.
+The selection data are supplied in aligned HepMC, compressed CSV and trusted
+compressed-pickle representations. The deterministic reproducibility test uses
+the exchange-friendly compressed CSV. Pickles should only be loaded when their
+origin is trusted; see the repository ``SECURITY.md``.
 
-Scope and external generators
------------------------------
+Scope
+-----
 
-The reproducibility package verifies deterministic software behavior and card
-construction. It does not reproduce large production campaigns or publication
-plots. Full physics production still requires the separately configured
-MadGraph, MARTY, Pythia8/HepMC3 and analysis environments, together with the
-corresponding version pins, cards, seeds and archived event samples.
+These checks validate software behaviour, card construction and the analysis
+cutflow. They do not reproduce a complete publication-scale event campaign.
+Physics production still requires the relevant MadGraph, MARTY, Pythia8/HepMC3
+and analysis environments, together with their versions, cards, image digests,
+random seeds and archived benchmark samples.
+
+For a scientific release, the reproducibility outputs should be retained with
+the tag, source archive and distribution checksums. Larger production artefacts
+can be referenced through the event catalogue or an external archival service
+rather than included in the Python wheel.

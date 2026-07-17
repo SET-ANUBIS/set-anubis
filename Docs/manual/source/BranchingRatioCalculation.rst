@@ -1,36 +1,55 @@
 Branching ratios, widths and lifetimes
 ======================================
 
-The branching-ratio layer provides a common interface for quantities that enter
-both generation and sensitivity projections: partial widths, total widths,
-branching ratios and lifetimes.  In an LLP scan these values often depend on the
-same model parameters that control production kinematics, such as an HNL mass or
-mixing angle.
+Decay properties enter several stages of an LLP analysis. They determine the
+lifetime and decay probability of the LLP, the relative population of final
+states, the widths written to generator cards and the normalisation factors used
+in sensitivity calculations. SET-ANUBIS provides one interface for these
+quantities so that they can be evaluated from the same model-parameter state.
 
-Role in the analysis
+Quantities and conventions
+--------------------------
+
+For a mother particle with partial widths :math:`\Gamma_i`, the total width and
+branching ratio are
+
+.. math::
+
+   \Gamma_{\mathrm{tot}} = \sum_i \Gamma_i,
+   \qquad
+   \mathrm{BR}_i = \frac{\Gamma_i}{\Gamma_{\mathrm{tot}}}.
+
+The proper lifetime is obtained from the total width through
+:math:`\tau = \hbar/\Gamma_{\mathrm{tot}}`, with explicit unit conversions
+provided by the public interface.
+
+Calculation strategies
+----------------------
+
+``CalculationDecayStrategy`` supports several sources of decay information:
+
+``PYTHON``
+   A trusted Python implementation of ``IDecayCalculation``. This is useful for
+   compact analytic expressions or model-specific calculations.
+
+``FILE_INTERPOLATION``
+   A tabulated grid of widths or branching ratios. Interpolation is restricted
+   to the covered parameter domain; extrapolation is not performed silently.
+
+``UFO``
+   Decay functions or model information supplied by a trusted UFO package.
+
+``MADGRAPH``
+   Preparation of generator inputs for width extraction.
+
+``MARTY``
+   Generation of symbolic/numeric C++ sources for a MARTY-based calculation.
+
+The different strategies can be compared for validation or combined when a
+single model contains channels best described by different methods.
+
+HNL-oriented example
 --------------------
-
-The layer is used to:
-
-* provide model-dependent widths to parameter cards or generator metadata;
-* tabulate branching ratios over scan parameters;
-* compute lifetimes for selection and optional decay-position reweighting;
-* prepare decay information for MadSpin or optional Pythia card generation;
-* compare calculation strategies during validation.
-
-Available strategies
---------------------
-
-``CalculationDecayStrategy`` currently exposes:
-
-* ``PYTHON`` for user-defined formulas;
-* ``FILE_INTERPOLATION`` for tabulated widths or branching ratios;
-* ``UFO`` for UFO-based calculations;
-* ``MADGRAPH`` for generator-assisted width extraction;
-* ``MARTY`` for MARTY-oriented symbolic/numeric workflows.
-
-HNL-style example
------------------
 
 .. code-block:: python
 
@@ -43,15 +62,12 @@ HNL-style example
    )
 
    model = SetAnubisInterface(str(ufo_path("UFO_HNL")))
-   model.set_leaf_param("mN1", 1.0)
-   model.set_leaf_param("VeN1", 1.0e-6)
+   model.set_parameter("mN1", 1.5)
+   model.set_parameter("VeN1", 1.5)
 
    decays = DecayInterface(model)
    decays.add_decays(
-       [
-           {"mother": 25, "daughters": [-13, 13]},
-           {"mother": 25, "daughters": [22, 22]},
-       ],
+       [{"mother": 25, "daughters": [-13, 13]}],
        CalculationDecayStrategy.FILE_INTERPOLATION,
        {
            "file_path": "br_table.csv",
@@ -60,42 +76,38 @@ HNL-style example
        },
    )
 
+   print(decays.get_decay(25, [-13, 13]))
    print(decays.get_brs(25))
    print(decays.calculate_lifetime(25, Unit.S))
 
-The concrete test file used by the repository is
+A complete repository example is available at
 ``setanubis/SetAnubis/examples/BranchingRatio/example_BranchingRatioInterface_hnl.py``.
 
-Connection to generation
-------------------------
+Connection to generation and selection
+--------------------------------------
 
-For MadGraph/MadSpin studies the branching-ratio layer is not required to launch
-a process, but it is useful for keeping the scan metadata physically consistent:
-widths, decay tables and sensitivity factors can all be evaluated from the same
-model-parameter state.  For optional Pythia workflows the same information can be
-translated into ``.cmnd`` decay configuration.
+The decay layer can populate widths and decay tables used by MadGraph, MadSpin
+or Pythia command files. The same lifetime can be recorded with the scan point
+and used in lifetime reweighting or sensitivity calculations. This avoids a
+common source of inconsistency in which generation and analysis use different
+parameter values or decay tables.
 
 Developer examples
 ------------------
 
-The extended examples in
-``setanubis/SetAnubis/examples/BranchingRatio/dev_examples`` cover every
-supported preparation path without hiding external-runtime requirements:
+The directory ``setanubis/SetAnubis/examples/BranchingRatio/dev_examples``
+contains one focused example for each supported workflow:
 
-* ``example_manual_values_and_lifetime.py`` registers externally calculated
-  widths or direct branching ratios and derives a lifetime;
-* ``example_python_calculator.py`` loads a trusted Python
-  ``IDecayCalculation`` implementation;
-* ``example_file_interpolation.py`` performs linear interpolation inside a CSV
-  parameter grid;
-* ``example_ufo_decay_functions.py`` inspects decay functions extracted from a
-  trusted UFO model;
-* ``example_madgraph_preparation.py`` writes MadGraph width-command, run and
-  parameter cards without launching MadGraph or Docker;
-* ``example_marty_preparation.py`` renders an analytic MARTY C++ source file
-  without compiling or executing MARTY.
-
-Run an example from the repository root, for example:
+* ``example_manual_values_and_lifetime.py`` — explicit widths or branching
+  ratios and lifetime conversion;
+* ``example_python_calculator.py`` — trusted Python calculator;
+* ``example_file_interpolation.py`` — interpolation inside a CSV parameter grid;
+* ``example_ufo_decay_functions.py`` — numerical evaluation of UFO decay
+  functions;
+* ``example_madgraph_preparation.py`` — MadGraph commands and cards without
+  execution;
+* ``example_marty_preparation.py`` — MARTY C++ source generation without
+  compilation or execution.
 
 .. code-block:: bash
 
@@ -103,6 +115,6 @@ Run an example from the repository root, for example:
    python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_madgraph_preparation.py --output-dir prepared_widths
    python setanubis/SetAnubis/examples/BranchingRatio/dev_examples/example_marty_preparation.py --output prepared_marty/z_to_ddbar.cpp
 
-Python calculators and UFO models are executable Python inputs. Only use files
-from trusted sources. The MadGraph and MARTY preparation examples generate
-inputs but deliberately do not execute those external programs.
+Python calculators and UFO packages are executable inputs. Only load files from
+a trusted source. The MadGraph and MARTY examples prepare inputs but deliberately
+do not launch either external program.

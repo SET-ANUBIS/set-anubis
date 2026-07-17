@@ -1,9 +1,9 @@
-Documentation and CI
-====================
+Documentation and continuous integration
+========================================
 
-The public repository uses GitHub Actions for continuous integration,
-documentation builds, CodeQL analysis, optional Pythia-native checks and release
-publishing.
+The public repository uses GitHub Actions to test the supported Python versions,
+build the documentation, run security checks, validate the optional native
+Pythia interface and publish release artefacts.
 
 Local documentation build
 -------------------------
@@ -11,28 +11,34 @@ Local documentation build
 .. code-block:: bash
 
    python -m pip install -e ".[docs]"
-   setanubis-docs --open
+   setanubis-docs --strict
 
-or directly:
+The equivalent direct Sphinx command is:
 
 .. code-block:: bash
 
-   sphinx-build -b html Docs/manual/source Docs/manual/build/html
+   sphinx-build -W --keep-going -b html Docs/manual/source Docs/manual/build/html
+
+Warnings are treated as errors. Missing pages, images, API references or invalid
+markup therefore fail the documentation workflow.
 
 GitHub Pages
 ------------
 
-The documentation workflow builds Sphinx HTML and deploys it to GitHub Pages when
-running on the main branch or through the configured manual workflow.  In the
-GitHub repository settings, Pages must use ``GitHub Actions`` as the source.  The
-published site is expected at:
+The documentation workflow builds on ``main`` and ``develop`` and on pull
+requests targeting either branch. Only a successful build from ``main`` is
+deployed to GitHub Pages. Repository settings must use **GitHub Actions** as the
+Pages source, and the ``github-pages`` environment must allow deployments from
+``main``.
+
+The expected public URL is:
 
 .. code-block:: text
 
    https://set-anubis.github.io/set-anubis/
 
-Local CI equivalent
--------------------
+Local release-equivalent checks
+-------------------------------
 
 .. code-block:: bash
 
@@ -43,24 +49,26 @@ Local CI equivalent
    python -m pip_audit
    python -m bandit -q -lll -r setanubis/SetAnubis/core \
       -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
-   python -m pytest -q setanubis/tests --cov=SetAnubis --cov-config=pyproject.toml --cov-fail-under=58
+   python -m pytest -q setanubis/tests \
+      --cov=SetAnubis --cov-config=pyproject.toml \
+      --cov-report=term-missing --cov-fail-under=58
    python reproducibility/run_all.py --output-dir .ci-reproducibility
    sphinx-build -W --keep-going -b html Docs/manual/source Docs/manual/build/html
    python -m build
    python -m twine check dist/*
 
-
 Release gates
 -------------
 
-The Python 3.12 CI job audits installed dependencies for known vulnerabilities,
-runs the high-severity source scan, and enforces a minimum 35 percent coverage over production
-modules after excluding generated UFO code, GUI applications, examples and the
-legacy v2 database compatibility implementation.  Contract tests also import
-every symbol in the public facade, require a public docstring, inspect the
-hexagonal port interfaces, and confirm that the documented lightweight examples
-and data files are present in the installed package.
+The CI matrix covers Python 3.10, 3.11, 3.12 and 3.13. The Python 3.12 job also
+runs the release lint, dependency audit, high-severity source scan,
+reproducibility examples and coverage gate. Generated UFO code, optional Dash
+applications, examples and external toolchains are excluded from the coverage
+metric; the current minimum is 58 percent over the maintained production
+modules.
 
-The packaging job installs the built wheel with its runtime dependencies in a
-source-independent temporary directory.  This avoids a checkout shadowing a
-missing file in the wheel.
+Contract tests additionally verify the public facade, public docstrings,
+interface documentation, packaged example data, documentation assets, licence
+metadata and release-source cleanliness. The packaging job builds an sdist and
+wheel, checks their metadata and imports the installed wheel from outside the
+source tree.

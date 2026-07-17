@@ -1,35 +1,36 @@
 MadGraph signal generation
 ==========================
 
-MadGraph is the primary generation workflow documented for the release.  In a
-SET-ANUBIS analysis the generator stage is responsible for producing a sample of
-LLP events for a given model and parameter point.  The subsequent selection code
-assumes that generated events can be converted to HepMC/dataframe bundles, but it
-is deliberately agnostic about the exact generator backend once the event record
-exists.
+MadGraph is the principal event-generation workflow documented for the public
+release. For each model point, SET-ANUBIS constructs the text inputs that define
+the hard process, collider configuration, model parameters, LLP decay chain and
+optional shower stage. Keeping these inputs explicit is essential: the cards are
+part of the scientific definition of the generated sample and therefore part of
+its provenance.
 
-Physics role
-------------
+Role of the generator stage
+---------------------------
 
-For HNL-like benchmarks the relevant information is split between:
+For an HNL-like benchmark, the generated sample is determined by several linked
+inputs:
 
-* the UFO model, which defines particles, parameters and interactions;
-* the MadGraph process definition, such as associated HNL production;
-* the parameter card, where masses, mixings and widths are set or scanned;
-* the run card, where collider conditions and event counts are configured;
-* the MadSpin card, which defines LLP decays at the parton level;
-* the shower card, which controls the optional shower/hadronisation step.
+* the UFO model, which specifies particles, parameters and interactions;
+* the process definition, which selects the production mode;
+* the parameter card, which fixes or scans masses, mixings and widths;
+* the run card, which defines beam conditions, statistics and generator options;
+* the MadSpin card, which specifies parton-level decay chains;
+* the shower card, which configures optional showering and hadronisation.
 
-SET-ANUBIS keeps these text artefacts explicit because they are part of the
-scientific provenance of a scan.  They can be written, inspected, stored in the
-database and later associated with selection outputs.
+SET-ANUBIS separates card construction from execution. The same card strings can
+be inspected locally, stored in the event database, submitted to a local
+MadGraph installation, executed in a Docker container or passed to a batch
+system.
 
 HNL card-generation example
 ---------------------------
 
-The example below constructs cards for a simple Heavy Neutral Lepton scan.  It is
-a dry-run card construction example: no MadGraph process is launched until the
-strings are handed to a local or Docker runner.
+The example below prepares an associated-production scan without launching
+MadGraph.
 
 .. code-block:: python
 
@@ -71,8 +72,11 @@ strings are handed to a local or Docker runner.
    madspin_card = cards.madspin_builder.serialize()
    pythia_card = cards.pythia_builder.serialize()
 
-The output layout expected by the database layer follows the standard MadGraph
-convention:
+Run layout and ingestion
+------------------------
+
+The database importer understands the conventional MadGraph ``Events`` layout
+and scan summaries:
 
 .. code-block:: text
 
@@ -85,19 +89,23 @@ convention:
          tag_1_pythia8_events.hepmc.gz
      scan_run_01.txt
 
-Running MadGraph
-----------------
+Cards, banners, scan parameters, cross sections and event references can then be
+associated with a single model point. The persistent analysis object is normally
+a compact selection-ready dataframe bundle; retaining the raw HepMC file remains
+an explicit option for benchmark or archival runs.
 
-The public examples keep execution separate from card construction because
-production campaigns may run locally, inside Docker, or on a batch system.  Once
-the cards have been created, use the appropriate runner for your environment:
+Execution backends
+------------------
+
+Once the card strings have been prepared, the corresponding runner can be
+selected for the target environment:
 
 .. code-block:: python
 
    from setanubis import MadgraphInterface, MadGraphDockerRunner
 
    runner = MadGraphDockerRunner()
-   mg = MadgraphInterface(
+   interface = MadgraphInterface(
        madgraph_runner=runner,
        jobscript_str=jobscript,
        param_card_str=param_card,
@@ -105,8 +113,12 @@ the cards have been created, use the appropriate runner for your environment:
        pythia_card_str=pythia_card,
        madspin_card_str=madspin_card,
    )
-   mg.run()
-   mg.retrieve_events("db/Temp/madgraph/Events")
+   interface.run()
+   interface.retrieve_events("db/Temp/madgraph/Events")
+
+The Docker backend isolates the generator toolchain from the Python environment.
+For publication-quality production, record the image digest, generator version,
+cards, random seeds and host information together with the campaign metadata.
 
 Recommended examples
 --------------------
@@ -116,6 +128,9 @@ Recommended examples
 * ``setanubis/SetAnubis/examples/MadGraph/example_madspin_card.py``
 * ``setanubis/SetAnubis/examples/MadGraph/example_hepmc_plots.py``
 
-  Run it with an explicit HepMC input, for example::
+The plotting example accepts an explicit HepMC file:
 
-     python -m SetAnubis.examples.MadGraph.example_hepmc_plots path/to/events.hepmc.gz --pdg-id 35
+.. code-block:: bash
+
+   python -m SetAnubis.examples.MadGraph.example_hepmc_plots \
+      path/to/events.hepmc.gz --pdg-id 35

@@ -119,6 +119,18 @@ def test_required_examples_and_data_are_packaged():
         .is_file()
     )
     assert SetAnubis.ufo_path("UFO_HNL").joinpath("write_param_card.py").is_file()
+    assert (
+        resources.files("SetAnubis.HepMCGUI")
+        .joinpath("assets/set-anubis-logo.png")
+        .is_file()
+    )
+    assert (
+        resources.files(
+            "SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard"
+        )
+        .joinpath("assets/set-anubis-logo.png")
+        .is_file()
+    )
 
 
 def test_architecture_interfaces_have_class_and_method_docstrings():
@@ -320,3 +332,44 @@ def test_release_python_files_parse_with_supported_minimum_version():
             failures.append(f"{path.relative_to(root)}: {exc}")
 
     assert not failures, "Python 3.10 syntax failures:\n" + "\n".join(failures)
+
+
+def test_release_metadata_and_branding_assets_are_consistent():
+    """Keep licence metadata and release-facing branding in sync."""
+    import tomllib
+
+    root = Path(__file__).parents[3]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+    assert project["license"] == "GPL-3.0-or-later"
+    assert "GNU GENERAL PUBLIC LICENSE" in (root / "LICENSE").read_text(
+        encoding="utf-8"
+    )
+    assert "license: GPL-3.0-or-later" in (root / "CITATION.cff").read_text(
+        encoding="utf-8"
+    )
+
+    required_assets = [
+        root / "Docs/assets/set-anubis-logo.png",
+        root / "Docs/assets/anubis-detector-concept.jpeg",
+        root / "Docs/manual/source/ProgramOverview.rst",
+        root / "Docs/manual/source/_static/set-anubis-logo.png",
+        root / "Docs/manual/source/images/set-anubis-logo.png",
+        root / "setanubis/SetAnubis/HepMCGUI/assets/set-anubis-logo.png",
+        root
+        / "setanubis/SetAnubis/SetAnubisDBDashboard/SetAnubisDBDashboard/assets"
+        / "set-anubis-logo.png",
+    ]
+    missing = [path.relative_to(root) for path in required_assets if not path.is_file()]
+    assert not missing, f"Missing release branding assets: {missing}"
+
+
+def test_final_release_workflow_requires_a_matching_tag():
+    """Prevent final PyPI publication from an untagged branch commit."""
+    root = Path(__file__).parents[3]
+    workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    assert "refs/tags/v${SETANUBIS_VERSION}" in workflow
+    assert "testpypi-and-pypi" in workflow
+    assert "environment: testpypi" in workflow
+    assert "environment: pypi" in workflow

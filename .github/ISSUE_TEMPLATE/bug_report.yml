@@ -1,12 +1,12 @@
 name: Bug report
-description: Report a reproducible problem in SetAnubis
+description: Report a reproducible problem in SET-ANUBIS
 title: "[Bug]: "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve SetAnubis. Please include enough information for us to reproduce the issue.
+        Thanks for helping improve SET-ANUBIS. Please include enough information for us to reproduce the issue.
   - type: textarea
     id: summary
     attributes:
@@ -42,7 +42,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: SetAnubis version
+      label: SET-ANUBIS version
       placeholder: "1.0.0, commit SHA, or editable checkout"
   - type: textarea
     id: environment

@@ -42,13 +42,12 @@ python -m pip install "SetAnubis[app]"
 ## Running
 
 ```bash
-python SetAnubisDBDashboard/run_db_dashboard.py \
+setanubis-db-dashboard \
   --db db/EventsDatabase.db \
   --storage db/EventsStorage \
   --events-root db/Events_THEO \
   --host 127.0.0.1 \
-  --port 8050 \
-  --debug
+  --port 8051
 ```
 
 Then open the local Dash URL printed by Dash.

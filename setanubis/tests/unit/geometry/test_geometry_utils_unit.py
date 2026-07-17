@@ -19,3 +19,18 @@ def test_eta_to_theta_matches_expected_limits_and_symmetry():
 def test_extract_xyz_accepts_three_or_four_components():
     assert extract_xyz((1, 2, 3)) == (1.0, 2.0, 3.0)
     assert extract_xyz([1.5, 2.5, 3.5, 99]) == (1.5, 2.5, 3.5)
+
+
+def test_cavern_initialisation_is_quiet(capsys):
+    """Geometry construction should not write diagnostic text by default."""
+    from SetAnubis.core.Geometry.domain.defineGeometry import ATLASCavern
+
+    cavern = ATLASCavern()
+    cavern.createShaftRPCs(
+        [0.0, 1.0],
+        RPCradius={"PX14": -1, "PX16": -1},
+        shafts=["PX14"],
+    )
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == ""

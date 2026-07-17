@@ -118,7 +118,7 @@ class ATLASCavern():
                             "PX16": {"Centre": self.PX16_Centre, "radius": self.PX16_Radius, "height": self.PX16_Height, "LowestY": self.PX16_LowestY},
         }
 
-        self.angles = self.calculateAngles()
+        self.angles = self.calculateAngles(verbose=False)
 
         #===========================#
         # ATLAS Experimental Bounds #
@@ -1232,7 +1232,6 @@ class ATLASCavern():
                 RPCs["y"].append([height + self.shaftParams[shaft]["Centre"]["y"], height + self.shaftParams[shaft]["Centre"]["y"] + RPCthickness])
                 RPCs["RPCradius"].append(RPCradius[shaft])
 
-            print(RPCs["y"])
 
         self.ANUBIS_RPCs = RPCs
         self.geoMode = "shaft"

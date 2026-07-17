@@ -9,6 +9,7 @@ include SECURITY.md
 include SUPPORT.md
 include PYTHIA_PACKAGING.md
 include RELEASE.md
+include GITHUB_RELEASE_SETUP.md
 include AUTHORS.md
 
 graft Docs

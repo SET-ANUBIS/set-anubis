@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import os
 import json
 from io import StringIO
@@ -1425,5 +1426,17 @@ def update_event_figures(tracks_json, plane: str, geom_opts, track_opts):
     return fig2d, fig3d
 
 
+def main(argv: Optional[List[str]] = None) -> None:
+    """Run the optional HepMC explorer Dash application."""
+    parser = argparse.ArgumentParser(
+        description="Inspect HepMC LLP events in the SET-ANUBIS cavern geometry"
+    )
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8050)
+    parser.add_argument("--debug", action="store_true")
+    args = parser.parse_args(argv)
+    app.run(host=args.host, port=args.port, debug=args.debug)
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    main()

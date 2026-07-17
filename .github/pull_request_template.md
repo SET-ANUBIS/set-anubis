@@ -18,3 +18,4 @@
 - [ ] `setanubis-pythia-smoke --out .local-pythia-smoke`
 - [ ] Docs/examples updated if user-facing
 - [ ] No generated samples, local databases or external builds committed
+- [ ] New contributions are compatible with GPL-3.0-or-later
