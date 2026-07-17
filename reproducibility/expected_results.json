@@ -51,19 +51,19 @@
   },
   "selection": {
     "bundle_rows": {
-      "LLPchildren": 30,
-      "LLPs": 10,
-      "chargedFinalStates": 662,
-      "finalStates": 3860,
-      "finalStates_Neutrinos": 2,
-      "finalStates_NoLLP": 3828,
-      "neutralFinalStates": 1861
+      "LLPchildren": 24,
+      "LLPs": 7,
+      "chargedFinalStates": 6,
+      "finalStates": 1325,
+      "finalStates_Neutrinos": 3,
+      "finalStates_NoLLP": 1300,
+      "neutralFinalStates": 661
     },
-    "charged_track_pt_min_gev": 0.5,
-    "input_events": 10,
-    "input_rows": 11737,
+    "charged_track_pt_min_gev": 5.0,
+    "input_events": 7,
+    "input_rows": 3636,
     "llp_pdg": 9900012,
-    "selected_llp_events": 10,
-    "selected_llps_sha256": "bf9d774ba17a1532a2fb4799e495173fc2cc5abaeb6a9a0db3bf3b91fded94ad"
+    "selected_llp_events": 7,
+    "selected_llps_sha256": "3886bc9cdd6d630b5ced988ef53b6333d85d141acd6c0c3ac28bd305ef6b4a27"
   }
 }

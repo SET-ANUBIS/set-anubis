@@ -14,7 +14,7 @@ The package produces deterministic outputs for five framework components:
 * MadGraph: generate command, run, parameter, Pythia8 and MadSpin cards without
   launching MadGraph or Docker;
 * selection: build the standard sample dataframes from the bundled
-  ``hnl_df.csv`` input.
+  ``hnl_selection_cutflow_df.csv.gz`` input.
 
 Run all examples
 ----------------
@@ -42,9 +42,9 @@ The examples use only inputs shipped with the source distribution:
 
 * ``SetAnubis/assets/UFO/UFO_HNL``;
 * ``SetAnubis/examples/BranchingRatio/TestFiles/test_BR.csv``;
-* ``SetAnubis/examples/Selection/InputFiles/hnl_df.csv``.
+* ``SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow_df.csv.gz``.
 
-The selection example reads CSV and deliberately does not load a pickle. UFO
+The selection example reads the compact gzip CSV and deliberately does not load a pickle. The matching manifest preserves the source-event provenance. UFO
 models are executable Python definitions and must still be obtained from a
 trusted source; see :doc:`Installation` and the repository ``SECURITY.md``.
 

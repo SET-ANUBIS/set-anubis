@@ -259,13 +259,29 @@ print(trace.event_summary)
 trace.write_report("selection_trace_output")
 ```
 
-The synthetic demonstration intentionally makes different events fail at
-different cuts:
+The packaged real-event sample contains seven HNL events selected from a
+4,000-event corpus.  It keeps the smallest event found for every observed
+outcome: failures at `InCavern`, `NotInATLAS`, `Geometry`, `Tracker`, `MET`, and
+`IsoJets`, plus one event passing the full selection.  Generate its report with:
+
+```bash
+python setanubis/SetAnubis/examples/Selection/example_real_selection_trace_report.py \
+  --output-dir selection_trace_output
+```
+
+A separate synthetic example remains available when a deterministic event is
+needed for every logical branch, including outcomes absent from the real corpus:
 
 ```bash
 python setanubis/SetAnubis/examples/Selection/example_selection_trace_report.py \
-  --output-dir selection_trace_output
+  --output-dir synthetic_selection_trace_output
 ```
+
+
+The compact sample is shipped in four aligned representations under
+`SetAnubis/examples/Selection/InputFiles`: HepMC2, gzip CSV, trusted gzip-pickle
+bundle, and a JSON provenance manifest. Together they occupy less than 1 MB;
+the previous multi-megabyte CSV-only fixture has been removed.
 
 > **Trusted-input note:** pickle-based selection/database bundles can execute
 > arbitrary Python code when loaded. Only open bundles produced by a trusted
@@ -300,7 +316,7 @@ Python calculators and UFO models must be treated as trusted executable inputs.
 
 The source release contains deterministic examples for ModelCore, branching
 ratios without MARTY, Pythia CMND construction, MadGraph card construction and
-selection from the bundled `hnl_df.csv` input. They do not launch external
+selection from the bundled seven-event real HNL sample. They do not launch external
 generators.
 
 ```bash

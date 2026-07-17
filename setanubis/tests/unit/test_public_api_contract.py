@@ -93,8 +93,15 @@ def test_required_examples_and_data_are_packaged():
     branching = resources.files("SetAnubis.examples.BranchingRatio")
     pythia = resources.files("SetAnubis.examples.Pythia")
 
-    assert selection.joinpath("InputFiles/hnl_df.csv").is_file()
+    for resource_name in (
+        "hnl_selection_cutflow.hepmc.gz",
+        "hnl_selection_cutflow_df.csv.gz",
+        "hnl_selection_cutflow_bundle.pkl.gz",
+        "hnl_selection_cutflow_manifest.json",
+    ):
+        assert selection.joinpath(f"InputFiles/{resource_name}").is_file()
     assert selection.joinpath("example_selection_trace_report.py").is_file()
+    assert selection.joinpath("example_real_selection_trace_report.py").is_file()
     assert branching.joinpath("TestFiles/test_BR.csv").is_file()
     for example_name in (
         "example_manual_values_and_lifetime.py",
@@ -224,14 +231,16 @@ def test_hnl_branching_ratio_table_has_single_canonical_copy():
 def test_selection_examples_use_the_current_geometry_stack():
     """Prevent examples from reintroducing removed geometry or engine adapters."""
     examples = Path(__file__).resolve().parents[2] / "SetAnubis/examples/Selection"
-    current_stack_examples = [
-        examples / "example_selection_pipeline.py",
-        examples / "dev_examples/example_jets_and_pT_deltaR_cuts.py",
+    geometry_sources = [
+        examples / "compact_sample.py",
     ]
-    for example in current_stack_examples:
+    for example in geometry_sources:
         source = example.read_text(encoding="utf-8")
         assert "ATLASCavernGeometry.create" in source
         assert "SelectionGeometryAdapter(geometry)" in source
+
+    for example in examples.rglob("*.py"):
+        source = example.read_text(encoding="utf-8")
         assert "GeometrySelectionAdapter" not in source
         assert "SelectionEnginev2" not in source
 

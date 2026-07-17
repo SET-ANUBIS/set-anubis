@@ -1,80 +1,28 @@
-"""Add prompt jets and isolation distances to the packaged HNL sample."""
+"""Add prompt jets and isolation distances to the compact real HNL sample."""
 
+from __future__ import annotations
+
+import argparse
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
-from SetAnubis.core.Geometry.adapters.ATLASCavernGeometry import ATLASCavernGeometry
-from SetAnubis.core.Geometry.adapters.ATLASCavernGeometryConfig import (
-    ATLASCavernGeometryConfig,
-)
-from SetAnubis.core.Selection.adapters.input.SelectionGeometryAdapter import (
-    SelectionGeometryAdapter,
-)
 from SetAnubis.core.Selection.domain.DatasetSource import BundleIO
 from SetAnubis.core.Selection.domain.JetBuilder import createJetDF
-from SetAnubis.core.Selection.domain.LLPAnalyzer import LLPAnalyzer
-from SetAnubis.core.Selection.domain.SelectionEngine import (
-    MinDR,
-    MinThresholds,
-    SelectionConfig,
-)
 from SetAnubis.core.Selection.domain.isolation import IsolationComputer
-
-INPUT_DIR = Path(__file__).resolve().parent.parent / "InputFiles"
-CSV_FILE = INPUT_DIR / "hnl_df.csv"
-BUNDLE_CANDIDATES = (
-    INPUT_DIR / "samples_dfs_hnl.pkl.gz",
-    INPUT_DIR / "samples_dfs_hnl.pkl",  # Legacy name; gzip is detected by header.
+from SetAnubis.examples.Selection.compact_sample import (
+    build_selection_config,
+    load_compact_bundle,
 )
-OUTPUT_FILE = Path("samples_dfs_hnl_with_jet_deltaR.pkl.gz")
 
 
-def load_or_build_bundle():
-    """Load a prepared bundle, or build it from the packaged CSV when absent."""
-    for candidate in BUNDLE_CANDIDATES:
-        if candidate.is_file():
-            print(f"Loading trusted selection bundle: {candidate}")
-            return BundleIO.load_bundle(candidate)
-
-    # The repository ships the CSV, so this example remains runnable without a
-    # generated pickle from a previous example.
-    print(f"No bundle found; building one from {CSV_FILE}")
-    dataframe = pd.read_csv(CSV_FILE)
-    analyzer = LLPAnalyzer(dataframe.copy(), pt_min_cfg={"chargedTrack": 0.5})
-    return analyzer.create_sample_dataframes(llpid=9900012)
-
-
-if __name__ == "__main__":
-    sample_dfs = load_or_build_bundle()
+def enrich_bundle(output: str | Path) -> Path:
+    """Cluster jets, attach isolation values, and save the enriched bundle."""
+    sample_dfs = load_compact_bundle()
     charged = sample_dfs["chargedFinalStates"].copy()
     neutral = sample_dfs["neutralFinalStates"].copy()
 
-    # Build the canonical geometry backend used by the current selection engine.
-    geometry = ATLASCavernGeometry.create(
-        ATLASCavernGeometryConfig(
-            mode="ceiling",
-            origin="IP",
-            rpc_eff=1.0,
-            n_rpcs_per_layer=1,
-            use_cache=False,
-        )
-    )
-    selection_geometry = SelectionGeometryAdapter(geometry)
-
-    selection_config = SelectionConfig(
-        geometry=selection_geometry,
-        minMET=30.0,
-        minP=MinThresholds(LLP=0.1, chargedTrack=0.1, neutralTrack=0.1, jet=0.1),
-        minPt=MinThresholds(LLP=0.0, chargedTrack=5.0, neutralTrack=5.0, jet=15.0),
-        minDR=MinDR(jet=0.4, chargedTrack=0.4, neutralTrack=0.4),
-        nStations=2,
-        nIntersections=2,
-        nTracks=1,
-    )
-
-    # Cluster prompt final states event by event before computing LLP isolation.
+    # Build prompt jets from all visible prompt final-state particles.
     event_numbers = np.unique(
         np.concatenate(
             [
@@ -85,12 +33,31 @@ if __name__ == "__main__":
     )
     enriched_bundle = sample_dfs.copy()
     enriched_bundle["finalStatePromptJets"] = createJetDF(
-        event_numbers, charged, neutral
+        event_numbers,
+        charged,
+        neutral,
     )
 
-    isolation = IsolationComputer(selection=selection_config)
+    # Attach the minimum angular distance to jets and charged tracks per LLP.
+    isolation = IsolationComputer(selection=build_selection_config())
     enriched_bundle["LLPs"] = isolation.attach_min_delta_r(enriched_bundle.copy())
 
-    print(enriched_bundle["LLPs"].head())
-    BundleIO.save_bundle(enriched_bundle, OUTPUT_FILE)
-    print(f"Saved enriched selection bundle to {OUTPUT_FILE.resolve()}")
+    output_path = Path(output)
+    BundleIO.save_bundle(enriched_bundle, output_path)
+    return output_path
+
+
+def main() -> None:
+    """Parse the output filename and generate the enriched bundle."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output",
+        default="hnl_selection_cutflow_enriched.pkl.gz",
+        help="Destination trusted pickle bundle.",
+    )
+    args = parser.parse_args()
+    print(f"Saved enriched bundle to {enrich_bundle(args.output).resolve()}")
+
+
+if __name__ == "__main__":
+    main()

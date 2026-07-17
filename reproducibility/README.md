@@ -13,7 +13,7 @@ event samples or starting external generators:
 | `branching_ratio` | Interpolate two partial widths and branching ratios | No MARTY |
 | `pythia` | Create and validate a generic Pythia CMND card | No Pythia runtime |
 | `madgraph` | Create command, run, parameter, Pythia8 and MadSpin cards | No MadGraph/Docker |
-| `selection` | Build selection dataframes from the bundled `hnl_df.csv` | No |
+| `selection` | Build selection dataframes from the compact real-event HNL CSV | No |
 
 ## Run
 
@@ -38,11 +38,10 @@ The model and example inputs are version-controlled with the source release:
 
 - `setanubis/SetAnubis/assets/UFO/UFO_HNL/`;
 - `setanubis/SetAnubis/examples/BranchingRatio/TestFiles/test_BR.csv`;
-- `setanubis/SetAnubis/examples/Selection/InputFiles/hnl_df.csv`.
+- `setanubis/SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow_df.csv.gz`.
 
 UFO files are executable Python model definitions. Only run this package with
-the files shipped by SET-ANUBIS or another source you trust. The examples do not
-load pickle files.
+the files shipped by SET-ANUBIS or another source you trust. The selection reproducibility example reads the gzip CSV rather than the matching pickle bundle. The JSON manifest records source-event provenance.
 
 ## Scope
 

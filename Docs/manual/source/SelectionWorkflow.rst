@@ -141,9 +141,19 @@ candidate counts by ``eventNumber``.  The full stage DataFrames remain available
 in Python and can optionally be included as records in the JSON output.
 
 The runnable
-``examples/Selection/example_selection_trace_report.py`` example uses synthetic
-events that intentionally fail at successive cuts, making the report easy to
-inspect.
+``examples/Selection/example_real_selection_trace_report.py`` example uses seven
+real HNL events selected from a 4,000-event corpus.  The sample includes the
+smallest event found for each observed outcome: failures at ``InCavern``,
+``NotInATLAS``, ``Geometry``, ``Tracker``, ``MET`` and ``IsoJets``, plus one event
+that reaches ``Final``.  No real event in the supplied corpus first failed at
+``LLPDecay``, ``IsoCharged`` or ``IsoAll``.
+
+The aligned HepMC2, gzip CSV, trusted gzip-pickle bundle and JSON provenance
+manifest are stored under ``examples/Selection/InputFiles`` and together occupy
+less than 1 MB.  The manifest records the source filename, source event ordinal
+and original event number for every retained event.  The synthetic
+``example_selection_trace_report.py`` remains available for deliberately
+constructed branch-by-branch demonstrations.
 
 .. warning::
 
@@ -188,4 +198,5 @@ Recommended examples
 * ``setanubis/SetAnubis/examples/Selection/dev_examples/example_jets_and_pT_deltaR_cuts.py``
 * ``setanubis/SetAnubis/examples/Selection/example_hepmc_from_db.py``
 * ``setanubis/SetAnubis/examples/Selection/example_selection_pipeline.py``
+* ``setanubis/SetAnubis/examples/Selection/example_real_selection_trace_report.py``
 * ``setanubis/SetAnubis/examples/Selection/example_selection_trace_report.py``

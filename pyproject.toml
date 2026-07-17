@@ -81,7 +81,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"SetAnubis" = ["py.typed", "**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt", "**/*.csv"]
+"SetAnubis" = ["py.typed", "**/*.yaml", "**/*.yml", "**/*.json", "**/*.dat", "**/*.txt", "**/*.csv", "**/*.gz", "**/*.pkl"]
 "SetAnubis.core.Pythia.bindings" = ["*.so", "*.pyd", "*.dylib"]
 
 [tool.setuptools.exclude-package-data]

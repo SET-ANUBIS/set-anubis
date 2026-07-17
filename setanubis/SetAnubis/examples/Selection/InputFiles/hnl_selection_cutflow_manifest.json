@@ -1,0 +1,81 @@
+{
+  "description": "Minimal real-event sample covering every observed selection outcome in the supplied 4000-event corpus.",
+  "selection_stages": [
+    "Original",
+    "LLPDecay",
+    "InCavern",
+    "NotInATLAS",
+    "Geometry",
+    "Tracker",
+    "MET",
+    "IsoJets",
+    "IsoCharged",
+    "IsoAll",
+    "Final"
+  ],
+  "events": [
+    {
+      "event_number": 0,
+      "expected_first_failed_stage": "InCavern",
+      "last_passed_stage": "LLPDecay",
+      "source_file": "tag_1_pythia8_events.hepmc (1).gz",
+      "source_event_ordinal": 1770,
+      "source_event_number": 70,
+      "particle_count": 79
+    },
+    {
+      "event_number": 1,
+      "expected_first_failed_stage": "NotInATLAS",
+      "last_passed_stage": "InCavern",
+      "source_file": "tag_1_pythia8_events.hepmc.gz",
+      "source_event_ordinal": 1477,
+      "source_event_number": 77,
+      "particle_count": 89
+    },
+    {
+      "event_number": 2,
+      "expected_first_failed_stage": "Geometry",
+      "last_passed_stage": "NotInATLAS",
+      "source_file": "tag_1_pythia8_events.hepmc.gz",
+      "source_event_ordinal": 1296,
+      "source_event_number": 96,
+      "particle_count": 131
+    },
+    {
+      "event_number": 3,
+      "expected_first_failed_stage": "Tracker",
+      "last_passed_stage": "Geometry",
+      "source_file": "tag_1_pythia8_events.hepmc (1).gz",
+      "source_event_ordinal": 616,
+      "source_event_number": 16,
+      "particle_count": 667
+    },
+    {
+      "event_number": 4,
+      "expected_first_failed_stage": "MET",
+      "last_passed_stage": "Tracker",
+      "source_file": "tag_1_pythia8_events.hepmc (1).gz",
+      "source_event_ordinal": 340,
+      "source_event_number": 40,
+      "particle_count": 437
+    },
+    {
+      "event_number": 5,
+      "expected_first_failed_stage": "IsoJets",
+      "last_passed_stage": "MET",
+      "source_file": "tag_1_pythia8_events.hepmc.gz",
+      "source_event_ordinal": 10,
+      "source_event_number": 10,
+      "particle_count": 2076
+    },
+    {
+      "event_number": 6,
+      "expected_first_failed_stage": null,
+      "last_passed_stage": "Final",
+      "source_file": "tag_1_pythia8_events.hepmc (1).gz",
+      "source_event_ordinal": 1172,
+      "source_event_number": 72,
+      "particle_count": 157
+    }
+  ]
+}
