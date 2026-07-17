@@ -265,3 +265,7 @@ Docs/manual/build/
 External_Integration/Pythia/pythia8315.tgz
 External_Integration/Pythia/pythia*.tgz
 External_Integration/Pythia/pythia*-src
+
+# Versioned compact selection fixtures (small, trusted release inputs)
+!setanubis/SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow.hepmc.gz
+!setanubis/SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow_bundle.pkl.gz
