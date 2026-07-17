@@ -731,7 +731,6 @@ class EventImporter:
         scan_params = scan_row.get("params", {})
         scan_widths = scan_row.get("widths", {})
 
-        all_files = glob.glob(os.path.join(run_folder, "*"))
         banner_file = self._find_banner_file(run_folder)
         lhe_file = self._find_file(run_folder, r"\.lhe(\.gz)?$")
         hepmc_file = self._find_file(run_folder, r"\.hepmc(\.gz)?$") or self._find_file(run_folder, r"\.hepmc\.gz$")
@@ -1781,22 +1780,6 @@ class EventAccessor:
         if not ev or not ev.madgraph_metadata_json:
             return {}
         return json.loads(ev.madgraph_metadata_json)
-
-    def storage_stats(self) -> Dict[str, Any]:
-        with self.db._conn() as conn:
-            blobs = conn.execute("SELECT COUNT(*), SUM(size_bytes) FROM cas_blobs").fetchone()
-            events = conn.execute("SELECT COUNT(*) FROM events").fetchone()
-            models = conn.execute("SELECT COUNT(*) FROM models").fetchone()
-            bundles = conn.execute("SELECT COUNT(*) FROM events WHERE sample_bundle_sha256 IS NOT NULL").fetchone()
-            hepmc = conn.execute("SELECT COUNT(*) FROM events WHERE hepmc_sha256 IS NOT NULL").fetchone()
-        return {
-            "events": int(events[0] or 0),
-            "models": int(models[0] or 0),
-            "events_with_bundles": int(bundles[0] or 0),
-            "events_with_stored_hepmc": int(hepmc[0] or 0),
-            "cas_blobs": int(blobs[0] or 0),
-            "cas_size_bytes": int(blobs[1] or 0),
-        }
 
     def regenerate_runs(
         self,

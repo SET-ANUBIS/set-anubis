@@ -21,6 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: C++",
   "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -143,4 +144,4 @@ omit = [
 show_missing = true
 skip_covered = true
 precision = 1
-fail_under = 54
+fail_under = 58

@@ -88,7 +88,7 @@ def load_database_module():
             last_exc = exc
 
     msg = (
-        "Impossible d'importer EventDatabaseManager. Lance depuis la racine du repo, "
+        "Could not import EventDatabaseManager. Run from the repository root, "
         "or set SETANUBIS_DB_MANAGER_PATH=/path/to/EventDatabaseManager.py."
     )
     if tried_paths:
@@ -98,10 +98,15 @@ def load_database_module():
 
 def make_accessor(db_path: str, storage_dir: str):
     mod = load_database_module()
-    manager_cls = getattr(mod, "EventDatabaseManager", None) or getattr(mod, "EventDataBaseManager", None)
+    manager_cls = getattr(mod, "EventDatabaseManager", None) or getattr(
+        mod, "EventDataBaseManager", None
+    )
     accessor_cls = getattr(mod, "EventAccessor")
     if manager_cls is None:
-        raise AttributeError("EventDatabaseManager/EventDataBaseManager was not found in EventDatabaseManager")
+        raise AttributeError(
+            "EventDatabaseManager/EventDataBaseManager was not found in "
+            "EventDatabaseManager"
+        )
     return accessor_cls(manager_cls(db_path, storage_dir))
 
 

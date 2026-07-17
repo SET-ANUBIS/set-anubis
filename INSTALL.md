@@ -9,7 +9,7 @@ SET-ANUBIS supports two installation modes:
 
 ## Requirements
 
-- Python 3.10, 3.11 or 3.12
+- Python 3.10, 3.11, 3.12 or 3.13
 - Linux or WSL for the full event-generation stack
 - C++ compiler, CMake, Make and `gfortran` for optional external tools
 - Optional: Docker for MadGraph workflows that use containers

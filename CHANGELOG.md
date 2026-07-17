@@ -20,6 +20,8 @@ First public stable release of SET-ANUBIS.
 - Release contract tests for all public exports, architecture interfaces, packaged
   examples and deterministic selection caches.
 - Dependency-vulnerability auditing in the CI and release gates.
+- Python 3.13 in the supported CI matrix and package classifiers.
+- Additional unit coverage for scan conversion, geometry plotting and queries, MadGraph orchestration, HepMC event selection and documentation tooling.
 
 ### Changed
 
@@ -46,6 +48,9 @@ First public stable release of SET-ANUBIS.
 - Consolidated the 5.8 MB HNL branching-ratio table into one canonical packaged copy.
 - Consolidated the selection stack under the non-versioned `SelectionEngine`, `ISelectionGeometry` and `SelectionGeometryAdapter` names.
 - Updated selection examples to construct the current cavern geometry adapter and avoid the missing `default_decay_region` attribute.
+- Restricted release-source validation to maintained and distributed code, excluding downloaded third-party toolchains and generated build trees.
+- Fixed Pythia scan filename parsing and removed import-time root logger configuration.
+- Fixed the generic geometry plotting adapter and `limit=0` handling in the event-database HepMC selector.
 
 ### Notes
 

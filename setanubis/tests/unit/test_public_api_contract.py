@@ -13,6 +13,61 @@ import SetAnubis
 import setanubis
 
 
+def _iter_release_input_files(root: Path):
+    """Yield files that can enter the maintained source or binary distributions.
+
+    Downloaded toolchains and local build trees under ``External_Integration``
+    are intentionally excluded.  They are ignored by Git and pruned by
+    ``MANIFEST.in``; validating third-party generated sources would make the
+    release gates depend on whichever local toolchain happened to be built.
+    """
+    root_files = [path for path in root.iterdir() if path.is_file()]
+    maintained_roots = [
+        root / ".github",
+        root / "Assets",
+        root / "Docs",
+        root / "MacOS",
+        root / "reproducibility",
+        root / "setanubis",
+    ]
+    excluded_prefixes = (
+        root / "Assets" / "Test",
+        root / "Docs" / "manual" / "build",
+    )
+    excluded_names = {
+        ".git",
+        ".pytest_cache",
+        "__pycache__",
+        "build",
+        "dist",
+        ".venv",
+        "venv",
+    }
+
+    yield from root_files
+    for maintained_root in maintained_roots:
+        if not maintained_root.exists():
+            continue
+        for path in maintained_root.rglob("*"):
+            if not path.is_file():
+                continue
+            if any(part in excluded_names for part in path.parts):
+                continue
+            if any(path.is_relative_to(prefix) for prefix in excluded_prefixes):
+                continue
+            yield path
+
+    # Only these small Python helpers are maintained by SetAnubis.  Downloaded
+    # Pythia, HepMC3, MadGraph, MARTY and GoogleTest sources are third-party.
+    for relative in (
+        "External_Integration/MadGraph/madgraph.py",
+        "External_Integration/Pythia/test_pythia.py",
+    ):
+        path = root / relative
+        if path.is_file():
+            yield path
+
+
 def test_public_facades_export_the_same_names():
     assert set(SetAnubis.__all__) == set(setanubis.__all__)
     assert SetAnubis.__version__ == setanubis.__version__ == "1.0.0"
@@ -134,32 +189,11 @@ def test_local_pytest_configuration_preserves_release_gates():
 
 
 def test_source_tree_contains_no_macos_metadata_files():
-    """Prevent AppleDouble and Finder metadata from entering release inputs.
-
-    Generated runtime directories such as ``db/Temp`` are deliberately excluded:
-    they are ignored by Git and are never included in the wheel or source
-    distribution.  The test focuses on files that can enter a release archive.
-    """
+    """Prevent AppleDouble and Finder metadata from entering release inputs."""
     root = Path(__file__).parents[3]
-    release_roots = [
-        root / ".github",
-        root / "Assets",
-        root / "Docs",
-        root / "External_Integration",
-        root / "MacOS",
-        root / "reproducibility",
-        root / "setanubis",
-    ]
-    candidates = [path for path in root.iterdir() if path.is_file()]
-    for release_root in release_roots:
-        if release_root.exists():
-            candidates.extend(
-                path for path in release_root.rglob("*") if path.is_file()
-            )
-
     metadata = sorted(
         path.relative_to(root)
-        for path in candidates
+        for path in set(_iter_release_input_files(root))
         if path.name.startswith("._") or path.name == ".DS_Store"
     )
     assert not metadata, f"Remove macOS metadata files: {metadata}"
@@ -257,23 +291,16 @@ def test_maintained_comments_and_docstrings_are_written_in_english():
 
 
 def test_release_python_files_parse_with_supported_minimum_version():
-    """Reject Python syntax that is newer or older than the supported baseline."""
+    """Reject unsupported syntax in maintained Python release inputs."""
     root = Path(__file__).parents[3]
-    release_roots = [
-        root / "Assets",
-        root / "Docs",
-        root / "External_Integration",
-        root / "MacOS",
-        root / "reproducibility",
-        root / "setanubis",
-    ]
-    python_files = [path for path in root.iterdir() if path.suffix == ".py"]
-    for release_root in release_roots:
-        if release_root.exists():
-            python_files.extend(release_root.rglob("*.py"))
+    python_files = {
+        path
+        for path in _iter_release_input_files(root)
+        if path.suffix == ".py"
+    }
 
     failures: list[str] = []
-    for path in sorted(set(python_files)):
+    for path in sorted(python_files):
         try:
             ast.parse(
                 path.read_text(encoding="utf-8"),
