@@ -1,0 +1,20 @@
+{
+  "branching_ratios": {
+    "H_to_gamma_gamma": 0.8333333333333334,
+    "H_to_mu_mu": 0.16666666666666666
+  },
+  "calculation_backend": "file_interpolation",
+  "external_calculator_executed": false,
+  "model": "UFO_HNL",
+  "mother_pdg": 25,
+  "parameters": {
+    "VeN1": 1.0,
+    "mN1": 1.0
+  },
+  "partial_widths_gev": {
+    "H_to_gamma_gamma": 0.005,
+    "H_to_mu_mu": 0.001
+  },
+  "scenario": "R2_branching_ratio",
+  "total_width_gev": 0.006
+}

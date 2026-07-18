@@ -1,0 +1,8 @@
+{
+  "card_file": "generic_pid_42.cmnd",
+  "line_count": 31,
+  "native_pythia_executed": false,
+  "particle_pdg": 42,
+  "scenario": "R3_pythia_cmnd",
+  "sha256": "7aa1c16ceced4fc7911bd1075fe9f75974a19c562ba017c319f082bf3eb1af0c"
+}

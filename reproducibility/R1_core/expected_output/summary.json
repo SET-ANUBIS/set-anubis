@@ -1,0 +1,11 @@
+{
+  "llp_mass_initial_gev": 300.0,
+  "llp_mass_updated_gev": 1.0,
+  "llp_name": "N1",
+  "model": "UFO_HNL",
+  "parameter_count": 103,
+  "particle_count": 664,
+  "reference_mass_gev": 91.1876,
+  "scenario": "R1_core",
+  "setanubis_version": "1.0.0"
+}

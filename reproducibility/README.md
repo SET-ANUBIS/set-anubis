@@ -1,52 +1,75 @@
-# SET-ANUBIS reproducibility package
+# SET-ANUBIS CPC reproducibility suite
 
-This directory contains the lightweight, deterministic examples supplied with
-SET-ANUBIS 1.0.0 for software verification and the planned *Computer Physics
-Communications* submission.
+This directory contains five deterministic, release-scale reproductions. They
+exercise the scientific software path without launching a publication-scale
+Monte Carlo campaign or requiring MARTY, MadGraph, Docker or the native Pythia
+runtime.
 
-The examples exercise five parts of the framework without downloading large
-event samples or starting external generators:
+## Directory contract
 
-| Directory | Reproduced operation | External program executed |
-| --- | --- | --- |
-| `core` | Parse the bundled HNL UFO and update a model parameter | No |
-| `branching_ratio` | Interpolate two partial widths and branching ratios | No MARTY |
-| `pythia` | Create and validate a generic Pythia CMND card | No Pythia runtime |
-| `madgraph` | Create command, run, parameter, Pythia8 and MadSpin cards | No MadGraph/Docker |
-| `selection` | Build selection dataframes from the compact real-event HNL CSV | No |
+Each scenario follows the same structure:
 
-## Run
-
-Use Python 3.10–3.12 from the repository root:
-
-```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-python reproducibility/run_all.py --output-dir reproducibility_outputs
+```text
+R<N>_<name>/
+├── README.md
+├── input/             # version-controlled configuration or small input data
+├── expected_output/   # version-controlled reference summary
+├── output/            # generated locally; ignored by Git
+└── run.py              # independently executable scenario
 ```
 
-A successful run creates `reproducibility_outputs/VALIDATED`. The generated
-`results.json` is compared with `expected_results.json`; numerical comparisons
-use a relative tolerance of `1e-12`. Card and selected-data files are checked by
-SHA-256 hashes.
+The large or canonical scientific inputs already distributed by the Python
+package are referenced from `input/config.json` rather than duplicated. In
+particular, R5 reads the compact seven-event HepMC2 sample packaged under
+`SetAnubis.examples.Selection.InputFiles`.
 
-## Inputs and provenance
+## Scenarios
 
-The model and example inputs are version-controlled with the source release:
+| ID | Component | Deterministic result | External runtime |
+| --- | --- | --- | --- |
+| R1 | Core/model interface | UFO content and parameter update | none |
+| R2 | Branching ratio | partial widths, total width and BRs | none |
+| R3 | Pythia | `.cmnd` generation and SHA-256 | Pythia not run |
+| R4 | MadGraph | command/run/param/shower/MadSpin cards | MadGraph/Docker not run |
+| R5 | Selection | HepMC conversion, cutflow and JSON/HTML trace | no generator run |
 
-- `setanubis/SetAnubis/assets/UFO/UFO_HNL/`;
-- `setanubis/SetAnubis/examples/BranchingRatio/TestFiles/test_BR.csv`;
-- `setanubis/SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow_df.csv.gz`.
+## Run all scenarios
 
-UFO files are executable Python model definitions. Only run this package with
-the files shipped by SET-ANUBIS or another source you trust. The selection reproducibility example reads the gzip CSV rather than the matching pickle bundle. The JSON manifest records source-event provenance.
+Install the release with the selection extra because R5 reads HepMC:
 
-## Scope
+```bash
+python -m pip install -e ".[dev,selection]"
+python reproducibility/run_reproducibility.py
+```
 
-These examples validate software behavior and deterministic card/data
-construction. Physics-production samples and publication plots require the
-separately documented MadGraph, MARTY, Pythia8/HepMC3 and analysis environments.
-Those large external runs are intentionally not part of this lightweight CPC
-reproducibility package.
+The default command writes generated files into each scenario's `output/`
+directory and compares `summary.json` with `expected_output/summary.json`.
+Successful scenarios receive a `VALIDATED` marker.
+
+For CI or an archival run, place all outputs below one directory:
+
+```bash
+python reproducibility/run_reproducibility.py \
+  --output-root reproducibility_outputs
+```
+
+Run one scenario independently:
+
+```bash
+python reproducibility/R5_selection/run.py
+python reproducibility/run_reproducibility.py --scenario R5
+```
+
+## Interpretation
+
+These scenarios establish that a tagged release reproduces selected deterministic
+software results. They do **not** reproduce the complete event-generation
+campaign used for a physics publication. Publication-scale reproduction also
+requires the archived generator versions, container digests, random seeds,
+campaign cards, scan definitions and larger benchmark datasets described by the
+associated analysis record.
+
+The generated `output/` directories are intentionally excluded from Git. For a
+CPC submission or release audit, archive the combined output directory together
+with the exact SET-ANUBIS tag, environment description and distribution
+checksums.

@@ -1,0 +1,16 @@
+{
+  "cards": {
+    "madgraph_commands.txt": "0995af8d74daf08d5486156efb9bbe9fcc0d5da1b5c81afa65af43bd683edb55",
+    "madspin_card.dat": "0fda74aab7b12c984134eadcf7706332868563f05e9d94fbc3f7dd48eff32ead",
+    "param_card.dat": "66c9bb4c1a5fdbb2c04f21d715e03ee2749c91418e5a0d29b4f578b8a9cb89b2",
+    "pythia8_card.dat": "9f6b55f08cf564881ec1a367ecedd96ca2e168ee6840414d41dadf0c5c6a9ed2",
+    "run_card.dat": "17cda163e6f0c8ed38fcf7241b4f76e814ba1ba3f26d75feb0bd68f826e247f5"
+  },
+  "docker_executed": false,
+  "madgraph_executed": false,
+  "model": "UFO_HNL",
+  "nevents": 100,
+  "process": "generate p p > n1 ve",
+  "random_seed": 12345,
+  "scenario": "R4_madgraph_cards"
+}

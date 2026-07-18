@@ -1,0 +1,7 @@
+{
+  "hepmc_resource": "SetAnubis.examples.Selection:InputFiles/hnl_selection_cutflow.hepmc.gz",
+  "model": "UFO_HNL",
+  "llp_pdg": 9900012,
+  "capture_intermediate": true,
+  "expected_event_count": 7
+}

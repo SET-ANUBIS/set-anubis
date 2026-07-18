@@ -1,0 +1,10 @@
+{
+  "model": "UFO_HNL",
+  "process": "generate p p > n1 ve",
+  "output_name": "SETANUBIS_HNL",
+  "nevents": 100,
+  "random_seed": 12345,
+  "shower": "py8",
+  "madspin": "ON",
+  "decay": "decay n1 > e+ e- ve"
+}

@@ -1,0 +1,10 @@
+{
+  "model": "UFO_HNL",
+  "mother_pdg": 25,
+  "parameters": {"mN1": 1.0, "VeN1": 1.0},
+  "channels": {
+    "H_to_mu_mu": [-13, 13],
+    "H_to_gamma_gamma": [22, 22]
+  },
+  "table_resource": "SetAnubis.examples.BranchingRatio:TestFiles/test_BR.csv"
+}

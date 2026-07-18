@@ -1,0 +1,58 @@
+{
+  "cutflow_counts": {
+    "nLLP_Final": 1,
+    "nLLP_Geometry": 4,
+    "nLLP_InCavern": 6,
+    "nLLP_IsoAll": 1,
+    "nLLP_IsoCharged": 1,
+    "nLLP_IsoJet": 1,
+    "nLLP_LLPdecay": 7,
+    "nLLP_MET": 2,
+    "nLLP_NotInATLAS": 5,
+    "nLLP_Tracker": 3,
+    "nLLP_original": 7
+  },
+  "event_outcomes": [
+    {
+      "event_number": 0,
+      "last_passed_stage": "LLPDecay"
+    },
+    {
+      "event_number": 1,
+      "last_passed_stage": "InCavern"
+    },
+    {
+      "event_number": 2,
+      "last_passed_stage": "NotInATLAS"
+    },
+    {
+      "event_number": 3,
+      "last_passed_stage": "Geometry"
+    },
+    {
+      "event_number": 4,
+      "last_passed_stage": "Tracker"
+    },
+    {
+      "event_number": 5,
+      "last_passed_stage": "MET"
+    },
+    {
+      "event_number": 6,
+      "last_passed_stage": "Final"
+    }
+  ],
+  "final_event_numbers": [
+    6
+  ],
+  "input_events": 7,
+  "input_rows": 3636,
+  "llp_pdg": 9900012,
+  "reports": [
+    "selection_trace.json",
+    "selection_trace.html"
+  ],
+  "scenario": "R5_selection",
+  "source_format": "HepMC2 gzip",
+  "unknown_pdg_ids": []
+}
