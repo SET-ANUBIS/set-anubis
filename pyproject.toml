@@ -50,7 +50,7 @@ dependencies = [
 pythia = ["pybind11>=2.12", "pyhepmc"]
 selection = ["pyhepmc", "fastjet", "awkward"]
 madgraph = ["docker"]
-app = ["dash", "plotly", "requests", "python-dotenv", "python-multipart"]
+app = ["dash", "plotly", "pyhepmc", "requests", "python-dotenv", "python-multipart"]
 docs = ["sphinx", "sphinx_rtd_theme"]
 dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit", "tomli>=2; python_version < '3.11'"]
 all = [

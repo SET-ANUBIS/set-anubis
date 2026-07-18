@@ -139,11 +139,31 @@ jobs:
           PY
       - name: Test optional Dash entry points from the wheel
         run: |
-          python -m pip install dash plotly requests python-dotenv python-multipart
+          python -m pip install dash plotly pyhepmc requests python-dotenv python-multipart
           tmpdir=$(mktemp -d)
           cd "$tmpdir"
           setanubis-hepmc-explorer --help
           setanubis-db-dashboard --help
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from SetAnubis.HepMCGUI.app import DEFAULT_HEPMC_PATH, run_extraction
+          from SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard.data import load_payload
+          from SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard.demo import ensure_demo_workspace
+
+          assert Path(DEFAULT_HEPMC_PATH).is_file()
+          result = run_extraction(
+              0, DEFAULT_HEPMC_PATH, "9900012", "", "", ["yes"], ["ip"], "standard_hnl"
+          )
+          selection = json.loads(result[2])
+          assert selection["cut_flow"]["nLLP_Final"] == 1
+
+          workspace = ensure_demo_workspace()
+          payload = load_payload(str(workspace.database), str(workspace.storage), include_particles=True)
+          assert payload["storage"]["events"] == 1
+          assert payload["events"][0]["llp_pid"] == 9900012
+          PY
       - name: Upload distributions
         uses: actions/upload-artifact@v7
         with:

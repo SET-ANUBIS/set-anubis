@@ -1,59 +1,58 @@
-# SET-ANUBIS DB dashboard
+# SET-ANUBIS campaign database inspector
 
-The database dashboard is an optional Dash application for auditing generated
-campaigns and selection-ready event bundles.  It is designed to answer practical
-questions during a scan: which parameter points were generated, which cards and
-banners were stored, how much disk space was saved by dataframe bundles, and
-which samples are ready for selection.
+The campaign database inspector is the optional Dash application for auditing
+generated samples, content-addressed artifacts and compact selection-ready event
+bundles. Its purpose is to expose the provenance chain between a MadGraph/Pythia
+campaign and the data products consumed by the SET-ANUBIS selection.
 
-## Physics role
+The application opens with a real demonstration workspace materialised from the
+packaged CPC R5 resources: the seven-event HNL HepMC record, its compact
+DataFrame bundle and its selection manifest. The default therefore works from an
+installed wheel and does not point to a project-specific local directory.
 
-SET-ANUBIS stores generator provenance separately from the final acceptance
-calculation.  For a MadGraph scan this can include job scripts, run cards,
-parameter cards, MadSpin cards, shower cards, banners, scan metadata, HepMC
-references and compact `dict[str, DataFrame]` bundles.  The dashboard exposes
-that information without modifying the database schema or the selection logic.
+## Scientific views
 
-## Features
+- **Campaign overview:** generated samples by UFO model, ingestion dates,
+  cross-sections, scan coordinates and retained bundle frames.
+- **Storage and provenance:** source HepMC records, generator folders, compact
+  bundles, CAS artifacts and storage ratios.
+- **Generated samples:** event identifiers, run names, LLP PDGs, seeds, bundle
+  stage and retained artifacts.
+- **Particle model:** masses, widths, charges, spins and decay channels parsed
+  from stored SLHA banners.
+- **Metadata records:** storage comparisons, bundle structure, scan parameters,
+  widths and MadGraph provenance.
 
-- Global metrics for events, models, CAS blobs, bundles and retained/removed
-  HepMC records.
-- Per-run storage monitoring for original MadGraph event folders versus compact
-  dataframe bundles.
-- Model and event tables with Dash sorting/filtering.
-- Particle and decay-channel summaries extracted from stored banners.
-- Metadata browser for cards, scan points and bundle metadata.
-- Backfill helper for refreshing storage metadata from an existing events root.
-
-## Installation
-
-From the repository root:
-
-```bash
-python -m pip install -e ".[app]"
-```
-
-or from PyPI:
+## Installation and launch
 
 ```bash
 python -m pip install "SetAnubis[app]"
+setanubis-db-dashboard --host 127.0.0.1 --port 8051
 ```
 
-## Running
+The packaged benchmark is selected by default. For a local campaign, choose
+**Local SET-ANUBIS campaign** and provide:
+
+```text
+EventDatabase.db
+EventsStorage/
+MadGraph Events/   # optional; only required for provenance backfill
+```
+
+Equivalent command-line defaults can be supplied explicitly:
 
 ```bash
 setanubis-db-dashboard \
-  --db db/EventsDatabase.db \
-  --storage db/EventsStorage \
-  --events-root db/Events_THEO \
+  --db /path/to/EventsDatabase.db \
+  --storage /path/to/EventsStorage \
+  --events-root /path/to/MadGraph/Events \
   --host 127.0.0.1 \
   --port 8051
 ```
 
-Then open the local Dash URL printed by Dash.
+## Safety
 
-## Notes
-
-The dashboard is an inspection layer only.  Selection definitions, geometry cuts,
-MET thresholds and isolation requirements are defined in the core selection code
-and should be version controlled alongside campaign outputs.
+The dashboard is an inspection layer. The storage backfill operation updates
+metadata and should only be run against a controlled campaign database. The
+geometry, selection thresholds and physics definitions remain in the
+version-controlled core package.

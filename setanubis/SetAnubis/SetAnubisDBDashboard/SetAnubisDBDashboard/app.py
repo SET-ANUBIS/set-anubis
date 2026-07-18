@@ -26,10 +26,12 @@ from .figures import (
     storage_ratio_hist,
 )
 from .formatting import human_bytes, human_number, human_percent, pretty_json, short_id
+from .demo import ensure_demo_workspace
 
-DEFAULT_DB = os.environ.get("SETANUBIS_DB_PATH", "db/EventsDatabase.db")
-DEFAULT_STORAGE = os.environ.get("SETANUBIS_STORAGE_DIR", "db/EventsStorage")
-DEFAULT_EVENTS_ROOT = os.environ.get("SETANUBIS_EVENTS_ROOT", "db/Events_THEO")
+_DEMO_WORKSPACE = ensure_demo_workspace()
+DEFAULT_DB = os.environ.get("SETANUBIS_DB_PATH", str(_DEMO_WORKSPACE.database))
+DEFAULT_STORAGE = os.environ.get("SETANUBIS_STORAGE_DIR", str(_DEMO_WORKSPACE.storage))
+DEFAULT_EVENTS_ROOT = os.environ.get("SETANUBIS_EVENTS_ROOT", str(_DEMO_WORKSPACE.events_root))
 
 
 def _int_or_none(value: Any) -> Optional[int]:
@@ -111,84 +113,121 @@ def _metric_items(payload: Dict[str, Any]):
     saved_original = storage.get("saved_vs_original_runs_bytes")
     ratio_original = storage.get("bundle_over_original_runs")
     return [
-        metric("Events", human_number(storage.get("events")), f"bundles: {human_number(storage.get('events_with_bundles'))}"),
-        metric("Models", human_number(storage.get("models")), f"HEPMC stored: {human_number(storage.get('events_with_stored_hepmc'))}"),
-        metric("CAS", human_bytes(storage.get("cas_size_bytes")), f"blobs: {human_number(storage.get('cas_blobs'))}"),
-        metric("Original runs", human_bytes(storage.get("original_runs_total_size_bytes")), "pre-decay + decayed folders"),
-        metric("Stored bundles", human_bytes(storage.get("stored_bundle_size_bytes")), f"bundle/original: {human_percent(ratio_original)}", "good" if ratio_original is not None and ratio_original < 0.5 else "warn"),
-        metric("Saved", human_bytes(saved_original), "vs original folders", "good" if saved_original and saved_original > 0 else ""),
+        metric("Generated samples", human_number(storage.get("events")), f"selection-ready bundles: {human_number(storage.get('events_with_bundles'))}"),
+        metric("UFO models", human_number(storage.get("models")), f"retained HepMC records: {human_number(storage.get('events_with_stored_hepmc'))}"),
+        metric("CAS footprint", human_bytes(storage.get("cas_size_bytes")), f"content-addressed blobs: {human_number(storage.get('cas_blobs'))}"),
+        metric("Generator folders", human_bytes(storage.get("original_runs_total_size_bytes")), "pre-decay and decayed runs"),
+        metric("Compact bundles", human_bytes(storage.get("stored_bundle_size_bytes")), f"bundle/folders: {human_percent(ratio_original)}", "good" if ratio_original is not None and ratio_original < 0.5 else ""),
+        metric("Storage reduction", human_bytes(saved_original), "relative to generator folders", "good" if saved_original and saved_original > 0 else ""),
     ]
 
 
-def controls_sidebar(default_db: str, default_storage: str, default_events_root: str, logo_src: str) -> html.Div:
+def controls_sidebar(default_db: str, default_storage: str, default_events_root: str, logo_src: str, initial_profile: str = "demo") -> html.Div:
     return html.Div(
-        className="grid",
+        className="sidebar-stack",
         children=[
-            html.Div(className="brand", children=[
-                html.Img(src=logo_src, alt="SET-ANUBIS logo", className="brand-logo"),
-                html.Div(className="brand-copy", children=[
-                    html.H1("SET-ANUBIS DB dashboard"),
-                    html.Div("Audit stored runs, bundle sizes and scan metadata.", className="brand-subtitle"),
-                ]),
-                html.Div("Dash", className="badge"),
-            ]),
-            card(
-                "Database",
-                "SQLite + CAS",
-                [
-                    html.Div("DB path", className="label"),
-                    dcc.Input(id="db-path", type="text", value=default_db, style={"width": "100%"}),
-                    html.Div("Storage dir", className="label", style={"marginTop": "10px"}),
-                    dcc.Input(id="storage-dir", type="text", value=default_storage, style={"width": "100%"}),
-                    html.Div("Events root for storage refresh", className="label", style={"marginTop": "10px"}),
-                    dcc.Input(id="events-root", type="text", value=default_events_root, style={"width": "100%"}),
-                    html.Hr(),
-                    html.Button("Load / Refresh dashboard", id="refresh-btn", n_clicks=0),
-                    html.Div(style={"height": "8px"}),
-                    html.Button("Backfill storage metadata", id="backfill-btn", n_clicks=0),
-                    html.Div(id="status-line", className="status"),
+            html.Div(
+                className="brand scientific-brand",
+                children=[
+                    html.Img(src=logo_src, alt="SET-ANUBIS logo", className="brand-logo"),
+                    html.Div(
+                        className="brand-copy",
+                        children=[
+                            html.H1("Campaign database inspector"),
+                            html.Div(
+                                "Generator provenance, scan metadata and compact selection bundles.",
+                                className="brand-subtitle",
+                            ),
+                        ],
+                    ),
+                    html.Div("SET-ANUBIS", className="badge"),
+                ],
+            ),
+            html.Div(
+                className="science-note",
+                children=[
+                    html.Strong("Purpose. "),
+                    "Audit the transition from generated MadGraph/Pythia samples to selection-ready data products without modifying the campaign database.",
                 ],
             ),
             card(
-                "Filters",
-                "applied on refresh",
+                "Campaign source",
+                "SQLite metadata and content-addressed storage",
                 [
-                    html.Div("Model", className="label"),
-                    dcc.Dropdown(id="model-filter", options=[], value=None, clearable=True, placeholder="All models"),
-                    html.Div("LLP PID", className="label", style={"marginTop": "10px"}),
+                    html.Div("Workspace", className="label"),
+                    dcc.Dropdown(
+                        id="database-profile",
+                        options=[
+                            {"label": "Packaged HNL CPC benchmark", "value": "demo"},
+                            {"label": "Local SET-ANUBIS campaign", "value": "custom"},
+                        ],
+                        value=initial_profile,
+                        clearable=False,
+                    ),
+                    html.Div(
+                        "The packaged workspace is created from the versioned R5 HepMC sample, compact bundle and selection manifest.",
+                        id="database-profile-note",
+                        className="hint",
+                    ),
+                    html.Div("Event database", className="label", style={"marginTop": "10px"}),
+                    dcc.Input(id="db-path", type="text", value=default_db, style={"width": "100%"}),
+                    html.Div("Content-addressed storage", className="label", style={"marginTop": "10px"}),
+                    dcc.Input(id="storage-dir", type="text", value=default_storage, style={"width": "100%"}),
+                    html.Div("MadGraph Events/ root", className="label", style={"marginTop": "10px"}),
+                    dcc.Input(id="events-root", type="text", value=default_events_root, style={"width": "100%"}),
+                    html.Button("Load campaign summary", id="refresh-btn", n_clicks=0, className="primary-action"),
+                    html.Button(
+                        "Refresh storage provenance from Events/",
+                        id="backfill-btn",
+                        n_clicks=0,
+                        className="secondary-btn",
+                        style={"marginTop": "8px"},
+                    ),
+                    html.Div(id="status-line", className="status scientific-status"),
+                ],
+                className="card control-card",
+            ),
+            card(
+                "Scientific filters",
+                "applied when the campaign is loaded",
+                [
+                    html.Div("UFO model", className="label"),
+                    dcc.Dropdown(id="model-filter", options=[], value=None, clearable=True, placeholder="All stored models"),
+                    html.Div("LLP PDG identifier", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="llp-pid-filter", type="text", value="", placeholder="9900012", style={"width": "100%"}),
-                    html.Div("Bundle status", className="label", style={"marginTop": "10px"}),
+                    html.Div("Selection-ready bundle", className="label", style={"marginTop": "10px"}),
                     dcc.Dropdown(
                         id="bundle-filter",
                         options=[
-                            {"label": "All events", "value": "all"},
-                            {"label": "Only events with bundle", "value": "yes"},
-                            {"label": "Only events without bundle", "value": "no"},
+                            {"label": "All generated samples", "value": "all"},
+                            {"label": "Only samples with a compact bundle", "value": "yes"},
+                            {"label": "Only samples awaiting bundle preparation", "value": "no"},
                         ],
                         value="all",
                         clearable=False,
                     ),
-                    html.Div("Event limit", className="label", style={"marginTop": "10px"}),
+                    html.Div("Maximum samples", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="event-limit", type="text", value="500", style={"width": "100%"}),
-                    html.Hr(),
                     dcc.Checklist(
                         id="include-particles",
-                        options=[{"label": "parse particle catalog from stored banners", "value": "yes"}],
+                        options=[{"label": "Parse particle properties and decay tables from stored banners", "value": "yes"}],
                         value=["yes"],
                         className="checklist",
                     ),
                 ],
+                className="card control-card",
             ),
             card(
-                "Particle lookup",
-                "from banner metadata",
+                "Particle record",
+                "SLHA information retained in generator banners",
                 [
-                    html.Div("PDG", className="label"),
+                    html.Div("PDG identifier", className="label"),
                     dcc.Input(id="particle-pdg", type="text", value="9900012", style={"width": "100%"}),
-                    html.Div("Decay channels shown", className="label", style={"marginTop": "10px"}),
+                    html.Div("Maximum decay channels", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="particle-max-channels", type="text", value="25", style={"width": "100%"}),
-                    html.Button("Inspect particle", id="particle-btn", n_clicks=0, style={"marginTop": "10px"}),
+                    html.Button("Inspect particle record", id="particle-btn", n_clicks=0, className="secondary-btn", style={"marginTop": "10px"}),
                 ],
+                className="card control-card",
             ),
         ],
     )
@@ -202,16 +241,16 @@ def overview_page(payload: Dict[str, Any]) -> html.Div:
             html.Div(
                 className="graph-row-2",
                 children=[
-                    graph_card("Events by model", dcc.Graph(figure=events_by_model(payload.get("models") or []), style={"height": "35vh"}), "imported runs"),
-                    graph_card("Import timeline", dcc.Graph(figure=import_timeline(payload.get("events") or []), style={"height": "35vh"}), "date_added"),
+                    graph_card("Generated samples by model", dcc.Graph(figure=events_by_model(payload.get("models") or []), style={"height": "35vh"}), "stored generator samples"),
+                    graph_card("Campaign ingestion timeline", dcc.Graph(figure=import_timeline(payload.get("events") or []), style={"height": "35vh"}), "database insertion date"),
                 ],
             ),
             html.Div(
                 className="graph-row",
                 children=[
-                    graph_card("Cross-section", dcc.Graph(figure=cross_section_hist(payload.get("events") or []), style={"height": "32vh"}), "pb"),
-                    graph_card("Scan overview", dcc.Graph(figure=scan_scatter(payload.get("events") or []), style={"height": "32vh"}), "first numeric scan param"),
-                    graph_card("Stored frames", dcc.Graph(figure=bundle_frames(payload.get("bundle_frames") or {}), style={"height": "32vh"}), "rows per frame"),
+                    graph_card("Generated cross-section", dcc.Graph(figure=cross_section_hist(payload.get("events") or []), style={"height": "32vh"}), "pb"),
+                    graph_card("Parameter-scan projection", dcc.Graph(figure=scan_scatter(payload.get("events") or []), style={"height": "32vh"}), "first available numerical scan coordinate"),
+                    graph_card("Selection-bundle composition", dcc.Graph(figure=bundle_frames(payload.get("bundle_frames") or {}), style={"height": "32vh"}), "rows retained in each DataFrame"),
                 ],
             ),
         ],
@@ -223,25 +262,25 @@ def storage_page(payload: Dict[str, Any]) -> html.Div:
         className="content",
         children=[
             metrics_row([
-                metric("Source HEPMC", human_bytes((payload.get("storage") or {}).get("source_hepmc_size_bytes")), "sum over events"),
-                metric("Original folders", human_bytes((payload.get("storage") or {}).get("original_runs_total_size_bytes")), "run + run_decayed"),
-                metric("Bundles", human_bytes((payload.get("storage") or {}).get("stored_bundle_size_bytes")), "stored dataframe dicts", "good"),
-                metric("Bundle / HEPMC", human_percent((payload.get("storage") or {}).get("bundle_over_source_hepmc")), "lower is better"),
-                metric("Bundle / folders", human_percent((payload.get("storage") or {}).get("bundle_over_original_runs")), "lower is better"),
+                metric("Source HepMC records", human_bytes((payload.get("storage") or {}).get("source_hepmc_size_bytes")), "sum over generated samples"),
+                metric("Generator run folders", human_bytes((payload.get("storage") or {}).get("original_runs_total_size_bytes")), "pre-decay and decayed directories"),
+                metric("Selection-ready bundles", human_bytes((payload.get("storage") or {}).get("stored_bundle_size_bytes")), "compact DataFrame collections", "good"),
+                metric("Bundle / HepMC", human_percent((payload.get("storage") or {}).get("bundle_over_source_hepmc")), "storage ratio"),
+                metric("Bundle / folders", human_percent((payload.get("storage") or {}).get("bundle_over_original_runs")), "storage ratio"),
             ]),
             html.Div(
                 className="graph-row-2",
                 children=[
-                    graph_card("Global storage", dcc.Graph(figure=storage_breakdown(payload.get("storage") or {}), style={"height": "38vh"}), "bytes, log scale when useful"),
-                    graph_card("Artifacts", dcc.Graph(figure=artifact_sizes(payload.get("artifacts") or []), style={"height": "38vh"}), "CAS artifacts"),
+                    graph_card("Campaign storage composition", dcc.Graph(figure=storage_breakdown(payload.get("storage") or {}), style={"height": "38vh"}), "logical and content-addressed products"),
+                    graph_card("Provenance artifacts", dcc.Graph(figure=artifact_sizes(payload.get("artifacts") or []), style={"height": "38vh"}), "files retained in content-addressed storage"),
                 ],
             ),
             html.Div(
                 className="graph-row",
                 children=[
-                    graph_card("Per-event storage", dcc.Graph(figure=per_event_storage(payload.get("events") or []), style={"height": "36vh"}), "original vs bundle"),
-                    graph_card("Compression ratio", dcc.Graph(figure=storage_ratio_hist(payload.get("events") or []), style={"height": "36vh"}), "bundle/original"),
-                    graph_card("Storage by model", dcc.Graph(figure=model_storage(payload.get("models") or []), style={"height": "36vh"}), "grouped bytes"),
+                    graph_card("Per-sample storage", dcc.Graph(figure=per_event_storage(payload.get("events") or []), style={"height": "36vh"}), "generator folders versus compact bundle"),
+                    graph_card("Bundle reduction factor", dcc.Graph(figure=storage_ratio_hist(payload.get("events") or []), style={"height": "36vh"}), "compact bundle divided by generator folders"),
+                    graph_card("Storage grouped by UFO model", dcc.Graph(figure=model_storage(payload.get("models") or []), style={"height": "36vh"}), "source, generator and bundle footprints"),
                 ],
             ),
         ],
@@ -273,12 +312,12 @@ def events_page(payload: Dict[str, Any]) -> html.Div:
                 className="grid",
                 style={"gridTemplateColumns": "1.2fr 0.8fr"},
                 children=[
-                    card("Events", f"{len(table_rows)} rows", [data_table("events-table", columns, table_rows, page_size=14, row_selectable="single")]),
+                    card("Generated samples", f"{len(table_rows)} records", [data_table("events-table", columns, table_rows, page_size=14, row_selectable="single")]),
                     card(
-                        "Selected event",
-                        "storage + metadata preview",
+                        "Selected generated sample",
+                        "provenance and storage metadata",
                         [
-                            html.Div("Select one row in the table.", id="selected-event-summary", className="status"),
+                            html.Div("Select one generated sample in the table.", id="selected-event-summary", className="status"),
                             html.Hr(),
                             html.Pre("{}", id="selected-event-json", className="json-pre"),
                         ],
@@ -364,7 +403,7 @@ def empty_page() -> html.Div:
     return html.Div(
         className="content",
         children=[
-            status_box("No payload yet. Click Load / Refresh dashboard in the sidebar."),
+            status_box("Load the packaged benchmark or select a local campaign database from the sidebar."),
         ],
     )
 
@@ -375,28 +414,56 @@ def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAG
         suppress_callback_exceptions=True,
         assets_folder=str(Path(__file__).with_name("assets")),
     )
-    app.title = "SET-ANUBIS DB dashboard"
+    app.title = "SET-ANUBIS campaign database inspector"
     server = app.server
 
+    initial_profile = (
+        "demo"
+        if Path(default_db) == Path(DEFAULT_DB)
+        and Path(default_storage) == Path(DEFAULT_STORAGE)
+        else "custom"
+    )
     app.layout = html.Div(
         className="app-shell",
         children=[
             dcc.Store(id="payload-store"),
-            html.Div(className="sidebar", children=[controls_sidebar(default_db, default_storage, default_events_root, app.get_asset_url("set-anubis-logo.png"))]),
-            html.Div(
-                className="content",
+            html.A("Skip to campaign analysis", href="#campaign-workspace", className="skip-link"),
+            html.Aside(
+                className="sidebar",
                 children=[
-                    dcc.Tabs(
-                        id="page-tabs",
-                        value="overview",
-                        className="tabbar",
-                        parent_className="tabbar",
+                    controls_sidebar(
+                        default_db,
+                        default_storage,
+                        default_events_root,
+                        app.get_asset_url("set-anubis-logo.png"),
+                        initial_profile,
+                    )
+                ],
+            ),
+            html.Main(
+                id="campaign-workspace",
+                className="main-panel",
+                children=[
+                    html.Div(
+                        className="main-navigation",
                         children=[
-                            dcc.Tab(label="Overview", value="overview", className="tab", selected_className="tab--selected"),
-                            dcc.Tab(label="Storage", value="storage", className="tab", selected_className="tab--selected"),
-                            dcc.Tab(label="Events", value="events", className="tab", selected_className="tab--selected"),
-                            dcc.Tab(label="Particles", value="particles", className="tab", selected_className="tab--selected"),
-                            dcc.Tab(label="Metadata", value="metadata", className="tab", selected_className="tab--selected"),
+                            html.Div(children=[
+                                html.Div(className="section-kicker", children="SET-ANUBIS campaign workspace"),
+                                html.H1("Generated-sample provenance and storage diagnostics"),
+                            ]),
+                            dcc.Tabs(
+                                id="page-tabs",
+                                value="overview",
+                                className="tabbar page-tabbar",
+                                parent_className="tabbar page-tabbar",
+                                children=[
+                                    dcc.Tab(label="Campaign overview", value="overview", className="tab", selected_className="tab--selected"),
+                                    dcc.Tab(label="Storage & provenance", value="storage", className="tab", selected_className="tab--selected"),
+                                    dcc.Tab(label="Generated samples", value="events", className="tab", selected_className="tab--selected"),
+                                    dcc.Tab(label="Particle model", value="particles", className="tab", selected_className="tab--selected"),
+                                    dcc.Tab(label="Metadata records", value="metadata", className="tab", selected_className="tab--selected"),
+                                ],
+                            ),
                         ],
                     ),
                     html.Div(id="page-content", children=empty_page()),
@@ -404,6 +471,35 @@ def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAG
             ),
         ],
     )
+
+    @app.callback(
+        Output("db-path", "value"),
+        Output("storage-dir", "value"),
+        Output("events-root", "value"),
+        Output("database-profile-note", "children"),
+        Output("backfill-btn", "disabled"),
+        Input("database-profile", "value"),
+        State("db-path", "value"),
+        State("storage-dir", "value"),
+        State("events-root", "value"),
+    )
+    def select_database_workspace(profile, current_db, current_storage, current_events_root):
+        if profile == "demo":
+            return (
+                DEFAULT_DB,
+                DEFAULT_STORAGE,
+                DEFAULT_EVENTS_ROOT,
+                "Packaged R5 benchmark: a real SQLite/CAS workspace materialised from the versioned HNL HepMC record, compact bundle and selection manifest.",
+                True,
+            )
+        return (
+            current_db if current_db != DEFAULT_DB else "",
+            current_storage if current_storage != DEFAULT_STORAGE else "",
+            current_events_root if current_events_root != DEFAULT_EVENTS_ROOT else "",
+            "Provide the EventDatabase SQLite file, its matching CAS storage directory and, optionally, the MadGraph Events/ root used to refresh storage provenance.",
+            False,
+        )
+
 
     @app.callback(
         Output("payload-store", "data"),
@@ -574,10 +670,10 @@ server = app.server
 
 def main(argv: Optional[List[str]] = None) -> None:
     show_banner(force=True)
-    parser = argparse.ArgumentParser(description="SetAnubis EventDatabase Dash monitor")
-    parser.add_argument("--db", default=DEFAULT_DB, help="SQLite database path")
-    parser.add_argument("--storage", default=DEFAULT_STORAGE, help="CAS/Event storage directory")
-    parser.add_argument("--events-root", default=DEFAULT_EVENTS_ROOT, help="MadGraph Events root, used by backfill")
+    parser = argparse.ArgumentParser(description="Inspect SET-ANUBIS campaign provenance and compact event bundles")
+    parser.add_argument("--db", default=DEFAULT_DB, help="SQLite database path (defaults to the packaged HNL benchmark workspace)")
+    parser.add_argument("--storage", default=DEFAULT_STORAGE, help="CAS/event storage directory matching the selected database")
+    parser.add_argument("--events-root", default=DEFAULT_EVENTS_ROOT, help="MadGraph Events/ root used only for storage-provenance backfill")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8050)
     parser.add_argument("--debug", action="store_true")

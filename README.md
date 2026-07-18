@@ -302,25 +302,20 @@ A successful run creates `reproducibility_outputs/VALIDATED`. The generated summ
 
 ## Interactive applications
 
-The optional Dash applications support inspection and validation:
+The optional Dash applications are specialised scientific inspection tools rather than generic dashboards:
 
-- **SET-ANUBIS HepMC explorer** — event-by-event kinematics, decay vertices, tracks and 2D/3D cavern overlays.
-- **SET-ANUBIS DB dashboard** — stored events, scan metadata, content-addressed artefacts, bundle sizes and storage savings.
+- **HepMC selection explorer** — starts from the packaged CPC R5 HNL sample, reproduces the ordered selection cutflow, identifies the first failed stage for each event, and overlays LLP vertices and decay topologies on the ATLAS-cavern/ANUBIS geometry.
+- **Campaign database inspector** — starts from an internal SQLite/CAS demonstration workspace and audits generator provenance, scan metadata, retained artifacts and selection-ready DataFrame bundles.
 
-Install the application dependencies with:
+Install and launch them with:
 
 ```bash
 python -m pip install "SetAnubis[app,selection]"
-```
-
-Launch the applications with:
-
-```bash
 setanubis-hepmc-explorer --host 127.0.0.1 --port 8050
-setanubis-db-dashboard --db db/EventsDatabase.db --storage db/EventsStorage --port 8051
+setanubis-db-dashboard --host 127.0.0.1 --port 8051
 ```
 
-The applications are inspection layers; the version-controlled geometry and selection code remains the source of truth for physics results.
+Both applications have usable packaged defaults. Local HepMC files or campaign databases can be selected from their sidebars; explicit database paths remain available through `--db`, `--storage` and `--events-root`. The version-controlled selection and geometry APIs, not an interactive screenshot, remain the source of truth for published results.
 
 ## Documentation and validation
 

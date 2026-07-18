@@ -486,3 +486,70 @@ def test_release_workflow_is_tag_driven_and_testpypi_gated():
     assert workflow.index('verify-testpypi:') < workflow.index('publish-pypi:')
     assert '^[0-9]+\\.[0-9]+\\.[0-9]+$' in workflow
     assert 'echo "promote=false"' in workflow
+
+
+def test_dash_applications_use_packaged_scientific_defaults():
+    """Keep both optional interfaces usable immediately after wheel installation."""
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
+
+    from SetAnubis.HepMCGUI.demo import demo_hepmc_path
+    from SetAnubis.HepMCGUI.selection_diagnostics import (
+        SELECTION_STAGE_ORDER,
+        standard_selection_description,
+    )
+    from SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard.data import (
+        load_payload,
+    )
+    from SetAnubis.SetAnubisDBDashboard.SetAnubisDBDashboard.demo import (
+        ensure_demo_workspace,
+    )
+
+    hepmc = demo_hepmc_path()
+    assert hepmc.is_file()
+    assert hepmc.name == "hnl_selection_cutflow.hepmc.gz"
+    assert SELECTION_STAGE_ORDER == [
+        "Original",
+        "LLPDecay",
+        "InCavern",
+        "NotInATLAS",
+        "Geometry",
+        "Tracker",
+        "MET",
+        "IsoJets",
+        "IsoCharged",
+        "IsoAll",
+        "Final",
+    ]
+    selection = standard_selection_description()
+    assert selection["minimum_met_gev"] == 30.0
+    assert selection["minimum_stations"] == 2
+    assert selection["minimum_intersections"] == 2
+
+    workspace = ensure_demo_workspace()
+    assert workspace.database.is_file()
+    assert workspace.storage.is_dir()
+    payload = load_payload(
+        str(workspace.database),
+        str(workspace.storage),
+        include_particles=True,
+    )
+    assert payload["storage"]["events"] == 1
+    assert payload["storage"]["events_with_bundles"] == 1
+    assert payload["events"][0]["run_name"] == "R5_selection_benchmark"
+    assert payload["events"][0]["llp_pid"] == 9900012
+    assert payload["particles"][0]["pdg"] == 9900012
+
+    root = Path(__file__).parents[3]
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+    assert "pyhepmc" in project["optional-dependencies"]["app"]
+    documentation = (root / "Docs/manual/source/DashApplications.rst").read_text(
+        encoding="utf-8"
+    )
+    assert "seven-event HNL benchmark" in documentation
+    assert "Packaged" not in documentation or "packaged" in documentation.lower()
+    assert "db/Events_THEO" not in documentation

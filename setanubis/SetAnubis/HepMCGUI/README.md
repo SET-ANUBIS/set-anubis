@@ -1,61 +1,50 @@
-# SET-ANUBIS HepMC explorer
+# SET-ANUBIS HepMC selection explorer
 
-The HepMC explorer is the optional Dash application for inspecting generated signal
-events in the ATLAS cavern and ANUBIS detector geometry.  It is intended for
-validation and debugging, not for defining the production selection.  The physics
-selection used in scans lives in the `SelectionEngine` and geometry adapters.
+The HepMC selection explorer is the optional Dash application for connecting a
+generated event record to the ordered SET-ANUBIS selection. It combines the
+ATLAS-cavern geometry, ANUBIS detector stations, LLP decay vertices, event
+kinematics and an event-by-event selection trace in a single diagnostic view.
 
-## Use case
+The application opens with the packaged seven-event HNL benchmark used by the
+CPC reproducibility scenario **R5**. No local path is required for the first
+launch. Each benchmark event is designed to stop at a different stage of the
+selection, from the ANUBIS fiducial-volume requirement through the final
+isolation cuts.
 
-After a MadGraph/Pythia campaign has produced HepMC events, the GUI can overlay
-production vertices, LLP decay vertices and charged/neutral decay products on the
-same cavern geometry used by the selection code.  This is useful for checking HNL
-or scalar LLP samples before running large cutflow campaigns.
+## Scientific views
 
-## Features
+- **Selection overview:** cumulative counts for `LLPDecay`, `InCavern`,
+  `NotInATLAS`, detector geometry, tracking, MET, isolation and `Final`.
+- **Decay geometry:** 2D and 3D views of the ATLAS cavern, exclusion envelope,
+  ANUBIS ceiling/shaft stations and LLP vertices.
+- **Kinematic diagnostics:** LLP momentum, pseudorapidity, missing transverse
+  momentum, decay time and parent/daughter composition for the selected event
+  subset.
+- **Event inspection:** last passed stage, first failed stage, display-region class and
+  the full HepMC decay topology for one event.
 
-- ATLAS cavern and ANUBIS geometry in XY, XZ, ZY and 3D projections.
-- Event-by-event navigation through HepMC samples.
-- PDG-ID based LLP selection.
-- Production and decay vertex overlays.
-- Daughter and granddaughter track display.
-- Charged/neutral track rendering.
-- Kinematic filters for `E`, `pT`, `p`, `px`, `py`, `pz`, `eta`, `phi` and `theta`.
-- Simple MET inspection.
-- Region checks for decays inside ATLAS, inside the cavern and near ANUBIS.
+The display-region class is used only to organise geometric visualisation. Selection acceptance is determined by the canonical cumulative `InCavern` and `NotInATLAS` stages, so the plotting label cannot override or replace the cutflow decision.
 
-## Installation
+The standard HNL profile uses the same configuration as R5: the packaged
+`UFO_HNL` model, PDG identifier `9900012`, the ANUBIS ceiling geometry, a
+30 GeV MET requirement, detector-intersection/tracking requirements and
+`Delta R = 0.4` isolation thresholds. A generic LLP-inspection mode remains
+available for custom samples when that benchmark selection is not appropriate.
 
-From the repository root:
-
-```bash
-python -m pip install -e ".[app,selection]"
-```
-
-For a package install:
+## Installation and launch
 
 ```bash
 python -m pip install "SetAnubis[app,selection]"
-```
-
-## Running
-
-After installing ``SetAnubis[app,selection]``:
-
-```bash
 setanubis-hepmc-explorer --host 127.0.0.1 --port 8050
 ```
 
-From a source checkout, ``python app.py`` remains available. Open the local Dash URL printed in the terminal, usually:
+The packaged benchmark is selected by default. Choose **Local HepMC file** in
+the sidebar to inspect another HepMC2 or HepMC3 record.
 
-```text
-http://127.0.0.1:8050
-```
+## Interpretation
 
-## Coordinate convention
-
-Generated events are usually expressed relative to the interaction point, while
-the cavern geometry uses the `ATLASCavern` coordinate convention.  The app
-contains conversion controls to make this visible during debugging.  Always use
-the production selection code, not a GUI screenshot, as the source of truth for
-published acceptances.
+The graphical interface is a diagnostic layer. Published cutflows and
+acceptances must be produced by the version-controlled selection and geometry
+APIs. The interface invokes that canonical pipeline for the standard HNL
+profile; screenshots and interactive filters are not substitutes for archived
+selection outputs.

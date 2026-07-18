@@ -34,6 +34,13 @@ from SetAnubis.HepMCGUI.geometry.plotly_cavern import CavernFigureFactory
 from SetAnubis.HepMCGUI.geometry.plotly_cavern_3d import Cavern3DFigureFactory
 from SetAnubis.HepMCGUI.geometry.anubis_plotly import AnubisOverlayFactory
 from SetAnubis.HepMCGUI.geometry.region_classifier import RegionClassifier
+from SetAnubis.HepMCGUI.demo import demo_hepmc_path
+from SetAnubis.HepMCGUI.selection_diagnostics import (
+    SELECTION_STAGE_LABELS,
+    SELECTION_STAGE_ORDER,
+    run_standard_hnl_selection,
+    standard_selection_description,
+)
 
 
 def _int_or_none(v: Any) -> Optional[int]:
@@ -82,6 +89,7 @@ fig_factory_2d = CavernFigureFactory(cavern=cav)
 fig_factory_3d = Cavern3DFigureFactory(cavern=cav)
 anubis_factory = AnubisOverlayFactory(cavern=cav)
 classifier = RegionClassifier(cavern=cav)
+DEFAULT_HEPMC_PATH = str(demo_hepmc_path())
 
 
 def _fig_style(fig: go.Figure, title: str) -> go.Figure:
@@ -352,153 +360,227 @@ def build_events_table(df: pd.DataFrame) -> pd.DataFrame:
     return agg
 
 
+def merge_selection_diagnostics(events: pd.DataFrame, payload: Dict[str, Any]) -> pd.DataFrame:
+    """Attach canonical cutflow decisions to the event-level explorer table."""
+    if events.empty or not payload or payload.get("error"):
+        return events
+
+    trace_events = pd.DataFrame(payload.get("events") or [])
+    if trace_events.empty or "eventNumber" not in trace_events.columns:
+        return events
+    trace_events = trace_events.rename(columns={"eventNumber": "event"})
+
+    candidates = pd.DataFrame(payload.get("candidates") or [])
+    if not candidates.empty and "eventNumber" in candidates.columns:
+        failures = (
+            candidates.groupby("eventNumber", sort=True)["first_failed_stage"]
+            .first()
+            .rename("first_failed_stage")
+            .reset_index()
+            .rename(columns={"eventNumber": "event"})
+        )
+        trace_events = trace_events.merge(failures, on="event", how="left")
+
+    merged = events.merge(trace_events, on="event", how="left", suffixes=("", "_selection"))
+    if "last_passed_stage" not in merged.columns:
+        merged["last_passed_stage"] = "Unavailable"
+    merged["last_passed_stage"] = merged["last_passed_stage"].fillna("Not evaluated")
+    if "first_failed_stage" not in merged.columns:
+        merged["first_failed_stage"] = None
+    merged["first_failed_stage"] = merged["first_failed_stage"].fillna("—")
+    return merged
+
+
 app = Dash(
     __name__,
     suppress_callback_exceptions=True,
     assets_folder=str(Path(__file__).with_name("assets")),
 )
-app.title = "SET-ANUBIS HepMC explorer"
+app.title = "SET-ANUBIS HepMC selection explorer"
 server = app.server
 
 
 def controls_sidebar(logo_src: str) -> html.Div:
-    def range_row(lbl: str, lo_id: str, hi_id: str):
+    """Build the scientific controls for the event and selection views."""
+
+    def range_row(label: str, lo_id: str, hi_id: str, unit: str = ""):
+        suffix = f" [{unit}]" if unit else ""
         return html.Div(
-            className="row-3",
+            className="range-row",
             children=[
-                html.Div(lbl, className="label"),
-                dcc.Input(id=lo_id, type="text", placeholder="min"),
-                dcc.Input(id=hi_id, type="text", placeholder="max"),
+                html.Div(f"{label}{suffix}", className="label"),
+                dcc.Input(id=lo_id, type="text", placeholder="minimum"),
+                dcc.Input(id=hi_id, type="text", placeholder="maximum"),
             ],
         )
 
+    selection = standard_selection_description()
     return html.Div(
-        className="grid",
+        className="sidebar-stack",
         children=[
-            html.Div(className="brand", children=[
-                html.Img(src=logo_src, alt="SET-ANUBIS logo", className="brand-logo"),
-                html.Div(className="brand-copy", children=[
-                    html.H1("SET-ANUBIS HepMC explorer"),
-                    html.Div("Inspect LLP decays in the ATLAS cavern and ANUBIS geometry.", className="brand-subtitle"),
-                ]),
-                html.Div("Dash", className="badge"),
-            ]),
-
             html.Div(
-                className="card",
+                className="brand scientific-brand",
                 children=[
-                    html.Div("HepMC path", className="label"),
-                    dcc.Input(id="hepmc-path", type="text", value="tag_1_pythia8_events.hepmc", style={"width": "100%"}),
-                    html.Hr(),
-
-                    html.Div("Data source", className="label"),
-                    dcc.Dropdown(
-                        id="source-kind",
-                        options=[
-                            {"label": "HepMC file", "value": "hepmc"},
-                            {"label": "CSV/DataFrame (placeholder)", "value": "csv"},
+                    html.Img(src=logo_src, alt="SET-ANUBIS logo", className="brand-logo"),
+                    html.Div(
+                        className="brand-copy",
+                        children=[
+                            html.H1("HepMC selection explorer"),
+                            html.Div(
+                                "Event-level diagnostics in the ATLAS cavern and ANUBIS acceptance.",
+                                className="brand-subtitle",
+                            ),
                         ],
-                        value="hepmc",
-                        clearable=False,
                     ),
-                    html.Div(id="csv-hint", style={"fontSize": "12px", "opacity": 0.85, "marginTop": "6px"}),
+                    html.Div("SET-ANUBIS", className="badge"),
                 ],
             ),
-
             html.Div(
-                className="card",
+                className="science-note",
                 children=[
-                    html.Div("PDG ID", className="label"),
-                    dcc.Input(id="pdg-id", type="text", value="9000005"),
-
-                    html.Div(className="row", children=[html.Div("max_events", className="label"), dcc.Input(id="max-events", type="text", value="")]),
-                    html.Div(className="row", children=[html.Div("status", className="label"), dcc.Input(id="status", type="text", value="")]),
-
-                    html.Hr(),
-                    html.Div("Lifetime display", className="label"),
-                    dcc.RadioItems(
-                        id="lifetime-mode",
+                    html.Strong("Purpose. "),
+                    "Inspect LLP decay vertices, reproduce the standard HNL cutflow and connect each event to the stage at which it is rejected.",
+                ],
+            ),
+            html.Div(
+                className="card control-card",
+                children=[
+                    html.Div(className="section-kicker", children="Input sample"),
+                    html.H2("HepMC event record"),
+                    html.Div("Dataset", className="label"),
+                    dcc.Dropdown(
+                        id="source-profile",
                         options=[
-                            {"label": "proper time", "value": "proper"},
-                            {"label": "lab time", "value": "lab"},
+                            {"label": "Packaged CPC HNL benchmark (7 events)", "value": "demo"},
+                            {"label": "Local HepMC file", "value": "custom"},
                         ],
-                        value="proper",
-                        className="checklist",
+                        value="demo",
+                        clearable=False,
                     ),
-
+                    html.Div("HepMC2/HepMC3 path", className="label", style={"marginTop": "10px"}),
+                    dcc.Input(id="hepmc-path", type="text", value=DEFAULT_HEPMC_PATH, style={"width": "100%"}),
+                    html.Div("LLP PDG identifier", className="label", style={"marginTop": "10px"}),
+                    dcc.Input(id="pdg-id", type="text", value="9900012", style={"width": "100%"}),
+                    html.Div(className="inline-grid", children=[
+                        html.Div(children=[html.Div("Maximum events", className="label"), dcc.Input(id="max-events", type="text", value="")]),
+                        html.Div(children=[html.Div("Status code", className="label"), dcc.Input(id="status", type="text", value="")]),
+                    ]),
                     dcc.Checklist(
                         id="ignore-self-decays",
-                        options=[{"label": "ignore self decays (pid→pid)", "value": "yes"}],
+                        options=[{"label": "Ignore trivial LLP self-decays", "value": "yes"}],
                         value=["yes"],
                         className="checklist",
                     ),
-
-                    html.Hr(),
-                    html.Div("Event selection (by BSM decay)", className="label"),
+                    dcc.Checklist(
+                        id="pos-is-ip",
+                        options=[{"label": "Interpret vertices in the interaction-point frame", "value": "ip"}],
+                        value=["ip"],
+                        className="checklist",
+                    ),
+                    html.Button("Load sample and evaluate", id="run-btn", n_clicks=0, className="primary-action"),
+                    html.Div(id="status-line", className="status scientific-status"),
+                ],
+            ),
+            html.Div(
+                className="card control-card",
+                children=[
+                    html.Div(className="section-kicker", children="Selection definition"),
+                    html.H2("Standard HNL analysis"),
                     dcc.Dropdown(
-                        id="event-region-filter",
+                        id="selection-profile",
                         options=[
-                            {"label": "All events", "value": "all"},
-                            {"label": "Only BSM decays outside ATLAS", "value": "outside_atlas"},
-                            {"label": "Only BSM decays in ANUBIS", "value": "anubis"},
+                            {"label": "CPC benchmark: full R5 selection", "value": "standard_hnl"},
+                            {"label": "Generic LLP inspection only", "value": "generic"},
+                        ],
+                        value="standard_hnl",
+                        clearable=False,
+                    ),
+                    html.Div(
+                        className="parameter-list",
+                        children=[
+                            html.Div([html.Span("Geometry"), html.Strong(selection["geometry"])]),
+                            html.Div([html.Span("MET threshold"), html.Strong(f'>{selection["minimum_met_gev"]:g} GeV')]),
+                            html.Div([html.Span("Detector response"), html.Strong(f'{selection["minimum_stations"]} stations / {selection["minimum_intersections"]} intersections')]),
+                            html.Div([html.Span("Track requirement"), html.Strong(f'≥ {selection["minimum_tracks"]} charged track')]),
+                            html.Div([html.Span("Isolation"), html.Strong(f'ΔR > {selection["isolation_delta_r"]:g}')]),
+                        ],
+                    ),
+                    html.Div("Require events to reach", className="label", style={"marginTop": "12px"}),
+                    dcc.Dropdown(
+                        id="selection-stage-filter",
+                        options=[{"label": "All generated LLP events", "value": "all"}] + [
+                            {"label": SELECTION_STAGE_LABELS[name], "value": name}
+                            for name in SELECTION_STAGE_ORDER[1:]
                         ],
                         value="all",
                         clearable=False,
                     ),
-
-                    html.Hr(),
-                    html.Div("Coordinate convention", className="label"),
-                    dcc.Checklist(
-                        id="pos-is-ip",
-                        options=[{"label": "HepMC positions are IP-relative (convert to cavern centre)", "value": "ip"}],
-                        value=["ip"],
-                        className="checklist",
+                    html.Div("Display-region classification", className="label", style={"marginTop": "10px"}),
+                    dcc.Dropdown(
+                        id="event-region-filter",
+                        options=[
+                            {"label": "All display-region classes", "value": "all"},
+                            {"label": "Inside the ANUBIS instrumented volume", "value": "anubis"},
+                            {"label": "Outside the ATLAS detector volume", "value": "outside_atlas"},
+                        ],
+                        value="all",
+                        clearable=False,
                     ),
-
-                    html.Button("Run / Refresh", id="run-btn", n_clicks=0),
-                    html.Div(id="status-line", className="status"),
+                    html.Div("Lifetime observable", className="label", style={"marginTop": "10px"}),
+                    dcc.RadioItems(
+                        id="lifetime-mode",
+                        options=[
+                            {"label": "Proper decay time", "value": "proper"},
+                            {"label": "Laboratory decay time", "value": "lab"},
+                        ],
+                        value="proper",
+                        className="checklist compact-options",
+                    ),
                 ],
             ),
-
-            html.Div(
-                className="card",
+            html.Details(
+                className="card control-card advanced-panel",
                 children=[
-                    html.Div("Topology filters (BSM rows)", className="label"),
-                    html.Div(className="row", children=[html.Div("mother pid", className="label"), dcc.Input(id="mother-pid", type="text", value="")]),
-                    html.Div(className="row", children=[html.Div("child pid", className="label"), dcc.Input(id="child-pid", type="text", value="")]),
-
-                    html.Hr(),
-                    html.Div("Kinematics filters (BSM rows)", className="label"),
-                    range_row("E", "E-lo", "E-hi"),
-                    range_row("pT", "pt-lo", "pt-hi"),
-                    range_row("|p|", "p-lo", "p-hi"),
-                    range_row("px", "px-lo", "px-hi"),
-                    range_row("py", "py-lo", "py-hi"),
-                    range_row("pz", "pz-lo", "pz-hi"),
-                    range_row("eta", "eta-lo", "eta-hi"),
-                    range_row("phi", "phi-lo", "phi-hi"),
-                    range_row("theta", "theta-lo", "theta-hi"),
-                    range_row("MET", "met-lo", "met-hi"),
+                    html.Summary("Advanced particle-level filters"),
+                    html.Div("Mother PDG", className="label"),
+                    dcc.Input(id="mother-pid", type="text", value="", style={"width": "100%"}),
+                    html.Div("Daughter PDG", className="label", style={"marginTop": "8px"}),
+                    dcc.Input(id="child-pid", type="text", value="", style={"width": "100%"}),
+                    range_row("Energy", "E-lo", "E-hi", "GeV"),
+                    range_row("Transverse momentum", "pt-lo", "pt-hi", "GeV"),
+                    range_row("Momentum", "p-lo", "p-hi", "GeV"),
+                    range_row("pₓ", "px-lo", "px-hi", "GeV"),
+                    range_row("pᵧ", "py-lo", "py-hi", "GeV"),
+                    range_row("p_z", "pz-lo", "pz-hi", "GeV"),
+                    range_row("η", "eta-lo", "eta-hi"),
+                    range_row("φ", "phi-lo", "phi-hi", "rad"),
+                    range_row("θ", "theta-lo", "theta-hi", "rad"),
+                    range_row("MET", "met-lo", "met-hi", "GeV"),
                 ],
             ),
-
             html.Div(
-                className="card",
+                className="card control-card",
                 children=[
-                    html.Div("Geometry options", className="label"),
+                    html.Div(className="section-kicker", children="Visualisation"),
+                    html.H2("Geometry and topology"),
+                    html.Div("Projection", className="label"),
                     dcc.Dropdown(
                         id="plane",
-                        options=[{"label": "XY", "value": "XY"}, {"label": "XZ", "value": "XZ"}, {"label": "ZY", "value": "ZY"}],
+                        options=[
+                            {"label": "Transverse plane (x–y)", "value": "XY"},
+                            {"label": "Longitudinal plane (x–z)", "value": "XZ"},
+                            {"label": "Cavern elevation (z–y)", "value": "ZY"},
+                        ],
                         value="ZY",
                         clearable=False,
                     ),
                     dcc.Checklist(
                         id="geom-options",
                         options=[
-                            {"label": "ATLAS envelope", "value": "atlas"},
-                            {"label": "acceptance rays", "value": "acc"},
-                            {"label": "ANUBIS ceiling", "value": "an_ceiling"},
-                            {"label": "ANUBIS shaft", "value": "an_shaft"},
+                            {"label": "ATLAS exclusion envelope", "value": "atlas"},
+                            {"label": "Geometric acceptance rays", "value": "acc"},
+                            {"label": "ANUBIS ceiling stations", "value": "an_ceiling"},
+                            {"label": "ANUBIS shaft stations", "value": "an_shaft"},
                         ],
                         value=["atlas", "an_ceiling", "an_shaft"],
                         className="checklist",
@@ -506,188 +588,226 @@ def controls_sidebar(logo_src: str) -> html.Div:
                     dcc.Checklist(
                         id="vertex-options",
                         options=[
-                            {"label": "show production vertices", "value": "prod"},
-                            {"label": "show decay vertices", "value": "dec"},
+                            {"label": "Production vertices", "value": "prod"},
+                            {"label": "Decay vertices", "value": "dec"},
                         ],
-                        value=["prod", "dec"],
-                        className="checklist",
+                        value=["dec"],
+                        className="checklist compact-options",
                     ),
-
                     html.Hr(),
-                    html.Div("Decay-tree tracks (filtered events only)", className="label"),
+                    html.Div("Sampled decay-tree overlay", className="label"),
                     dcc.Checklist(
                         id="tree-options",
                         options=[
-                            {"label": "overlay SM decay-tree tracks (sampled)", "value": "tree"},
-                            {"label": "labels (event view recommended)", "value": "labels"},
+                            {"label": "Overlay decay-tree tracks", "value": "tree"},
+                            {"label": "Particle labels", "value": "labels"},
                         ],
                         value=[],
-                        className="checklist",
+                        className="checklist compact-options",
                     ),
-                    html.Div(className="row", children=[
-                        html.Div("depth", className="label"),
-                        dcc.Input(id="tree-depth", type="text", value="2"),
-                    ]),
-                    html.Div(className="row", children=[
-                        html.Div("max events", className="label"),
-                        dcc.Input(id="tree-max-events", type="text", value="40"),
+                    html.Div(className="inline-grid", children=[
+                        html.Div(children=[html.Div("Tree depth", className="label"), dcc.Input(id="tree-depth", type="text", value="2")]),
+                        html.Div(children=[html.Div("Events sampled", className="label"), dcc.Input(id="tree-max-events", type="text", value="40")]),
                     ]),
                 ],
             ),
         ],
     )
 
-
 def overview_page() -> html.Div:
     return html.Div(
-        className="content",
+        className="workspace",
         children=[
-            html.Div(id="region-metrics", className="metrics-row"),
-            html.Div(
-                className="grid",
+            html.Section(
+                className="workspace-header",
                 children=[
+                    html.Div(className="section-kicker", children="Selection-level overview"),
+                    html.H2("From generated LLP decays to the final ANUBIS candidate sample"),
+                    html.P(
+                        "The dashboard applies the same ordered stages used by the CPC reproducibility benchmark. "
+                        "Counts therefore describe cumulative survival, not independent geometric categories."
+                    ),
+                ],
+            ),
+            html.Div(id="region-metrics", className="metrics-row selection-metrics"),
+            html.Div(
+                className="analysis-grid analysis-grid--primary",
+                children=[
+                    graph_card_shell(
+                        "Selection cutflow",
+                        "cumulative LLP candidates after each ordered requirement",
+                        dcc.Loading(dcc.Graph(id="cutflow-graph", style={"height": "48vh"}), type="dot"),
+                    ),
                     html.Div(
-                        className="card graph-card",
+                        className="card interpretation-card",
                         children=[
-                            html.Div(className="card-title", children=[html.H2("Geometry"), html.Span("2D projections + 3D context")]),
-                            dcc.Tabs(
-                                id="geom-tabs",
-                                value="2d",
-                                className="tabbar",
-                                parent_className="tabbar",
+                            html.Div(className="card-title", children=[html.H2("Analysis configuration"), html.Span("standard HNL profile")]),
+                            html.Div(id="selection-config-panel", className="configuration-panel"),
+                            html.Div(
+                                className="interpretation-note",
                                 children=[
-                                    dcc.Tab(label="2D (XY/XZ/ZY)", value="2d", className="tab", selected_className="tab--selected"),
-                                    dcc.Tab(label="3D", value="3d", className="tab", selected_className="tab--selected"),
+                                    html.Strong("Interpretation. "),
+                                    "InCavern denotes a decay in the configured ANUBIS fiducial region; NotInATLAS then removes decays inside the ATLAS detector volume. Geometry and Tracker test detector intersections and reconstructable charged activity before MET and isolation are applied.",
                                 ],
                             ),
-                            html.Div([dcc.Loading(dcc.Graph(id="geom-graph", style={"height": "62vh"}), type="dot")], id="geom-2d-wrap"),
-                            html.Div([dcc.Loading(dcc.Graph(id="geom-3d", style={"height": "62vh"}), type="dot")], id="geom-3d-wrap", style={"display": "none"}),
                         ],
                     ),
+                ],
+            ),
+            html.Div(
+                className="card graph-card geometry-card",
+                children=[
+                    html.Div(className="card-title", children=[html.H2("Decay geometry"), html.Span("ATLAS cavern, detector stations and selected vertices")]),
+                    dcc.Tabs(
+                        id="geom-tabs",
+                        value="2d",
+                        className="tabbar",
+                        parent_className="tabbar",
+                        children=[
+                            dcc.Tab(label="Projected geometry", value="2d", className="tab", selected_className="tab--selected"),
+                            dcc.Tab(label="Three-dimensional context", value="3d", className="tab", selected_className="tab--selected"),
+                        ],
+                    ),
+                    html.Div([dcc.Loading(dcc.Graph(id="geom-graph", style={"height": "62vh"}), type="dot")], id="geom-2d-wrap"),
+                    html.Div([dcc.Loading(dcc.Graph(id="geom-3d", style={"height": "62vh"}), type="dot")], id="geom-3d-wrap", style={"display": "none"}),
+                ],
+            ),
+            html.Section(
+                className="workspace-header compact-header",
+                children=[
+                    html.Div(className="section-kicker", children="Kinematic diagnostics"),
+                    html.H2("Properties of the currently selected event subset"),
+                    html.P("Particle-level filters and the required cutflow stage are applied consistently to the distributions below."),
                 ],
             ),
             html.Div(
                 className="graph-row",
                 children=[
-                    html.Div(className="card graph-card", children=[html.Div(className="card-title", children=[html.H2("pT"), html.Span("filtered selection")]),
-                                                                    dcc.Loading(dcc.Graph(id="hist-pt", style={"height": "32vh"}), type="dot")]),
-                    html.Div(className="card graph-card", children=[html.Div(className="card-title", children=[html.H2("eta"), html.Span("filtered selection")]),
-                                                                    dcc.Loading(dcc.Graph(id="hist-eta", style={"height": "32vh"}), type="dot")]),
-                    html.Div(className="card graph-card", children=[html.Div(className="card-title", children=[html.H2("MET"), html.Span("simple truth")]),
-                                                                    dcc.Loading(dcc.Graph(id="hist-met", style={"height": "32vh"}), type="dot")]),
+                    graph_card_shell("LLP transverse momentum", "GeV", dcc.Loading(dcc.Graph(id="hist-pt", style={"height": "32vh"}), type="dot")),
+                    graph_card_shell("LLP pseudorapidity", "dimensionless", dcc.Loading(dcc.Graph(id="hist-eta", style={"height": "32vh"}), type="dot")),
+                    graph_card_shell("Event missing transverse momentum", "GeV", dcc.Loading(dcc.Graph(id="hist-met", style={"height": "32vh"}), type="dot")),
                 ],
             ),
-            html.Div(
-                className="card graph-card",
-                children=[
-                    html.Div(className="card-title", children=[html.H2("HNL lifetime"), html.Span("selected mode • ns")]),
-                    dcc.Loading(dcc.Graph(id="hist-lifetime", style={"height": "32vh"}), type="dot"),
-                ],
-            ),
+            graph_card_shell("LLP decay time", "selected proper/laboratory observable in ns", dcc.Loading(dcc.Graph(id="hist-lifetime", style={"height": "32vh"}), type="dot")),
             html.Div(
                 className="graph-row-2",
                 children=[
-                    html.Div(className="card graph-card", children=[html.Div(className="card-title", children=[html.H2("Mother PDGs"), html.Span("top 15")]),
-                                                                    dcc.Loading(dcc.Graph(id="bar-mothers", style={"height": "36vh"}), type="dot")]),
-                    html.Div(className="card graph-card", children=[html.Div(className="card-title", children=[html.H2("Daughter PDGs"), html.Span("top 15")]),
-                                                                    dcc.Loading(dcc.Graph(id="bar-children", style={"height": "36vh"}), type="dot")]),
+                    graph_card_shell("Parent-particle composition", "15 most frequent PDG identifiers", dcc.Loading(dcc.Graph(id="bar-mothers", style={"height": "36vh"}), type="dot")),
+                    graph_card_shell("Daughter-particle composition", "15 most frequent PDG identifiers", dcc.Loading(dcc.Graph(id="bar-children", style={"height": "36vh"}), type="dot")),
                 ],
             ),
         ],
     )
 
 
+def graph_card_shell(title: str, subtitle: str, child) -> html.Div:
+    """Return a consistently labelled scientific graph card."""
+    return html.Div(
+        className="card graph-card",
+        children=[
+            html.Div(className="card-title", children=[html.H2(title), html.Span(subtitle)]),
+            child,
+        ],
+    )
+
 def event_page() -> html.Div:
     return html.Div(
-        className="content",
+        className="workspace",
         children=[
+            html.Section(
+                className="workspace-header",
+                children=[
+                    html.Div(className="section-kicker", children="Event-level diagnosis"),
+                    html.H2("Identify the first failed selection requirement and inspect the decay topology"),
+                    html.P(
+                        "Each row reports the furthest cumulative stage reached by the event. Select a row to load the full HepMC decay tree and its detector geometry."
+                    ),
+                ],
+            ),
             html.Div(
-                className="grid",
+                className="event-workspace",
                 children=[
                     html.Div(
-                        className="card",
+                        className="card event-table-card",
                         children=[
-                            html.Div(className="card-title", children=[html.H2("Event-by-event"), html.Span("select an event to draw full topology")]),
+                            html.Div(className="card-title", children=[html.H2("Event selection trace"), html.Span("one row per generated event")]),
                             html.Div(
                                 className="event-table-toolbar",
                                 children=[
-                                    html.Div("quick event filter", className="label"),
+                                    html.Div("Search event, region or selection stage", className="label"),
                                     dcc.Input(
                                         id="event-number-filter",
                                         type="text",
                                         value="",
-                                        placeholder="type 20, 2, cavern…",
+                                        placeholder="for example: 6, MET, Final, outside ATLAS",
                                         debounce=False,
                                         style={"width": "100%"},
                                     ),
                                 ],
                             ),
-                            html.Div(id="event-help", style={"fontSize": "12px", "opacity": 0.85, "marginBottom": "8px"}),
+                            html.Div(id="event-help", className="table-context"),
                             dash_table.DataTable(
                                 id="events-table",
                                 columns=[
-                                    {"name": "event", "id": "event", "type": "numeric"},
-                                    {"name": "region", "id": "region", "type": "text"},
-                                    {"name": "n_bsm", "id": "n_bsm", "type": "numeric"},
-                                    {"name": "HNL lifetime [ns]", "id": "hnl_lifetime_ns", "type": "numeric"},
-                                    {"name": "MET", "id": "met", "type": "numeric"},
-                                    {"name": "pT max", "id": "pt_max", "type": "numeric"},
-                                    {"name": "E max", "id": "E_max", "type": "numeric"},
+                                    {"name": "Event", "id": "event", "type": "numeric"},
+                                    {"name": "Last passed stage", "id": "last_passed_stage", "type": "text"},
+                                    {"name": "First failed stage", "id": "first_failed_stage", "type": "text"},
+                                    {"name": "Display-region class", "id": "region", "type": "text"},
+                                    {"name": "LLP candidates", "id": "n_bsm", "type": "numeric"},
+                                    {"name": "Decay time [ns]", "id": "hnl_lifetime_ns", "type": "numeric"},
+                                    {"name": "MET [GeV]", "id": "met", "type": "numeric"},
+                                    {"name": "max pT [GeV]", "id": "pt_max", "type": "numeric"},
                                 ],
                                 data=[],
                                 page_action="native",
                                 page_current=0,
-                                page_size=9,
+                                page_size=10,
                                 sort_action="native",
                                 filter_action="native",
                                 filter_options={"case": "insensitive"},
                                 row_selectable="single",
                                 selected_row_ids=[],
-                                style_cell={"fontFamily": "ui-monospace, Menlo, Consolas, monospace", "fontSize": 12, "padding": "8px"},
+                                style_cell={"fontFamily": "ui-monospace, Menlo, Consolas, monospace", "fontSize": 12, "padding": "9px"},
                                 style_table={"overflowX": "auto"},
                             ),
-                            html.Div(id="event-summary", className="status", style={"marginTop": "10px"}),
+                            html.Div(id="event-summary", className="status event-summary", style={"marginTop": "12px"}),
                             html.Div(id="event-decay-tree", className="decay-tree"),
                         ],
                     ),
-
                     html.Div(
-                        className="card graph-card",
+                        className="card graph-card event-display-card",
                         children=[
-                            html.Div(className="card-title", children=[html.H2("Event display"), html.Span("tracks: root + daughters (+ granddaughters)")]),
+                            html.Div(className="card-title", children=[html.H2("Detector and decay topology"), html.Span("LLP root, charged and neutral descendants")]),
                             dcc.Tabs(
                                 id="event-geom-tabs",
                                 value="2d",
                                 className="tabbar",
                                 parent_className="tabbar",
                                 children=[
-                                    dcc.Tab(label="2D", value="2d", className="tab", selected_className="tab--selected"),
-                                    dcc.Tab(label="3D", value="3d", className="tab", selected_className="tab--selected"),
+                                    dcc.Tab(label="Projected event", value="2d", className="tab", selected_className="tab--selected"),
+                                    dcc.Tab(label="Three-dimensional event", value="3d", className="tab", selected_className="tab--selected"),
                                 ],
                             ),
                             html.Div([dcc.Loading(dcc.Graph(id="event-geom-2d", style={"height": "62vh"}), type="dot")], id="event-2d-wrap"),
                             html.Div([dcc.Loading(dcc.Graph(id="event-geom-3d", style={"height": "62vh"}), type="dot")], id="event-3d-wrap", style={"display": "none"}),
-
-                            html.Hr(),
-                            html.Div("Tracks options (event view)", className="label"),
-                            html.Div(className="row", children=[html.Div("depth", className="label"), dcc.Input(id="event-depth", type="text", value="2", debounce=True)]),
-                            html.Div(className="row", children=[html.Div("extend [m]", className="label"), dcc.Input(id="event-extend", type="text", value="30", debounce=True)]),
-                            html.Button("Apply tracks", id="apply-event-tracks", n_clicks=0, className="secondary-btn"),
-                            html.Div("After changing depth or extend, click Apply tracks or press Enter in the field.", className="hint"),
+                            html.Div(className="event-display-controls", children=[
+                                html.Div(children=[html.Div("Decay-tree depth", className="label"), dcc.Input(id="event-depth", type="text", value="2", debounce=True)]),
+                                html.Div(children=[html.Div("Track extension [m]", className="label"), dcc.Input(id="event-extend", type="text", value="30", debounce=True)]),
+                                html.Button("Rebuild event topology", id="apply-event-tracks", n_clicks=0, className="secondary-btn"),
+                            ]),
                             dcc.Checklist(
                                 id="event-track-options",
                                 options=[
-                                    {"label": "show labels", "value": "labels"},
-                                    {"label": "show only charged", "value": "charged_only"},
+                                    {"label": "Particle labels", "value": "labels"},
+                                    {"label": "Charged descendants only", "value": "charged_only"},
                                 ],
                                 value=["labels"],
-                                className="checklist",
+                                className="checklist compact-options",
                             ),
                         ],
                     ),
                 ],
-                style={"gridTemplateColumns": "0.85fr 1.15fr"},
-            )
+            ),
         ],
     )
 
@@ -697,22 +817,32 @@ app.layout = html.Div(
     children=[
         dcc.Store(id="df-store"),
         dcc.Store(id="events-store"),
+        dcc.Store(id="selection-store"),
         dcc.Store(id="cfg-store"),
         dcc.Store(id="tracks-store"),
-
-        html.Div(className="sidebar", children=[controls_sidebar(app.get_asset_url("set-anubis-logo.png"))]),
-
-        html.Div(
-            className="content",
+        html.A("Skip to analysis", href="#analysis-workspace", className="skip-link"),
+        html.Aside(className="sidebar", children=[controls_sidebar(app.get_asset_url("set-anubis-logo.png"))]),
+        html.Main(
+            id="analysis-workspace",
+            className="main-panel",
             children=[
-                dcc.Tabs(
-                    id="page-tabs",
-                    value="overview",
-                    className="tabbar",
-                    parent_className="tabbar",
+                html.Div(
+                    className="main-navigation",
                     children=[
-                        dcc.Tab(label="Dashboard", value="overview", className="tab", selected_className="tab--selected"),
-                        dcc.Tab(label="Event-by-event", value="event", className="tab", selected_className="tab--selected"),
+                        html.Div(children=[
+                            html.Div(className="section-kicker", children="SET-ANUBIS analysis workspace"),
+                            html.H1("HepMC event and selection diagnostics"),
+                        ]),
+                        dcc.Tabs(
+                            id="page-tabs",
+                            value="overview",
+                            className="tabbar page-tabbar",
+                            parent_className="tabbar page-tabbar",
+                            children=[
+                                dcc.Tab(label="Selection overview", value="overview", className="tab", selected_className="tab--selected"),
+                                dcc.Tab(label="Event inspection", value="event", className="tab", selected_className="tab--selected"),
+                            ],
+                        ),
                     ],
                 ),
                 html.Div(id="overview-wrap", children=overview_page(), style={"display": "block"}),
@@ -759,49 +889,63 @@ def _toggle_event_geom_tabs(tab: str):
     return {"display": "block"}, {"display": "none"}
 
 
-@app.callback(Output("csv-hint", "children"), Input("source-kind", "value"))
-def _csv_hint(kind: str):
-    if kind == "csv":
-        return "CSV placeholder: expected columns: event, pid, status, px,py,pz,E, prod_x_m,prod_y_m,prod_z_m,prod_ct_m, dec_x_m,dec_y_m,dec_z_m,dec_ct_m, mother_pids(list/tuple), child_pids(list/tuple), met"
-    return ""
+@app.callback(
+    Output("hepmc-path", "value"),
+    Input("source-profile", "value"),
+    State("hepmc-path", "value"),
+)
+def select_input_sample(profile: str, current_path: str):
+    """Select the packaged benchmark without inventing a local default path."""
+    if profile == "demo":
+        return DEFAULT_HEPMC_PATH
+    if current_path == DEFAULT_HEPMC_PATH:
+        return ""
+    return no_update
 
 
 @app.callback(
     Output("df-store", "data"),
     Output("events-store", "data"),
+    Output("selection-store", "data"),
     Output("cfg-store", "data"),
     Output("status-line", "children"),
     Input("run-btn", "n_clicks"),
-    State("source-kind", "value"),
     State("hepmc-path", "value"),
     State("pdg-id", "value"),
     State("max-events", "value"),
     State("status", "value"),
     State("ignore-self-decays", "value"),
     State("pos-is-ip", "value"),
+    State("selection-profile", "value"),
 )
-def run_extraction(n_clicks, source_kind, hepmc_path, pdg_id, max_events, status, ignore_self_decays, pos_is_ip):
+def run_extraction(
+    n_clicks,
+    hepmc_path,
+    pdg_id,
+    max_events,
+    status,
+    ignore_self_decays,
+    pos_is_ip,
+    selection_profile,
+):
     if n_clicks is None:
-        return no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update
 
-    if source_kind != "hepmc":
-        return None, None, None, "CSV/DataFrame source is not implemented yet (interface is ready)."
-
-    if hepmc_path is None or str(hepmc_path).strip() == "":
-        return None, None, None, "Missing HepMC path."
-
+    hepmc_path = str(hepmc_path or "").strip()
+    if not hepmc_path:
+        return None, None, None, None, "No HepMC input has been selected."
     if not os.path.exists(hepmc_path):
-        return None, None, None, f"File not found: {hepmc_path}"
+        return None, None, None, None, f"HepMC input not found: {hepmc_path}"
 
     pid = _int_or_none(pdg_id)
     if pid is None:
-        return None, None, None, f"Invalid PDG ID: {pdg_id}"
+        return None, None, None, None, f"Invalid LLP PDG identifier: {pdg_id}"
 
-    cav_transform = CavernTransform(cavern=cav, hepmc_positions_are_ip_relative=("ip" in (pos_is_ip or [])))
-
-    src = HepMCFileSource(path=hepmc_path)
-    extractor = ParticleExtractor(source=src)
-
+    cav_transform = CavernTransform(
+        cavern=cav,
+        hepmc_positions_are_ip_relative=("ip" in (pos_is_ip or [])),
+    )
+    extractor = ParticleExtractor(source=HepMCFileSource(path=hepmc_path))
     cfg = ExtractionConfig(
         pdg_id=int(pid),
         max_events=_int_or_none(max_events),
@@ -813,41 +957,63 @@ def run_extraction(n_clicks, source_kind, hepmc_path, pdg_id, max_events, status
 
     try:
         df = extractor.extract(cfg)
-    except Exception as e:
-        return None, None, None, f"Extraction failed: {e}"
+    except Exception as exc:
+        return None, None, None, None, f"HepMC extraction failed: {exc}"
 
-    if df.empty:
-        return df.to_json(date_format="iso", orient="split"), pd.DataFrame().to_json(orient="split"), json.dumps({"hepmc_path": hepmc_path, "pdg_id": pid}), "No particle rows extracted."
-
-    df = add_lifetime_columns(df)
-    df["region"] = classify_rows_region(df)
-    events = build_events_table(df)
-
-    # diagnostics
-    n_prod = int(np.isfinite(df["prod_x_m"]).sum())
-    n_dec = int(np.isfinite(df["dec_x_m"]).sum())
-    n_tau = int(np.isfinite(df["lifetime_proper_ns"]).sum()) if "lifetime_proper_ns" in df.columns else 0
-    n_tlab = int(np.isfinite(df["lifetime_lab_ns"]).sum()) if "lifetime_lab_ns" in df.columns else 0
-    region_counts = events["region"].value_counts().to_dict()
-
-    info = [
-        f"Rows extracted: {len(df)}",
-        f"Events with ≥1 BSM: {len(events)}",
-        f"PDG: {pid} | max_events={_int_or_none(max_events)} | status={_int_or_none(status)}",
-        f"Finite production vertices: {n_prod} | Finite decay vertices: {n_dec}",
-        f"Finite proper lifetimes: {n_tau} | Finite lab lifetimes: {n_tlab}",
-        f"Decay regions: {region_counts}",
-    ]
+    selection_payload: Dict[str, Any] = {}
+    selection_message = "Generic LLP inspection; canonical selection was not requested."
+    if selection_profile == "standard_hnl":
+        if int(pid) != 9900012:
+            selection_payload = {
+                "error": "The standard HNL profile is defined for PDG 9900012.",
+                "profile": "standard_hnl_cpc",
+            }
+            selection_message = selection_payload["error"]
+        else:
+            try:
+                selection_payload = run_standard_hnl_selection(hepmc_path)
+                selection_message = (
+                    "Canonical HNL selection completed: "
+                    f"{selection_payload['cut_flow'].get('nLLP_Final', 0)} final candidate(s)."
+                )
+            except Exception as exc:
+                selection_payload = {"error": str(exc), "profile": "standard_hnl_cpc"}
+                selection_message = f"Canonical selection unavailable: {exc}"
 
     cfg_payload = {
         "hepmc_path": hepmc_path,
         "pdg_id": int(pid),
         "pos_ip": ("ip" in (pos_is_ip or [])),
+        "selection_profile": selection_profile,
     }
 
+    if df.empty:
+        return (
+            df.to_json(date_format="iso", orient="split"),
+            pd.DataFrame().to_json(orient="split"),
+            json.dumps(selection_payload),
+            json.dumps(cfg_payload),
+            "No LLP candidates were extracted from the selected event record.",
+        )
+
+    df = add_lifetime_columns(df)
+    df["region"] = classify_rows_region(df)
+    events = merge_selection_diagnostics(build_events_table(df), selection_payload)
+
+    n_prod = int(np.isfinite(df["prod_x_m"]).sum())
+    n_dec = int(np.isfinite(df["dec_x_m"]).sum())
+    region_counts = events["region"].value_counts().to_dict()
+    info = [
+        f"Input: {Path(hepmc_path).name}",
+        f"LLP PDG {pid}: {len(df)} candidate row(s) across {len(events)} event(s)",
+        f"Finite vertices: production={n_prod}, decay={n_dec}",
+        f"Display-region classes: {region_counts}",
+        selection_message,
+    ]
     return (
         df.to_json(date_format="iso", orient="split"),
         events.to_json(date_format="iso", orient="split"),
+        json.dumps(selection_payload),
         json.dumps(cfg_payload),
         "\n".join(info),
     )
@@ -864,27 +1030,89 @@ def _metric_card(title: str, value: Any, subtitle: str = "") -> html.Div:
     )
 
 
+def _selection_cutflow_figure(payload: Dict[str, Any]) -> go.Figure:
+    if not payload or payload.get("error"):
+        return _fig_style(go.Figure(), "Selection cutflow unavailable")
+    key_for_stage = {
+        "Original": "nLLP_original",
+        "LLPDecay": "nLLP_LLPdecay",
+        "InCavern": "nLLP_InCavern",
+        "NotInATLAS": "nLLP_NotInATLAS",
+        "Geometry": "nLLP_Geometry",
+        "Tracker": "nLLP_Tracker",
+        "MET": "nLLP_MET",
+        "IsoJets": "nLLP_IsoJet",
+        "IsoCharged": "nLLP_IsoCharged",
+        "IsoAll": "nLLP_IsoAll",
+        "Final": "nLLP_Final",
+    }
+    cut_flow = payload.get("cut_flow") or {}
+    stages = [stage for stage in SELECTION_STAGE_ORDER if key_for_stage[stage] in cut_flow]
+    values = [cut_flow[key_for_stage[stage]] for stage in stages]
+    labels = [SELECTION_STAGE_LABELS[stage] for stage in stages]
+    fig = go.Figure(
+        go.Bar(
+            x=stages,
+            y=values,
+            customdata=labels,
+            text=values,
+            textposition="outside",
+            hovertemplate="%{customdata}<br>candidates=%{y}<extra></extra>",
+        )
+    )
+    fig.update_xaxes(tickangle=30, title="Ordered selection stage")
+    fig.update_yaxes(title="Cumulative LLP candidates", rangemode="tozero")
+    return _fig_style(fig, "Canonical SET-ANUBIS cutflow")
+
+
 @app.callback(
     Output("region-metrics", "children"),
+    Output("cutflow-graph", "figure"),
+    Output("selection-config-panel", "children"),
     Input("events-store", "data"),
-    Input("cfg-store", "data"),
+    Input("selection-store", "data"),
 )
-def update_metrics(events_json, cfg_json=None):
-    if not events_json:
-        return []
-    events = pd.read_json(StringIO(events_json), orient="split")
-    if events.empty:
-        return []
+def update_selection_summary(events_json, selection_json):
+    events = (
+        pd.read_json(StringIO(events_json), orient="split")
+        if events_json
+        else pd.DataFrame()
+    )
+    try:
+        selection = json.loads(selection_json) if selection_json else {}
+    except Exception:
+        selection = {}
 
-    counts = events["region"].value_counts().to_dict()
-    total = len(events)
-    return [
-        _metric_card("BSM events", total, "events with ≥1 BSM"),
-        _metric_card("Decay in ANUBIS", counts.get("anubis", 0), "shaft/ceiling proxy"),
-        _metric_card("Decay in ATLAS", counts.get("atlas", 0), "envelope"),
-        _metric_card("Decay in cavern", counts.get("cavern", 0), "outside ATLAS"),
-        _metric_card("Decay outside", counts.get("outside", 0), "outside cavern"),
+    if selection and not selection.get("error"):
+        cut_flow = selection.get("cut_flow") or {}
+        metrics = [
+            _metric_card("Generated", cut_flow.get("nLLP_original", 0), "LLP candidates"),
+            _metric_card("ANUBIS fiducial", cut_flow.get("nLLP_InCavern", 0), "after decay-region requirement"),
+            _metric_card("Outside ATLAS", cut_flow.get("nLLP_NotInATLAS", 0), "detector-volume veto"),
+            _metric_card("Detector geometry", cut_flow.get("nLLP_Geometry", 0), "accepted trajectories"),
+            _metric_card("MET", cut_flow.get("nLLP_MET", 0), "after pTmiss requirement"),
+            _metric_card("Final", cut_flow.get("nLLP_Final", 0), "after isolation"),
+        ]
+        config = selection.get("configuration") or {}
+        panel = [
+            html.Div([html.Span("Model"), html.Strong(selection.get("model", "UFO_HNL"))]),
+            html.Div([html.Span("LLP PDG"), html.Strong(str(selection.get("llp_pdg", 9900012)))]),
+            html.Div([html.Span("Geometry"), html.Strong(config.get("geometry", "—"))]),
+            html.Div([html.Span("MET"), html.Strong(f"> {config.get('minimum_met_gev', '—')} GeV")]),
+            html.Div([html.Span("Stations / intersections"), html.Strong(f"{config.get('minimum_stations', '—')} / {config.get('minimum_intersections', '—')}")]),
+            html.Div([html.Span("Isolation"), html.Strong(f"ΔR > {config.get('isolation_delta_r', '—')}")]),
+        ]
+        return metrics, _selection_cutflow_figure(selection), panel
+
+    counts = events.get("region", pd.Series(dtype=str)).value_counts().to_dict() if not events.empty else {}
+    metrics = [
+        _metric_card("LLP events", len(events), "generic HepMC inspection"),
+        _metric_card("Instrumented ANUBIS", counts.get("anubis", 0), "vertex classifier"),
+        _metric_card("ATLAS volume", counts.get("atlas", 0), "vertex classifier"),
+        _metric_card("Cavern", counts.get("cavern", 0), "outside ATLAS"),
     ]
+    note = selection.get("error") if selection else "Load a sample to evaluate the cutflow."
+    return metrics, _fig_style(go.Figure(), "Selection cutflow unavailable"), html.Div(note, className="warning-note")
 
 
 @app.callback(
@@ -899,6 +1127,8 @@ def update_metrics(events_json, cfg_json=None):
     Input("df-store", "data"),
     Input("events-store", "data"),
     Input("cfg-store", "data"),
+    Input("selection-store", "data"),
+    Input("selection-stage-filter", "value"),
     Input("plane", "value"),
     Input("geom-options", "value"),
     Input("vertex-options", "value"),
@@ -922,7 +1152,7 @@ def update_metrics(events_json, cfg_json=None):
     Input("met-lo", "value"), Input("met-hi", "value"),
 )
 def update_dashboard_figures(
-    df_json, events_json, cfg_json,
+    df_json, events_json, cfg_json, selection_json, selection_stage_filter,
     plane, geom_opts, vertex_opts, region_filter, lifetime_mode,
     tree_opts, tree_depth, tree_max_events,
     mother_pid, child_pid,
@@ -963,6 +1193,21 @@ def update_dashboard_figures(
         allowed_events = set(events.loc[events["region"] == "anubis", "event"].astype(int).tolist())
     elif region_filter == "outside_atlas":
         allowed_events = set(events.loc[events["region"].isin(["cavern", "outside", "stable"]), "event"].astype(int).tolist())
+
+    if selection_stage_filter and selection_stage_filter != "all" and selection_json:
+        try:
+            selection_payload = json.loads(selection_json)
+            trace_events = pd.DataFrame(selection_payload.get("events") or [])
+            passed_column = f"passed_{selection_stage_filter}"
+            if not trace_events.empty and passed_column in trace_events.columns:
+                stage_events = set(
+                    trace_events.loc[trace_events[passed_column].astype(bool), "eventNumber"]
+                    .astype(int)
+                    .tolist()
+                )
+                allowed_events = stage_events if allowed_events is None else allowed_events & stage_events
+        except Exception:
+            pass
 
     if allowed_events is not None:
         dff = dff[dff["event"].astype(int).isin(allowed_events)].copy()
@@ -1165,10 +1410,11 @@ def _decay_tree_text(segs: List[Dict[str, Any]]) -> str:
     Input("events-store", "data"),
     Input("cfg-store", "data"),
     Input("event-region-filter", "value"),
+    Input("selection-stage-filter", "value"),
     Input("lifetime-mode", "value"),
     Input("event-number-filter", "value"),
 )
-def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode: str, event_filter: str):
+def update_event_table(events_json, cfg_json, region_filter: str, selection_stage_filter: str, lifetime_mode: str, event_filter: str):
     if not events_json:
         return [], 0, [], "Run extraction to populate the event list."
 
@@ -1181,14 +1427,23 @@ def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode:
     elif region_filter == "outside_atlas":
         events = events[events["region"].isin(["cavern", "outside", "stable"])]
 
+    if selection_stage_filter and selection_stage_filter != "all":
+        passed_column = f"passed_{selection_stage_filter}"
+        if passed_column in events.columns:
+            events = events[events[passed_column].fillna(False).astype(bool)]
+
     event_filter = str(event_filter or "").strip()
     if event_filter:
         event_as_text = pd.to_numeric(events["event"], errors="coerce").astype("Int64").astype(str)
         region_as_text = events.get("region", pd.Series("", index=events.index)).astype(str)
+        last_stage = events.get("last_passed_stage", pd.Series("", index=events.index)).astype(str)
+        first_failed = events.get("first_failed_stage", pd.Series("", index=events.index)).astype(str)
         q = event_filter.lower()
         events = events[
             event_as_text.str.contains(q, regex=False, na=False)
             | region_as_text.str.lower().str.contains(q, regex=False, na=False)
+            | last_stage.str.lower().str.contains(q, regex=False, na=False)
+            | first_failed.str.lower().str.contains(q, regex=False, na=False)
         ]
 
     out = events.copy()
@@ -1208,9 +1463,10 @@ def update_event_table(events_json, cfg_json, region_filter: str, lifetime_mode:
         if col in out.columns:
             out[col] = pd.to_numeric(out[col], errors="coerce").round(3)
 
+    stage_text = "all stages" if selection_stage_filter == "all" else f"reached {selection_stage_filter}"
     help_txt = (
-        f"{len(out)} events shown (region filter: {region_filter}, lifetime mode: {lifetime_mode}). "
-        "Use the quick event filter for simple numbers; the column filters still support Dash syntax."
+        f"{len(out)} event(s) shown; {stage_text}; decay-region filter={region_filter}; "
+        f"lifetime observable={lifetime_mode}. Column filters use the standard Dash syntax."
     )
     return _dash_safe_records(out), 0, [], help_txt
 
@@ -1312,10 +1568,11 @@ def compute_event_tracks(selected_row_ids, selected_rows, _apply_clicks, _depth_
     n_neu = sum(1 for s in ser if (s["charged"] is False) and (not s["is_root"]))
 
     summary = "\n".join([
-        f"Event {event_id} | region={row.get('region')} | n_bsm={row.get('n_bsm')}",
-        f"Tracks: total={n_all} (roots={n_root}, charged={n_ch}, neutral={n_neu})",
-        f"Legend: root(BSM)=pink • charged=green • neutral=slate",
-        f"HNL lifetime={row.get('hnl_lifetime_ns')} ns | MET={row.get('met')} | pTmax={row.get('pt_max')} | Emax={row.get('E_max')}",
+        f"Event {event_id} | last passed={row.get('last_passed_stage', '—')} | first failed={row.get('first_failed_stage', '—')}",
+        f"Display-region class={row.get('region')} | LLP candidates={row.get('n_bsm')} | MET={row.get('met')} GeV",
+        f"Topology segments: total={n_all} (LLP roots={n_root}, charged={n_ch}, neutral={n_neu})",
+        f"Decay time={row.get('hnl_lifetime_ns')} ns | max pT={row.get('pt_max')} GeV",
+        "Legend: LLP root=pink • charged descendant=green • neutral descendant=slate",
     ])
 
     return json.dumps({"event": event_id, "segments": ser}), summary, _decay_tree_text(ser)
@@ -1430,9 +1687,9 @@ def update_event_figures(tracks_json, plane: str, geom_opts, track_opts):
 
 def main(argv: Optional[List[str]] = None) -> None:
     show_banner(force=True)
-    """Run the optional HepMC explorer Dash application."""
+    """Run the selection-aware HepMC event explorer."""
     parser = argparse.ArgumentParser(
-        description="Inspect HepMC LLP events in the SET-ANUBIS cavern geometry"
+        description="Inspect HepMC LLP events and reproduce the SET-ANUBIS selection diagnostics"
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8050)

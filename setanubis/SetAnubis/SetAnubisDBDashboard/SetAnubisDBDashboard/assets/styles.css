@@ -1,527 +1,95 @@
-
-/* ---------- Dark UI theme for Dash ---------- */
-:root{
-  --bg: #0b1020;
-  --panel: #0f172a;
-  --card: #111b34;
-  --card2: #0f1a30;
-  --border: rgba(148,163,184,0.18);
-  --text: #e5e7eb;
-  --muted: rgba(229,231,235,0.70);
-  --accent: #60a5fa;
-  --accent2: #a78bfa;
-  --good: #34d399;
-  --warn: #fbbf24;
-  --bad: #fb7185;
-  --shadow: 0 14px 35px rgba(0,0,0,0.35);
+:root {
+  --bg: #07111f;
+  --panel: rgba(12, 27, 47, .92);
+  --panel-soft: rgba(17, 37, 62, .84);
+  --border: rgba(148, 173, 203, .18);
+  --border-strong: rgba(102, 194, 255, .34);
+  --text: #edf5ff;
+  --muted: #9db0c6;
+  --accent: #66c2ff;
+  --accent-strong: #31a7f4;
+  --secondary: #a6e3d8;
+  --good: #65d6a6;
+  --warn: #f2c66d;
+  --bad: #ff8798;
+  --shadow: 0 18px 48px rgba(0,0,0,.30);
   --radius: 18px;
-  --radius2: 14px;
-  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
-
-html, body{
-  background: radial-gradient(1200px 700px at 20% -10%, rgba(96,165,250,0.18), transparent 50%),
-              radial-gradient(900px 600px at 120% 40%, rgba(167,139,250,0.14), transparent 55%),
-              radial-gradient(900px 700px at 40% 120%, rgba(52,211,153,0.10), transparent 55%),
-              var(--bg);
-  color: var(--text);
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
   margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(49,167,244,.14), transparent 36rem),
+    radial-gradient(circle at 88% 18%, rgba(166,227,216,.09), transparent 30rem),
+    var(--bg);
   font-family: var(--font);
-}
-
-a { color: var(--accent); }
-
-/* App shell */
-.app-shell{
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-}
-
-/* Sidebar */
-.sidebar{
-  width: 380px;
-  min-width: 340px;
-  max-width: 420px;
-  background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(15,23,42,0.80));
-  border-right: 1px solid var(--border);
-  padding: 16px 14px 14px 14px;
-  overflow-y: auto;
-}
-
-
-.brand{
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.brand-logo{
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.96);
-  padding: 6px;
-  box-shadow: var(--shadow);
-}
-
-.brand-copy{
-  min-width: 0;
-}
-
-.brand h1{
-  font-size: 18px;
-  margin: 0;
-  letter-spacing: 0.2px;
-}
-
-.brand-subtitle{
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.badge{
-  font-size: 12px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(17,27,52,0.65);
-  color: var(--muted);
-}
-
-/* Content */
-.content{
-  flex: 1;
-  padding: 14px;
-  overflow-y: auto;
-}
-
-.grid{
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-row-gap: 12px;
-}
-
-/* Cards */
-.card{
-  background: linear-gradient(180deg, rgba(17,27,52,0.86), rgba(15,26,48,0.78));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 12px;
-}
-
-.card-title{
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin: 0 0 8px 0;
-}
-
-.card-title h2{
-  font-size: 14px;
-  margin: 0;
-  color: rgba(229,231,235,0.92);
-  letter-spacing: 0.25px;
-}
-
-.card-title span{
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* Form controls */
-label, .label{
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 6px;
-  display: block;
-}
-
-input, select{
-  background: rgba(3, 7, 18, 0.55) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  color: var(--text) !important;
-  padding: 10px 12px !important;
-  outline: none !important;
-}
-
-input::placeholder{
-  color: rgba(229,231,235,0.35) !important;
-}
-
-/* Dash Dropdown */
-.Select-control, .Select-menu-outer, .Select-input, .Select-value, .Select-placeholder{
-  background: rgba(3, 7, 18, 0.55) !important;
-  color: var(--text) !important;
-  border-color: var(--border) !important;
-}
-.Select-menu-outer{
-  border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-}
-.VirtualizedSelectOption{
-  background: rgba(15,23,42,0.9) !important;
-  color: var(--text) !important;
-}
-.VirtualizedSelectFocusedOption{
-  background: rgba(96,165,250,0.18) !important;
-}
-
-/* Checklist / radio */
-input[type="checkbox"], input[type="radio"]{
-  accent-color: var(--accent);
-}
-.checklist{
-  display: grid;
-  grid-template-columns: 1fr;
-  row-gap: 6px;
-}
-
-/* Button */
-button{
-  width: 100%;
-  padding: 12px 12px;
-  border: 1px solid rgba(96,165,250,0.35);
-  background: linear-gradient(90deg, rgba(96,165,250,0.22), rgba(167,139,250,0.18));
-  color: var(--text);
-  border-radius: 14px;
-  cursor: pointer;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  transition: transform .06s ease, border-color .2s ease, background .2s ease;
-}
-button:hover{
-  transform: translateY(-1px);
-  border-color: rgba(96,165,250,0.55);
-  background: linear-gradient(90deg, rgba(96,165,250,0.28), rgba(167,139,250,0.22));
-}
-button:active{
-  transform: translateY(0px);
-}
-
-/* Small helpers */
-.row{
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.row-3{
-  display: grid;
-  grid-template-columns: 120px 1fr 1fr;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.hr{
-  height: 1px;
-  background: var(--border);
-  border: none;
-  margin: 12px 0;
-}
-
-/* Graph cards */
-.graph-card{
-  padding: 10px 10px 4px 10px;
-}
-.graph-row{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-.graph-row-2{
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 12px;
-}
-
-/* Status box */
-.status{
-  margin-top: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 12px;
-  color: rgba(229,231,235,0.80);
-  white-space: pre-wrap;
-  line-height: 1.35;
-  background: rgba(3, 7, 18, 0.35);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 10px 12px;
-}
-
-/* Plotly: remove white background flash */
-.js-plotly-plot .plotly .main-svg{
-  background: transparent !important;
-}
-
-
-/* ---------- Refinements v2 ---------- */
-:root{
-  --control-bg: rgba(2, 6, 23, 0.55);
-  --control-bg-2: rgba(2, 6, 23, 0.70);
-  --control-ring: rgba(96,165,250,0.35);
-  --text-strong: rgba(229,231,235,0.92);
-}
-
-.label{ color: rgba(229,231,235,0.70) !important; }
-.card-title h2{ color: var(--text-strong) !important; }
-
-/* Make sure ALL form controls keep dark background */
-input, textarea, select{
-  background: rgba(2, 6, 23, 0.62) !important;
-  color: var(--text-strong) !important;
-  border: 1px solid rgba(148,163,184,0.14) !important;
-  outline: none !important;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.22) !important;
-}
-
-input:focus, textarea:focus, select:focus{
-  border-color: rgba(96,165,250,0.55) !important;
-  box-shadow: 0 0 0 3px rgba(96,165,250,0.16) !important;
-}
-
-/* Dash core components sometimes wrap inputs */
-.dash-input input,
-.dash-input textarea{
-  background: rgba(2, 6, 23, 0.62) !important;
-  color: var(--text-strong) !important;
-  border: 1px solid rgba(148,163,184,0.14) !important;
-  outline: none !important;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.22) !important;
-}
-
-/* React-Select (dcc.Dropdown) — force dark + readable text */
-.Select-control{
-  background: rgba(2, 6, 23, 0.62) !important;
-  border: 1px solid rgba(148,163,184,0.14) !important;
-  border-radius: 12px !important;
-  color: var(--text-strong) !important;
-}
-.Select-control:hover{
-  border-color: rgba(96,165,250,0.45) !important;
-}
-.is-focused:not(.is-open) > .Select-control{
-  border-color: rgba(96,165,250,0.55) !important;
-  box-shadow: 0 0 0 3px rgba(96,165,250,0.16) !important;
-}
-.Select-placeholder{
-  color: rgba(229,231,235,0.40) !important;
-}
-.Select-value-label{
-  color: var(--text-strong) !important;
-}
-.Select-arrow-zone, .Select-clear-zone{
-  color: rgba(229,231,235,0.55) !important;
-}
-.Select-menu-outer{
-  background: rgba(15,23,42,0.95) !important;
-  border: 1px solid rgba(148,163,184,0.14) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 18px 40px rgba(0,0,0,0.45) !important;
-}
-.Select-option{
-  background: rgba(15,23,42,0.92) !important;
-  color: var(--text-strong) !important;
-}
-.Select-option.is-focused{
-  background: rgba(96,165,250,0.16) !important;
-}
-.Select-option.is-selected{
-  background: rgba(167,139,250,0.22) !important;
-}
-
-/* Checklist / radio labels: prevent black text */
-.checklist label{
-  color: rgba(229,231,235,0.86) !important;
-}
-.checklist label span{
-  color: rgba(229,231,235,0.86) !important;
-}
-
-/* Button palette coherence */
-button{
-  border: 1px solid rgba(96,165,250,0.45) !important;
-  background: linear-gradient(90deg, rgba(96,165,250,0.26), rgba(167,139,250,0.20)) !important;
-}
-button:focus{
-  outline: none !important;
-  box-shadow: 0 0 0 3px rgba(96,165,250,0.18) !important;
-}
-
-/* Tabs styling (for the new 2D/3D tabs) */
-.tabbar{
-  margin-bottom: 8px;
-}
-.tabbar .tab{
-  border: 1px solid rgba(148,163,184,0.20) !important;
-  background: rgba(2,6,23,0.25) !important;
-  color: rgba(229,231,235,0.80) !important;
-  border-radius: 999px !important;
-  padding: 8px 12px !important;
-  margin-right: 8px !important;
-}
-.tabbar .tab--selected{
-  border-color: rgba(96,165,250,0.55) !important;
-  background: rgba(96,165,250,0.16) !important;
-  color: rgba(229,231,235,0.92) !important;
-}
-
-/* Plotly modebar: stop it looking like a white sticker */
-.js-plotly-plot .modebar{
-  background: rgba(2,6,23,0.35) !important;
-  border: 1px solid rgba(148,163,184,0.20) !important;
-  border-radius: 12px !important;
-  padding: 3px 6px !important;
-}
-.js-plotly-plot .modebar-btn{
-  color: rgba(229,231,235,0.75) !important;
-}
-.js-plotly-plot .modebar-btn:hover{
-  color: rgba(229,231,235,0.95) !important;
-}
-
-/* Loading overlay: keep transparent */
-._dash-loading{
-  background: rgba(0,0,0,0) !important;
-}
-
-/* ---------- Refinements v3 ---------- */
-hr{
-  height: 1px;
-  border: none;
-  background: rgba(148,163,184,0.18);
-}
-
-
-/* ---------- Metrics ---------- */
-.metrics-row{
-  display: grid;
-  grid-template-columns: repeat(5, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.metric{
-  background: linear-gradient(180deg, rgba(17,27,52,0.78), rgba(15,26,48,0.66));
-  border: 1px solid rgba(148,163,184,0.18);
-  border-radius: 18px;
-  box-shadow: 0 14px 35px rgba(0,0,0,0.30);
-  padding: 12px 12px;
-  min-height: 72px;
-}
-.metric .k{
-  font-size: 12px;
-  color: rgba(229,231,235,0.70);
-  margin-bottom: 6px;
-}
-.metric .v{
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: rgba(229,231,235,0.92);
-}
-.metric .s{
-  margin-top: 4px;
-  font-size: 12px;
-  color: rgba(229,231,235,0.55);
-}
-.metric.good .v{ color: rgba(52,211,153,0.92); }
-.metric.warn .v{ color: rgba(251,191,36,0.92); }
-.metric.bad  .v{ color: rgba(251,113,133,0.92); }
-
-@media (max-width: 1200px){
-  .metrics-row{ grid-template-columns: repeat(2, 1fr); }
-}
-
-
-/* Hide native number steppers (if any remain) */
-input[type=number]::-webkit-outer-spin-button,
-input[type=number]::-webkit-inner-spin-button{
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type=number]{ -moz-appearance: textfield; }
-
-
-/* ---------- DataTable ---------- */
-.dash-table-container .dash-spreadsheet-container{
-  background: rgba(0,0,0,0) !important;
-}
-.dash-table-container .dash-spreadsheet{
-  background: rgba(2,6,23,0.25) !important;
-  border: 1px solid rgba(148,163,184,0.18) !important;
-  border-radius: 16px !important;
-  overflow: hidden !important;
-}
-.dash-table-container .dash-header{
-  background: rgba(15,23,42,0.92) !important;
-  color: rgba(229,231,235,0.92) !important;
-  font-weight: 700 !important;
-}
-.dash-table-container .dash-cell{
-  background: rgba(2,6,23,0.40) !important;
-  color: rgba(229,231,235,0.86) !important;
-  border-bottom: 1px solid rgba(148,163,184,0.12) !important;
-  border-right: 1px solid rgba(148,163,184,0.08) !important;
-}
-.dash-table-container .dash-cell.focused{
-  outline: none !important;
-  box-shadow: inset 0 0 0 2px rgba(96,165,250,0.35) !important;
-}
-.dash-table-container .dash-cell.selected{
-  background: rgba(96,165,250,0.16) !important;
-}
-
-/* ---------- Database monitor additions ---------- */
-.app-shell .content > .content{
-  padding: 0;
-}
-.json-pre{
-  margin: 0;
-  max-height: 54vh;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 12px;
-  line-height: 1.35;
-  color: rgba(229,231,235,0.84);
-  background: rgba(2,6,23,0.45);
-  border: 1px solid rgba(148,163,184,0.14);
-  border-radius: 14px;
-  padding: 10px 12px;
-}
-
-.sidebar .card .label + input,
-.sidebar .card .label + .dash-dropdown{
-  margin-bottom: 4px;
-}
-
-.dash-table-container .previous-next-container button,
-.dash-table-container .page-number{
-  width: auto !important;
-}
-
-.dash-table-container .dash-filter input{
-  border-radius: 8px !important;
-  padding: 6px 8px !important;
-}
-
-@media (max-width: 1400px){
-  .graph-row{ grid-template-columns: 1fr; }
-  .graph-row-2{ grid-template-columns: 1fr; }
-  .app-shell{ height: auto; min-height: 100vh; }
-}
-
-@media (max-width: 900px){
-  .app-shell{ flex-direction: column; }
-  .sidebar{ width: auto; max-width: none; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); }
-}
+  line-height: 1.5;
+}
+button, input, textarea, select { font: inherit; }
+.skip-link { position: fixed; top: -100px; left: 1rem; z-index: 1000; padding: .75rem 1rem; background: white; color: #07111f; border-radius: .5rem; }
+.skip-link:focus { top: 1rem; }
+.app-shell { display: grid; grid-template-columns: minmax(330px, 390px) minmax(0,1fr); min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px; border-right: 1px solid var(--border); background: linear-gradient(180deg, rgba(7,17,31,.98), rgba(10,23,40,.96)); }
+.sidebar-stack { display: grid; gap: 14px; }
+.brand { display: grid; grid-template-columns: 62px minmax(0,1fr); align-items: center; gap: 13px; }
+.brand-logo { width: 62px; height: 62px; object-fit: contain; padding: 6px; border-radius: 15px; background: white; box-shadow: var(--shadow); }
+.brand-copy { min-width: 0; }
+.brand h1 { margin: 0; font-size: 1.08rem; letter-spacing: .01em; }
+.brand-subtitle { margin-top: 4px; color: var(--muted); font-size: .79rem; line-height: 1.4; }
+.brand .badge { grid-column: 2; justify-self: start; padding: 3px 8px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--accent); background: rgba(49,167,244,.08); font-size: .68rem; font-weight: 700; letter-spacing: .08em; }
+.science-note { padding: 12px 14px; border-left: 3px solid var(--accent); border-radius: 0 12px 12px 0; background: rgba(49,167,244,.075); color: #cddbec; font-size: .82rem; }
+.card { border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(180deg, rgba(16,34,57,.90), rgba(10,24,43,.88)); box-shadow: var(--shadow); padding: 14px; }
+.control-card { padding: 15px; }
+.card-title { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+.card-title h2 { margin: 0; color: var(--text); font-size: .92rem; font-weight: 700; }
+.card-title span { color: var(--muted); font-size: .70rem; text-align: right; }
+.section-kicker { margin-bottom: 4px; color: var(--accent); font-size: .69rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.label { display: block; margin-bottom: 5px; color: var(--muted); font-size: .75rem; font-weight: 600; }
+.hint { margin-top: 7px; color: #8499af; font-size: .72rem; line-height: 1.4; }
+input, textarea, select, .Select-control { width: 100%; min-height: 40px; border: 1px solid var(--border) !important; border-radius: 10px !important; background: rgba(3,12,25,.76) !important; color: var(--text) !important; box-shadow: none !important; }
+input, textarea, select { padding: 9px 10px !important; }
+input:focus, textarea:focus, select:focus, .is-focused:not(.is-open) > .Select-control { border-color: var(--accent-strong) !important; box-shadow: 0 0 0 3px rgba(49,167,244,.14) !important; outline: none !important; }
+.Select-value-label, .Select-placeholder, .Select-input > input { color: var(--text) !important; }
+.Select-placeholder { color: #7f93a9 !important; }
+.Select-menu-outer { z-index: 50 !important; border: 1px solid var(--border) !important; border-radius: 10px !important; background: #0b1b30 !important; color: var(--text) !important; box-shadow: var(--shadow) !important; }
+.VirtualizedSelectOption, .Select-option { background: #0b1b30 !important; color: var(--text) !important; }
+.VirtualizedSelectFocusedOption, .Select-option.is-focused { background: rgba(49,167,244,.16) !important; }
+.checklist { display: grid; gap: 6px; margin-top: 10px; }
+.checklist label { color: #c9d8e8 !important; font-size: .79rem; }
+.checklist input { width: auto; min-height: 0; margin-right: 7px; accent-color: var(--accent-strong); }
+button { width: 100%; min-height: 42px; border: 1px solid var(--border-strong); border-radius: 11px; padding: 10px 14px; color: white; background: linear-gradient(90deg, rgba(49,167,244,.88), rgba(44,137,211,.88)); cursor: pointer; font-weight: 700; transition: transform .12s ease, filter .15s ease; }
+button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+button:disabled { opacity: .42; cursor: not-allowed; }
+.primary-action { margin-top: 12px; }
+.secondary-btn { background: rgba(49,167,244,.12) !important; }
+.status { margin-top: 10px; padding: 10px 11px; border: 1px solid var(--border); border-radius: 10px; background: rgba(3,12,25,.55); color: #bfcede; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .72rem; line-height: 1.48; white-space: pre-wrap; }
+hr { height: 1px; border: 0; background: var(--border); margin: 13px 0; }
+.main-panel { min-width: 0; }
+.main-navigation { position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 22px; padding: 17px 24px 14px; border-bottom: 1px solid var(--border); background: rgba(7,17,31,.88); backdrop-filter: blur(16px); }
+.main-navigation h1 { margin: 0; color: var(--text); font-size: 1.15rem; letter-spacing: -.02em; }
+.content { padding: 22px 24px 34px; min-width: 0; }
+.tabbar { border: 0 !important; }
+.tabbar .tab { border: 1px solid var(--border) !important; background: rgba(12,28,49,.78) !important; color: var(--muted) !important; padding: 9px 13px !important; font-size: .76rem; }
+.tabbar .tab--selected { border-color: var(--border-strong) !important; background: rgba(49,167,244,.14) !important; color: var(--text) !important; font-weight: 700; }
+.page-tabbar { min-width: 620px; }
+.metrics-row { display: grid; grid-template-columns: repeat(6, minmax(120px,1fr)); gap: 10px; margin-bottom: 14px; }
+.metric { min-width: 0; padding: 13px 14px; border: 1px solid var(--border); border-radius: 14px; background: rgba(13,31,52,.80); }
+.metric.good { border-color: rgba(101,214,166,.32); }
+.metric.warn { border-color: rgba(242,198,109,.32); }
+.metric .k { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; }
+.metric .v { margin-top: 3px; color: var(--text); font-size: 1.4rem; font-weight: 750; }
+.metric .s { color: #8297ae; font-size: .67rem; line-height: 1.25; }
+.grid { display: grid; gap: 14px; }
+.graph-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-bottom: 14px; }
+.graph-row-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-bottom: 14px; }
+.graph-card { min-width: 0; }
+.json-pre { margin: 0; max-height: 52vh; overflow: auto; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(3,12,25,.58); color: #cfe0f0; font-size: .72rem; white-space: pre-wrap; }
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td, .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th { background: rgba(5,16,30,.88) !important; color: #dbe8f5 !important; border-color: rgba(148,173,203,.14) !important; }
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th { background: #10253e !important; color: #f2f7fd !important; font-weight: 700 !important; }
+.dash-table-container .dash-filter input { color: white !important; }
+.js-plotly-plot .plotly .main-svg { background: transparent !important; }
+@media (max-width: 1280px) { .app-shell { grid-template-columns: 320px minmax(0,1fr); } .metrics-row { grid-template-columns: repeat(3, minmax(120px,1fr)); } .page-tabbar { min-width: 0; } .main-navigation { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 900px) { .app-shell { display: block; } .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); } .main-navigation { position: static; } .content { padding: 18px 14px 28px; } .metrics-row, .graph-row, .graph-row-2, .grid { grid-template-columns: 1fr !important; } }

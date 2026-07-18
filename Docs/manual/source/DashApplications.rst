@@ -1,9 +1,10 @@
-Interactive Dash applications
-=============================
+Interactive analysis applications
+=================================
 
-SET-ANUBIS includes two optional Dash applications. They are intended for visual
-inspection, validation and campaign auditing. They do not replace the
-version-controlled geometry, selection or database APIs used to produce
+SET-ANUBIS includes two optional Dash applications for event-level validation
+and campaign auditing. They use the same packaged resources and core APIs as the
+command-line workflows, but remain inspection layers: archived selection
+outputs and version-controlled configuration are the source of truth for
 scientific results.
 
 Installation
@@ -13,46 +14,66 @@ Installation
 
    python -m pip install "SetAnubis[app,selection]"
 
-HepMC explorer
---------------
+HepMC selection explorer
+------------------------
 
-The HepMC explorer displays LLP production and decay vertices, charged and
-neutral tracks, event-level kinematics and 2D/3D projections of the ATLAS cavern
-and ANUBIS geometry. It is useful for checking coordinate conventions, decay
-chains and representative events before a large selection campaign.
+The HepMC application connects generated LLP events to the ordered
+SET-ANUBIS selection. It opens with the seven-event HNL benchmark used by the
+CPC reproducibility scenario R5, so the first launch does not require a local
+file path.
 
 .. code-block:: bash
 
    setanubis-hepmc-explorer --host 127.0.0.1 --port 8050
 
-The input HepMC path and event filters are selected in the application sidebar.
-The displayed geometry is a diagnostic view; numerical acceptance should be
-obtained from the selection pipeline.
+The default HNL profile reproduces the canonical stages
+``LLPDecay -> InCavern -> NotInATLAS -> Geometry -> Tracker -> MET ->
+IsoJets -> IsoCharged -> IsoAll -> Final``. The interface reports cumulative
+candidate counts, the first failed stage for every event, kinematic
+distributions and 2D/3D detector geometry. A generic LLP mode can be selected
+for custom HepMC files when the standard HNL configuration is not applicable.
 
-Database dashboard
-------------------
+The displayed ``InCavern`` stage is the configured ANUBIS fiducial decay region;
+``NotInATLAS`` then applies the ATLAS detector-volume veto. This distinction is
+important: the stages are ordered selection requirements, not independent
+geometric labels.
 
-The database dashboard summarises imported model points, cross sections, cards,
-banners, content-addressed artefacts, dataframe bundles and storage savings. It
-can also inspect particle metadata extracted from stored banners.
+The optional display-region class is a plotting aid only. It does not determine
+acceptance and cannot replace the cumulative ``InCavern``/``NotInATLAS``
+selection trace.
+
+Campaign database inspector
+----------------------------
+
+The database application audits generator provenance, scan metadata,
+content-addressed artifacts and compact selection-ready bundles. It also starts
+with an internal demonstration workspace created from the packaged R5 HepMC
+record, bundle and manifest.
+
+.. code-block:: bash
+
+   setanubis-db-dashboard --host 127.0.0.1 --port 8051
+
+Choose **Local SET-ANUBIS campaign** in the sidebar to inspect an existing
+catalogue. The corresponding command-line form is:
 
 .. code-block:: bash
 
    setanubis-db-dashboard \
-      --db db/EventsDatabase.db \
-      --storage db/EventsStorage \
-      --events-root db/Events_THEO \
+      --db /path/to/EventsDatabase.db \
+      --storage /path/to/EventsStorage \
+      --events-root /path/to/MadGraph/Events \
       --host 127.0.0.1 \
       --port 8051
 
-The dashboard reads the existing catalogue and storage directories. Backfill
-operations should be run only on a controlled copy or after the database has
-been backed up.
+The ``events-root`` argument is only required when refreshing storage
+provenance from MadGraph run directories. Backfill operations update database
+metadata and should therefore be performed on a controlled campaign database.
 
 Security and deployment
 -----------------------
 
-Both applications are development and analysis tools. They should be bound to
-``127.0.0.1`` unless they are placed behind an authenticated reverse proxy.
-Do not expose local event paths, databases or generator outputs directly to an
-untrusted network.
+Both applications are local analysis tools. Bind them to ``127.0.0.1`` unless
+they are deployed behind an authenticated reverse proxy. Local event paths,
+databases and generator outputs should not be exposed directly to an untrusted
+network.
