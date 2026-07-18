@@ -449,7 +449,9 @@ def test_reproducibility_suite_has_cpc_scenario_contract():
     assert "/reproducibility-output/" in gitignore
     release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
     assert "Run CPC reproducibility gate" in release
-    assert "--output-root .release-reproducibility" in release
+    assert "--output-root release-reproducibility" in release
+    assert "path: release-reproducibility" in release
+    assert "/release-reproducibility/" in gitignore
 
 def test_final_release_workflow_requires_a_matching_tag():
     """Prevent final PyPI publication from an untagged branch commit."""
@@ -466,6 +468,9 @@ def test_final_release_workflow_requires_a_matching_tag():
     )
     assert "actions/checkout@v7" not in workflow_text
     assert "actions/checkout@v6" in workflow_text
+
+    docs_workflow = (root / ".github/workflows/docs.yml").read_text(encoding="utf-8")
+    assert "paths:" not in docs_workflow
 
 
 def test_release_workflow_is_tag_driven_and_testpypi_gated():

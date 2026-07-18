@@ -105,13 +105,13 @@ jobs:
       - name: Run CPC reproducibility gate
         run: >-
           python reproducibility/run_reproducibility.py
-          --output-root .release-reproducibility
+          --output-root release-reproducibility
 
       - name: Upload reproducibility evidence
         uses: actions/upload-artifact@v7
         with:
           name: release-reproducibility-${{ steps.package-version.outputs.version }}
-          path: .release-reproducibility
+          path: release-reproducibility
           if-no-files-found: error
           retention-days: 30
 

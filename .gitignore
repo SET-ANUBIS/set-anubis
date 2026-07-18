@@ -227,7 +227,7 @@ Assets/MadGraph/MadGraphTemp/*
 output_*
 outputs*
 /reproducibility-output/
-/.release-reproducibility/
+/release-reproducibility/
 pythia_
 db/Temp
 .coverage
@@ -273,6 +273,5 @@ External_Integration/Pythia/pythia*-src
 # Reproducibility outputs
 reproducibility_outputs/
 .reproducibility-output/
-.release-reproducibility/
 .ci-reproducibility/
 .local-reproducibility/
