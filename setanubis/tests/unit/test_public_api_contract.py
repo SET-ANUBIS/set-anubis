@@ -443,7 +443,10 @@ def test_reproducibility_suite_has_cpc_scenario_contract():
     )
     assert "CPC R1-R5" in workflow
     assert "run_reproducibility.py" in workflow
-    assert "--output-root .reproducibility-output" in workflow
+    assert "--output-root reproducibility-output" in workflow
+    assert "path: reproducibility-output" in workflow
+    gitignore = (root / ".gitignore").read_text(encoding="utf-8")
+    assert "/reproducibility-output/" in gitignore
     release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
     assert "Run CPC reproducibility gate" in release
     assert "--output-root .release-reproducibility" in release

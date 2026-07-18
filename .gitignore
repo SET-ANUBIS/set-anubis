@@ -226,6 +226,8 @@ Assets/MARTY/MartyTemp/*
 Assets/MadGraph/MadGraphTemp/*
 output_*
 outputs*
+/reproducibility-output/
+/.release-reproducibility/
 pythia_
 db/Temp
 .coverage

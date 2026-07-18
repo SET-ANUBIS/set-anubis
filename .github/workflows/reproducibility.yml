@@ -37,12 +37,12 @@ jobs:
       - name: Run and validate CPC reproducibility scenarios
         run: >-
           python reproducibility/run_reproducibility.py
-          --output-root .reproducibility-output
+          --output-root reproducibility-output
 
       - name: Upload reproducibility evidence
         uses: actions/upload-artifact@v7
         with:
           name: setanubis-reproducibility-${{ github.sha }}
-          path: .reproducibility-output
+          path: reproducibility-output
           if-no-files-found: error
           retention-days: 30
