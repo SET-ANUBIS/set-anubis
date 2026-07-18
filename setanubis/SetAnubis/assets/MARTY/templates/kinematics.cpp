@@ -593,28 +593,9 @@ void KinematicsCalculator13::compute_momenta(std::vector<double> kin_params) {
 }
 
 std::vector<std::pair<double, double>> KinematicsCalculator13::compute_kinematic_limits() const {
-    double t_min = pow(m_masses[2] + m_masses[3], 2);
-    double t_max = pow(m_masses[0] - m_masses[1], 2);
-    double x_max = (m_masses_sq[0] - m_masses_sq[1] - t_min) / (2 * m_masses_sq[0]);
-    double x_min = (m_masses_sq[0] - m_masses_sq[1] - t_max) / (2 * m_masses_sq[0]);
-
-    double y_min, y_max;
-    if (m_masses[2] == 0 && m_masses[3] == 0) {
-        y_min = 0;
-        y_max = (1 - m_masses_sq[1] / m_masses_sq[0]) / 2;
-    } else if (m_masses[1] == 0 && m_masses[3] == 0) {
-        y_min = m_masses[3] / m_masses[1];
-        y_max = (1 + m_masses_sq[3] / m_masses_sq[1]) / 2;
-    } else {
-        double t_y_min = (m_masses[2] * (m_masses_sq[0] - m_masses_sq[1]) + m_masses[0] * (m_masses_sq[3] - m_masses_sq[2])) / (m_masses[0] - m_masses[2]);
-        double t_y_max = (m_masses[3] * (m_masses_sq[0] - m_masses_sq[1]) + m_masses[1] * (m_masses_sq[2] - m_masses_sq[3])) / (m_masses[1] + m_masses[4]);
-        y_min = (t_y_min + m_masses_sq[2] - m_masses_sq[3]) * (t_y_min + m_masses_sq[0] - m_masses_sq[1]) / (4 * t_y_min * m_masses_sq[0])
-                            - Kinematics::Beta(m_masses_sq[1], t_y_min, m_masses_sq[0]) * Kinematics::Beta(m_masses_sq[2], m_masses_sq[3], t_y_min) / 4;
-        y_max = (t_y_max + m_masses_sq[2] - m_masses_sq[3]) * (t_y_max + m_masses_sq[0] - m_masses_sq[1]) / (4 * t_y_max * m_masses_sq[0])
-                            + Kinematics::Beta(m_masses_sq[1], t_y_max, m_masses_sq[0]) * Kinematics::Beta(m_masses_sq[2], m_masses_sq[3], t_y_max) / 4;
-    }
-    return {{0, 1}, {0, 1}}; //eheh TODO
-    return {{x_min, x_max}, {y_min, y_max}};
+    // Sample a conservative unit square. DEFAULT_PS_IND_13 applies the exact
+    // phase-space boundary and rejects points outside the physical region.
+    return {{0.0, 1.0}, {0.0, 1.0}};
 }
 
 double KinematicsCalculator13::compute_phase_space_factor(std::vector<double> kin_params) {

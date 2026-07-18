@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -203,7 +204,7 @@ def _fallback_storage_stats(db_path: str) -> Dict[str, Any]:
     out = {"events": 0, "models": 0, "cas_blobs": 0, "cas_size_bytes": 0}
     if not os.path.exists(db_path):
         return out
-    with sqlite3.connect(db_path) as conn:
+    with closing(sqlite3.connect(db_path)) as conn:
         conn.row_factory = sqlite3.Row
         for key, sql in [
             ("events", "SELECT COUNT(*) AS n FROM events"),

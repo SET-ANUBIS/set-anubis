@@ -553,3 +553,23 @@ def test_dash_applications_use_packaged_scientific_defaults():
     assert "seven-event HNL benchmark" in documentation
     assert "Packaged" not in documentation or "packaged" in documentation.lower()
     assert "db/Events_THEO" not in documentation
+
+
+def test_marty_one_to_three_template_uses_safe_sampling_bounds():
+    """Prevent out-of-range mass access in generated 1-to-3 kinematics code."""
+    root = Path(__file__).parents[3]
+    templates = [
+        root / "Assets/MARTY/templates/kinematics.cpp",
+        root / "Assets/MARTY/templates/kinematics_gpt.cpp",
+        root / "setanubis/SetAnubis/assets/MARTY/templates/kinematics.cpp",
+        root / "setanubis/SetAnubis/assets/MARTY/templates/kinematics_gpt.cpp",
+    ]
+    signature = "KinematicsCalculator13::compute_kinematic_limits() const"
+    for template in templates:
+        source = template.read_text(encoding="utf-8")
+        body = source.split(signature, 1)[1].split(
+            "KinematicsCalculator13::compute_phase_space_factor", 1
+        )[0]
+        assert "m_masses[4]" not in body
+        assert "return {{0.0, 1.0}, {0.0, 1.0}};" in body
+        assert "phase-space boundary" in body

@@ -10,6 +10,7 @@ import pickle
 import shutil
 import sqlite3
 import tempfile
+from contextlib import closing
 from dataclasses import dataclass
 from importlib.resources import as_file, files
 from pathlib import Path
@@ -126,7 +127,7 @@ def ensure_demo_workspace() -> DemoWorkspace:
     bundle_metadata = _bundle_metadata(source_bundle)
     manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
 
-    with sqlite3.connect(database) as conn:
+    with closing(sqlite3.connect(database)) as conn:
         conn.execute("INSERT OR IGNORE INTO models(name) VALUES (?)", ("UFO_HNL",))
         model_id = conn.execute("SELECT id FROM models WHERE name=?", ("UFO_HNL",)).fetchone()[0]
         conn.execute(
