@@ -490,3 +490,75 @@ hr { height: 1px; border: 0; background: var(--border); margin: 13px 0; }
   border-radius: 999px;
   background: rgba(157, 176, 198, .48);
 }
+
+/* Dash 3 / current React-Select class names. The component-level
+   ``science-dropdown`` class keeps these overrides local to SET-ANUBIS. */
+.science-dropdown .Select__control,
+.science-dropdown .Select__control:hover,
+.science-dropdown .Select__control--is-focused {
+  min-height: 40px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: rgba(3, 12, 25, .92) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+.science-dropdown .Select__control--is-focused {
+  border-color: var(--accent-strong) !important;
+  box-shadow: 0 0 0 3px rgba(49, 167, 244, .14) !important;
+}
+.science-dropdown .Select__value-container,
+.science-dropdown .Select__input-container,
+.science-dropdown .Select__single-value,
+.science-dropdown .Select__input-container input {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+.science-dropdown .Select__placeholder {
+  color: #7f93a9 !important;
+}
+.science-dropdown .Select__menu,
+.science-dropdown .Select__menu-list {
+  z-index: 1000 !important;
+  border-color: var(--border-strong) !important;
+  background: #0b1b30 !important;
+  color: var(--text) !important;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, .42) !important;
+}
+.science-dropdown .Select__option {
+  border-bottom: 1px solid rgba(148, 173, 203, .08);
+  background: #0b1b30 !important;
+  color: #dce9f6 !important;
+}
+.science-dropdown .Select__option--is-focused {
+  background: rgba(49, 167, 244, .18) !important;
+  color: #ffffff !important;
+}
+.science-dropdown .Select__option--is-selected {
+  background: rgba(101, 214, 166, .16) !important;
+  color: #eafff8 !important;
+  font-weight: 700;
+}
+.science-dropdown .Select__multi-value {
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 7px !important;
+  background: rgba(49, 167, 244, .12) !important;
+}
+.science-dropdown .Select__multi-value__label {
+  color: var(--text) !important;
+}
+.science-dropdown .Select__multi-value__remove {
+  color: var(--muted) !important;
+}
+.science-dropdown .Select__multi-value__remove:hover {
+  background: rgba(255, 135, 152, .12) !important;
+  color: var(--bad) !important;
+}
+.science-dropdown .Select__indicator,
+.science-dropdown .Select__dropdown-indicator,
+.science-dropdown .Select__clear-indicator {
+  color: var(--muted) !important;
+}
+.science-dropdown .Select__indicator-separator {
+  background-color: var(--border) !important;
+}

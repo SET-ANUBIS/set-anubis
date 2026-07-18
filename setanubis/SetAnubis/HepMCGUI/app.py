@@ -35,6 +35,7 @@ from SetAnubis.HepMCGUI.geometry.plotly_cavern_3d import Cavern3DFigureFactory
 from SetAnubis.HepMCGUI.geometry.anubis_plotly import AnubisOverlayFactory
 from SetAnubis.HepMCGUI.geometry.region_classifier import RegionClassifier
 from SetAnubis.HepMCGUI.demo import demo_hepmc_path
+from SetAnubis.HepMCGUI.dashboard_utils import sampled_overlay_event_ids
 from SetAnubis.HepMCGUI.selection_diagnostics import (
     SELECTION_STAGE_LABELS,
     SELECTION_STAGE_ORDER,
@@ -1272,8 +1273,9 @@ def update_dashboard_figures(
                 hoverinfo="skip", showlegend=False
             ))
 
-    if ("tree" in (tree_opts or [])) and (allowed_events is not None) and (len(allowed_events) > 0):
+    if "tree" in (tree_opts or []):
         max_ev = _int_or_none(tree_max_events) or 40
+        ev_list = sampled_overlay_event_ids(dff, allowed_events, max_ev)
         depth = _int_or_none(tree_depth)
         if depth is None:
             depth = 2
@@ -1287,7 +1289,7 @@ def update_dashboard_figures(
         pos_ip = bool(cfg.get("pos_ip", True))
         root_pdg = int(cfg.get("pdg_id", df["pid"].iloc[0]))
 
-        if hepmc_path and os.path.exists(hepmc_path):
+        if ev_list and hepmc_path and os.path.exists(hepmc_path):
             cav_transform = CavernTransform(cavern=cav, hepmc_positions_are_ip_relative=pos_ip)
             tb_cfg = TrackBuildConfig(
                 root_pdg=root_pdg,
@@ -1297,8 +1299,6 @@ def update_dashboard_figures(
                 bounds_m=bounds,
             )
 
-            # sample events deterministically
-            ev_list = sorted(list(allowed_events))[:max_ev]
             all_segs: List[Dict[str, Any]] = []
             for ev_id in ev_list:
                 try:
