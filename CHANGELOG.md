@@ -62,6 +62,8 @@ First public stable release of SET-ANUBIS.
 - Restricted release-source validation to maintained and distributed code, excluding downloaded third-party toolchains and generated build trees.
 - Fixed Pythia scan filename parsing and removed import-time root logger configuration.
 - Fixed the generic geometry plotting adapter and `limit=0` handling in the event-database HepMC selector.
+- Fixed the sampled decay-tree overlay in the HepMC dashboard when no event-level filter is active.
+- Extended the dark dropdown theme to the React-Select classes used by current Dash releases in both GUI applications.
 
 ### Notes
 
