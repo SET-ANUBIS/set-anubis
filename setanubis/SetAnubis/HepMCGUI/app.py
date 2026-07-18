@@ -456,6 +456,7 @@ def controls_sidebar(logo_src: str) -> html.Div:
                         ],
                         value="demo",
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     html.Div("HepMC2/HepMC3 path", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="hepmc-path", type="text", value=DEFAULT_HEPMC_PATH, style={"width": "100%"}),
@@ -494,6 +495,7 @@ def controls_sidebar(logo_src: str) -> html.Div:
                         ],
                         value="standard_hnl",
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     html.Div(
                         className="parameter-list",
@@ -514,6 +516,7 @@ def controls_sidebar(logo_src: str) -> html.Div:
                         ],
                         value="all",
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     html.Div("Display-region classification", className="label", style={"marginTop": "10px"}),
                     dcc.Dropdown(
@@ -525,6 +528,7 @@ def controls_sidebar(logo_src: str) -> html.Div:
                         ],
                         value="all",
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     html.Div("Lifetime observable", className="label", style={"marginTop": "10px"}),
                     dcc.RadioItems(
@@ -573,6 +577,7 @@ def controls_sidebar(logo_src: str) -> html.Div:
                         ],
                         value="ZY",
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     dcc.Checklist(
                         id="geom-options",

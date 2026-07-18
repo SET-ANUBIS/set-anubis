@@ -93,3 +93,105 @@ hr { height: 1px; border: 0; background: var(--border); margin: 13px 0; }
 .js-plotly-plot .plotly .main-svg { background: transparent !important; }
 @media (max-width: 1280px) { .app-shell { grid-template-columns: 320px minmax(0,1fr); } .metrics-row { grid-template-columns: repeat(3, minmax(120px,1fr)); } .page-tabbar { min-width: 0; } .main-navigation { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 900px) { .app-shell { display: block; } .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); } .main-navigation { position: static; } .content { padding: 18px 14px 28px; } .metrics-row, .graph-row, .graph-row-2, .grid { grid-template-columns: 1fr !important; } }
+
+/* Searchable Dash dropdowns -------------------------------------------------
+   Dash/React-Select renders the control and its popup as nested elements with
+   their own default light theme.  Scope the overrides to SET-ANUBIS dropdowns
+   so the search field, option list and selection states remain consistent
+   with the scientific dark interface. */
+.science-dropdown {
+  color-scheme: dark;
+  color: var(--text) !important;
+}
+.science-dropdown .Select,
+.science-dropdown .Select-control,
+.science-dropdown .Select-input,
+.science-dropdown .Select-input > input,
+.science-dropdown .Select-value,
+.science-dropdown .Select-value-label,
+.science-dropdown .Select-placeholder,
+.science-dropdown .Select-noresults {
+  color: var(--text) !important;
+  background-color: transparent !important;
+}
+.science-dropdown .Select-control,
+.science-dropdown.is-open > .Select-control,
+.science-dropdown .is-open > .Select-control {
+  border-color: var(--border) !important;
+  background: rgba(3, 12, 25, .92) !important;
+}
+.science-dropdown .Select-input > input {
+  caret-color: var(--accent) !important;
+}
+.science-dropdown .Select-input > input::placeholder {
+  color: #7f93a9 !important;
+}
+.science-dropdown .Select-menu-outer,
+.science-dropdown .Select-menu,
+.science-dropdown [role="listbox"] {
+  overflow: hidden;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 10px !important;
+  background: #0b1b30 !important;
+  color: var(--text) !important;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, .42) !important;
+}
+.science-dropdown .Select-option,
+.science-dropdown .VirtualizedSelectOption,
+.science-dropdown [role="option"] {
+  border-bottom: 1px solid rgba(148, 173, 203, .08);
+  background: #0b1b30 !important;
+  color: #dce9f6 !important;
+}
+.science-dropdown .Select-option:last-child,
+.science-dropdown .VirtualizedSelectOption:last-child,
+.science-dropdown [role="option"]:last-child {
+  border-bottom: 0;
+}
+.science-dropdown .Select-option.is-focused,
+.science-dropdown .VirtualizedSelectFocusedOption,
+.science-dropdown [role="option"]:hover,
+.science-dropdown [role="option"][aria-selected="false"]:focus {
+  background: rgba(49, 167, 244, .18) !important;
+  color: #ffffff !important;
+}
+.science-dropdown .Select-option.is-selected,
+.science-dropdown .VirtualizedSelectSelectedOption,
+.science-dropdown [role="option"][aria-selected="true"] {
+  background: rgba(101, 214, 166, .16) !important;
+  color: #eafff8 !important;
+  font-weight: 700;
+}
+.science-dropdown .Select--multi .Select-value {
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 7px !important;
+  background: rgba(49, 167, 244, .12) !important;
+}
+.science-dropdown .Select--multi .Select-value-icon {
+  border-right-color: var(--border-strong) !important;
+  color: var(--muted) !important;
+}
+.science-dropdown .Select--multi .Select-value-icon:hover {
+  background: rgba(255, 135, 152, .12) !important;
+  color: var(--bad) !important;
+}
+.science-dropdown .Select-clear-zone,
+.science-dropdown .Select-arrow-zone {
+  color: var(--muted) !important;
+}
+.science-dropdown .Select-arrow {
+  border-top-color: var(--muted) !important;
+}
+.science-dropdown .is-open .Select-arrow {
+  border-bottom-color: var(--accent) !important;
+}
+.science-dropdown .Select-menu::-webkit-scrollbar,
+.science-dropdown [role="listbox"]::-webkit-scrollbar {
+  width: 9px;
+}
+.science-dropdown .Select-menu::-webkit-scrollbar-thumb,
+.science-dropdown [role="listbox"]::-webkit-scrollbar-thumb {
+  border: 2px solid #0b1b30;
+  border-radius: 999px;
+  background: rgba(157, 176, 198, .48);
+}

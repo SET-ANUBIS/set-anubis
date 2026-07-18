@@ -163,6 +163,7 @@ def controls_sidebar(default_db: str, default_storage: str, default_events_root:
                         ],
                         value=initial_profile,
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     html.Div(
                         "The packaged workspace is created from the versioned R5 HepMC sample, compact bundle and selection manifest.",
@@ -192,7 +193,14 @@ def controls_sidebar(default_db: str, default_storage: str, default_events_root:
                 "applied when the campaign is loaded",
                 [
                     html.Div("UFO model", className="label"),
-                    dcc.Dropdown(id="model-filter", options=[], value=None, clearable=True, placeholder="All stored models"),
+                    dcc.Dropdown(
+                        id="model-filter",
+                        options=[],
+                        value=None,
+                        clearable=True,
+                        placeholder="All stored models",
+                        className="science-dropdown",
+                    ),
                     html.Div("LLP PDG identifier", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="llp-pid-filter", type="text", value="", placeholder="9900012", style={"width": "100%"}),
                     html.Div("Selection-ready bundle", className="label", style={"marginTop": "10px"}),
@@ -205,6 +213,7 @@ def controls_sidebar(default_db: str, default_storage: str, default_events_root:
                         ],
                         value="all",
                         clearable=False,
+                        className="science-dropdown",
                     ),
                     html.Div("Maximum samples", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="event-limit", type="text", value="500", style={"width": "100%"}),
@@ -381,7 +390,13 @@ def metadata_page(payload: Dict[str, Any]) -> html.Div:
                 "event-level JSON",
                 [
                     html.Div("Event", className="label"),
-                    dcc.Dropdown(id="metadata-event-select", options=options, value=default_value, clearable=False if options else True),
+                    dcc.Dropdown(
+                        id="metadata-event-select",
+                        options=options,
+                        value=default_value,
+                        clearable=False if options else True,
+                        className="science-dropdown",
+                    ),
                     html.Div(id="metadata-summary", className="status", style={"marginTop": "10px"}),
                 ],
             ),
