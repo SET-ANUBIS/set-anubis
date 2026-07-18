@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from SetAnubis.branding import show_banner
+
 import argparse
 import os
 import json
@@ -1427,6 +1429,7 @@ def update_event_figures(tracks_json, plane: str, geom_opts, track_opts):
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    show_banner(force=True)
     """Run the optional HepMC explorer Dash application."""
     parser = argparse.ArgumentParser(
         description="Inspect HepMC LLP events in the SET-ANUBIS cavern geometry"

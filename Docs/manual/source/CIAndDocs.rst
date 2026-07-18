@@ -52,7 +52,7 @@ Local release-equivalent checks
    python -m pytest -q setanubis/tests \
       --cov=SetAnubis --cov-config=pyproject.toml \
       --cov-report=term-missing --cov-fail-under=58
-   python reproducibility/run_all.py --output-dir .ci-reproducibility
+   python reproducibility/run_reproducibility.py --output-root .ci-reproducibility
    sphinx-build -W --keep-going -b html Docs/manual/source Docs/manual/build/html
    python -m build
    python -m twine check dist/*
@@ -61,8 +61,9 @@ Release gates
 -------------
 
 The CI matrix covers Python 3.10, 3.11, 3.12 and 3.13. The Python 3.12 job also
-runs the release lint, dependency audit, high-severity source scan,
-reproducibility examples and coverage gate. Generated UFO code, optional Dash
+runs the release lint, dependency audit, high-severity source scan and coverage
+gate. A separate required ``Reproducibility / CPC R1-R5`` workflow runs the five
+deterministic CPC scenarios and uploads their generated evidence. Generated UFO code, optional Dash
 applications, examples and external toolchains are excluded from the coverage
 metric; the current minimum is 58 percent over the maintained production
 modules.

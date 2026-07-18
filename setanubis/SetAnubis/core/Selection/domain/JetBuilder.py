@@ -1,11 +1,76 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Dict, Iterable, Optional
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from typing import Dict, Iterable, Iterator, Optional
+
+import os
+import threading
 
 import numpy as np
 import pandas as pd
 import awkward as ak
 import fastjet
+
+
+_NATIVE_OUTPUT_LOCK = threading.Lock()
+
+
+def _env_fastjet_banner_default() -> bool:
+    value = os.getenv("SETANUBIS_FASTJET_BANNER", "0").strip().lower()
+    return value in {"1", "true", "yes", "on", "show"}
+
+
+@contextmanager
+def _suppress_fastjet_banner(enabled: bool) -> Iterator[None]:
+    """Temporarily suppress native FastJet output when requested.
+
+    SET-ANUBIS keeps the FastJet console banner quiet by default to avoid noisy
+    batch and notebook output. Users can restore the upstream banner with
+    ``JetClusteringConfig(show_banner=True)`` or
+    ``SETANUBIS_FASTJET_BANNER=1``. This setting only controls console output;
+    FastJet must still be cited in scientific work.
+    """
+
+    if not enabled:
+        yield
+        return
+
+    # FastJet's banner stream is process-global. Serialising the short context
+    # avoids races when multiple SET-ANUBIS threads cluster their first event.
+    with _NATIVE_OUTPUT_LOCK:
+        cluster_sequence = getattr(fastjet, "ClusterSequence", None)
+        setter = getattr(cluster_sequence, "set_fastjet_banner_stream", None)
+        getter = getattr(cluster_sequence, "fastjet_banner_stream", None)
+        if callable(setter) and callable(getter):
+            try:
+                previous = getter()
+                setter(None)
+            except (TypeError, RuntimeError):
+                pass
+            else:
+                try:
+                    yield
+                finally:
+                    setter(previous)
+                return
+
+        # Some Python wheels do not expose the C++ stream setter. Redirecting
+        # the native file descriptors is a narrow fallback around the first
+        # clustering call.
+        stdout_fd = 1
+        stderr_fd = 2
+        saved_stdout = os.dup(stdout_fd)
+        saved_stderr = os.dup(stderr_fd)
+        try:
+            with open(os.devnull, "w", encoding="utf-8") as sink:
+                os.dup2(sink.fileno(), stdout_fd)
+                os.dup2(sink.fileno(), stderr_fd)
+                yield
+        finally:
+            os.dup2(saved_stdout, stdout_fd)
+            os.dup2(saved_stderr, stderr_fd)
+            os.close(saved_stdout)
+            os.close(saved_stderr)
 
 
 
@@ -18,8 +83,16 @@ def _p(px: np.ndarray, py: np.ndarray, pz: np.ndarray) -> np.ndarray:
 
 @dataclass(frozen=True)
 class JetClusteringConfig:
+    """Configuration for FastJet clustering.
+
+    ``show_banner`` defaults to ``False`` so that library and batch output stays
+    concise. Users may explicitly enable the upstream FastJet banner. This
+    option does not change the clustering algorithm or citation requirements.
+    """
+
     R: float = 0.4
-    algorithm: int = fastjet.antikt_algorithm 
+    algorithm: int = fastjet.antikt_algorithm
+    show_banner: bool = field(default_factory=_env_fastjet_banner_default)
 
 
 class JetClustering:
@@ -41,8 +114,9 @@ class JetClustering:
             dtype=[("px", float), ("py", float), ("pz", float), ("E", float)],
         )
         ak_arr = ak.from_numpy(arr)
-        seq = fastjet._pyjet.AwkwardClusterSequence(ak_arr, self._def)
-        return seq.inclusive_jets()
+        with _suppress_fastjet_banner(enabled=not self.cfg.show_banner):
+            seq = fastjet._pyjet.AwkwardClusterSequence(ak_arr, self._def)
+            return seq.inclusive_jets()
 
 
 

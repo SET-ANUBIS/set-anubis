@@ -22,6 +22,7 @@ asset_path = _public.asset_path
 assets_dir = _public.assets_dir
 repository_root = _public.repository_root
 ufo_path = _public.ufo_path
+show_banner = _public.show_banner
 __all__ = _public.__all__
 
 

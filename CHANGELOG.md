@@ -6,6 +6,8 @@ First public stable release of SET-ANUBIS.
 
 ### Added
 
+- Shared example runtime wrapper so every directly executed example displays the SET-ANUBIS banner once while remaining import-safe.
+- Wheel-level smoke tests for example banners and JSON-only Pythia diagnostics.
 - Public lower-case import facade: `from setanubis import ...`.
 - Release documentation centred on the scientific workflow used in the paper:
   UFO/model input, branching ratios and lifetimes, MadGraph signal generation,
@@ -25,6 +27,8 @@ First public stable release of SET-ANUBIS.
 
 ### Changed
 
+- Corrected the temporary `CITATION.cff` preferred citation to the actual title and author list of arXiv:2512.14942, while keeping the software creators separate.
+- Pre-release tags now stop after TestPyPI validation; only stable semantic-version tags automatically continue to PyPI.
 - Reworked the README and Sphinx manual in a scientific, workflow-oriented style aligned with the software article.
 - Added project branding to the README, documentation and both Dash applications.
 - Changed the project licence from MIT to GPL-3.0-or-later.
@@ -41,6 +45,8 @@ First public stable release of SET-ANUBIS.
 
 ### Fixed
 
+- Removed stale `SelectionEnginev2` wording from event-bundle metadata and comments.
+- Removed an unused generated Sphinx theme stylesheet from the documentation source tree.
 - Public API export target for `MadGraphCommandConfig`.
 - Source-tree import shadowing around the `setanubis` facade.
 - Pythia C++ compatibility with Pythia versions returning smart pointers from

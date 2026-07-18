@@ -1,68 +1,128 @@
-Reproducibility and validation examples
-=======================================
+Reproducibility protocol
+========================
 
-The repository contains a lightweight reproducibility package under
-``reproducibility/``. Its purpose is to verify the deterministic parts of the
-software release without requiring a large Monte Carlo campaign or external
-generator installation.
+SET-ANUBIS ships a deterministic reproducibility suite intended to accompany the
+software release and the CPC program description. The suite is deliberately
+smaller than a publication-scale Monte Carlo campaign: it verifies that the
+scientific software path produces the expected model, decay, card-generation and
+selection results from version-controlled inputs.
 
-Covered workflows
+R1--R5 structure
+----------------
+
+The ``reproducibility/`` directory contains five independent scenarios:
+
+.. list-table::
+   :header-rows: 1
+
+   * - ID
+     - Scientific component
+     - Reproduced result
+     - External executable
+   * - R1
+     - Core/model interface
+     - HNL UFO content and parameter update
+     - none
+   * - R2
+     - Branching-ratio layer
+     - partial widths, total width and branching fractions
+     - none
+   * - R3
+     - Pythia preparation
+     - deterministic ``.cmnd`` file
+     - Pythia is not run
+   * - R4
+     - MadGraph preparation
+     - process, run, parameter, shower and MadSpin cards
+     - MadGraph/Docker are not run
+   * - R5
+     - Selection
+     - HepMC conversion, cutflow and JSON/HTML trace
+     - no generator is run
+
+Every scenario follows the same directory contract:
+
+.. code-block:: text
+
+   R<N>_<name>/
+   ├── README.md
+   ├── input/
+   ├── expected_output/
+   ├── output/
+   └── run.py
+
+``input/`` and ``expected_output/`` are version controlled. ``output/`` is
+created locally and ignored by Git. Canonical scientific resources that already
+belong to the Python package are referenced from the scenario configuration
+rather than copied a second time.
+
+Running the suite
 -----------------
 
-The validation package exercises five components:
-
-* **model interface** — load the bundled HNL UFO, inspect model content and
-  modify ``mN1``;
-* **branching ratios** — interpolate partial widths from a version-controlled
-  table without invoking MARTY;
-* **Pythia** — construct and validate a ``.cmnd`` file without the native
-  Pythia8/HepMC3 runtime;
-* **MadGraph** — construct process commands, run, parameter, Pythia8 and MadSpin
-  cards without launching MadGraph or Docker;
-* **selection** — run the standard analysis objects and cutflow using the
-  compact real-event HNL sample distributed with the package.
-
-Running the validation
-----------------------
+R5 reads the packaged HepMC2 sample, so install the selection extra:
 
 .. code-block:: bash
 
    python -m venv .venv
    . .venv/bin/activate
    python -m pip install --upgrade pip
-   python -m pip install -e .
-   python reproducibility/run_all.py --output-dir reproducibility_outputs
+   python -m pip install -e ".[dev,selection]"
+   python reproducibility/run_reproducibility.py
 
-A successful run creates ``reproducibility_outputs/VALIDATED``. The combined
-``results.json`` is compared with
-``reproducibility/expected_results.json``. Numerical values are compared with a
-relative tolerance of ``1e-12``; generated cards and selected tables are
-identified by SHA-256 digests.
+The default run writes into each scenario's ``output/`` directory. For CI or an
+archival execution, collect all outputs below one root:
 
-Distributed inputs
-------------------
+.. code-block:: bash
 
-Only small, version-controlled inputs are used:
+   python reproducibility/run_reproducibility.py \
+      --output-root reproducibility_outputs
 
-* the bundled HNL UFO model;
-* the branching-ratio interpolation table;
-* the seven-event real HNL selection sample and its provenance manifest.
+A successful run writes ``VALIDATED`` markers and an aggregate
+``reproducibility_results.json``. The generated ``summary.json`` for each
+scenario is compared recursively against ``expected_output/summary.json``;
+floating-point values use a relative and absolute tolerance of ``1e-12``.
+Generated text cards are represented by SHA-256 digests.
 
-The selection data are supplied in aligned HepMC, compressed CSV and trusted
-compressed-pickle representations. The deterministic reproducibility test uses
-the exchange-friendly compressed CSV. Pickles should only be loaded when their
-origin is trusted; see the repository ``SECURITY.md``.
+A single scenario can also be run directly:
 
-Scope
------
+.. code-block:: bash
 
-These checks validate software behaviour, card construction and the analysis
-cutflow. They do not reproduce a complete publication-scale event campaign.
-Physics production still requires the relevant MadGraph, MARTY, Pythia8/HepMC3
-and analysis environments, together with their versions, cards, image digests,
-random seeds and archived benchmark samples.
+   python reproducibility/R3_pythia_cmnd/run.py
+   python reproducibility/run_reproducibility.py --scenario R5
 
-For a scientific release, the reproducibility outputs should be retained with
-the tag, source archive and distribution checksums. Larger production artefacts
-can be referenced through the event catalogue or an external archival service
-rather than included in the Python wheel.
+Selection input and outputs
+---------------------------
+
+R5 begins with the compact, seven-event HepMC2 gzip file distributed under
+``SetAnubis.examples.Selection.InputFiles``. It rebuilds the flat event
+dataframe, runs the standard geometry-aware selection and produces:
+
+* ``events_from_hepmc.csv.gz``;
+* ``selection_trace.json``;
+* ``selection_trace.html``;
+* ``summary.json``.
+
+The seven events reproduce the observed cutflow outcomes in the compact sample:
+failures after ``LLPDecay``, ``InCavern``, ``NotInATLAS``, ``Geometry``,
+``Tracker`` and ``MET``, followed by one event that reaches ``Final``.
+
+Continuous integration
+----------------------
+
+The dedicated ``Reproducibility`` GitHub Actions workflow runs R1--R5 on every
+push and pull request to ``main`` or ``develop``. Its status check should be
+required by the repository ruleset. The release workflow repeats the suite before
+building or publishing distribution artifacts and uploads the generated evidence
+as a GitHub Actions artifact.
+
+Scientific scope
+----------------
+
+The suite validates deterministic software behaviour; it does not claim to
+reproduce the complete event campaign of a physics publication. A full campaign
+also requires the archived generator versions, container image digests, random
+seeds, process definitions, cards, scan grids and larger event samples.
+
+For a CPC submission, retain the R1--R5 output directory together with the exact
+SET-ANUBIS tag, the Python environment description, the wheel/sdist checksums and
+any external-tool provenance needed by the publication-scale analysis.

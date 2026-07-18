@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from SetAnubis.examples._runtime import run_example_entrypoint
+
 from importlib.resources import as_file, files
 
 from SetAnubis.core.BranchingRatio.adapters.input.DecayInterface import (
@@ -71,4 +73,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_example_entrypoint(main))

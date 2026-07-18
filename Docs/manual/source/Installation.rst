@@ -96,5 +96,5 @@ Release-equivalent local checks
    python -m pip_audit
    python -m pytest -q setanubis/tests \
       --cov=SetAnubis --cov-config=pyproject.toml --cov-fail-under=58
-   python reproducibility/run_all.py --output-dir .local-reproducibility
+   python reproducibility/run_reproducibility.py --output-root .local-reproducibility
    setanubis-docs --strict

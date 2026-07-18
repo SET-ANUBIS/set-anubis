@@ -8,7 +8,7 @@ and GitHub Releases.
 Before tagging the release:
 
 - merge the release candidate into `main`;
-- confirm that CI, CodeQL, documentation and optional Pythia checks are green;
+- confirm that CI, the dedicated R1--R5 reproducibility workflow, CodeQL, documentation and optional Pythia checks are green;
 - confirm version `1.0.0` in `pyproject.toml`, `SetAnubis/_version.py`,
   `CHANGELOG.md` and `CITATION.cff`;
 - confirm `GPL-3.0-or-later` in `LICENSE`, `pyproject.toml`, `CITATION.cff`, the
@@ -30,7 +30,7 @@ python -m bandit -q -lll -r setanubis/SetAnubis/core \
 python -m pytest -q setanubis/tests \
   --cov=SetAnubis --cov-config=pyproject.toml \
   --cov-report=term-missing --cov-fail-under=58
-python reproducibility/run_all.py --output-dir .release-reproducibility
+python reproducibility/run_reproducibility.py --output-root .release-reproducibility
 setanubis-docs --strict
 rm -rf build dist *.egg-info setanubis/*.egg-info
 python -m build
@@ -77,10 +77,12 @@ No long-lived PyPI token is required by the workflow.
 
 ## 4. TestPyPI rehearsal
 
-Use a release-candidate version, for example `1.0.0rc1`, for a rehearsal. Run the
-`Release` workflow with `target=testpypi` from the corresponding branch or tag.
-Do not repeatedly upload the final `1.0.0` filename: package indexes do not allow
-an uploaded distribution file to be replaced.
+Use a release-candidate version, for example `1.0.0rc1`, for a rehearsal. Update
+the package metadata to that version and push the matching tag `v1.0.0rc1`.
+Pre-release tag pushes publish to TestPyPI and stop after verification; they do
+not continue to PyPI. The manual workflow can also be run from that tag with
+`target=testpypi`. Do not repeatedly upload the final `1.0.0` filename: package
+indexes do not allow an uploaded distribution file to be replaced.
 
 ## 5. Final tagged release
 

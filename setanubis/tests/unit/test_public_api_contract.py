@@ -335,6 +335,21 @@ def test_release_python_files_parse_with_supported_minimum_version():
     assert not failures, "Python 3.10 syntax failures:\n" + "\n".join(failures)
 
 
+
+def test_all_executable_examples_use_the_shared_banner_entrypoint():
+    """Keep direct example execution visually consistent without import side effects."""
+    examples = Path(__file__).parents[2] / "SetAnubis" / "examples"
+    missing = []
+    for path in sorted(examples.rglob("*.py")):
+        if "TestFiles" in path.parts or path.name in {"__init__.py", "_runtime.py"}:
+            continue
+        source = path.read_text(encoding="utf-8")
+        if 'if __name__ == "__main__"' not in source:
+            continue
+        if "run_example_entrypoint" not in source:
+            missing.append(str(path.relative_to(examples)))
+    assert not missing, "Executable examples missing shared banner wrapper: " + ", ".join(missing)
+
 def test_release_metadata_and_branding_assets_are_consistent():
     """Keep licence metadata and release-facing branding in sync."""
     try:
@@ -350,9 +365,11 @@ def test_release_metadata_and_branding_assets_are_consistent():
     assert "GNU GENERAL PUBLIC LICENSE" in (root / "LICENSE").read_text(
         encoding="utf-8"
     )
-    assert "license: GPL-3.0-or-later" in (root / "CITATION.cff").read_text(
-        encoding="utf-8"
-    )
+    citation = (root / "CITATION.cff").read_text(encoding="utf-8")
+    assert "license: GPL-3.0-or-later" in citation
+    assert "ANUBIS: Projected Sensitivities and Initial Results" in citation
+    assert 'url: "https://arxiv.org/abs/2512.14942"' in citation
+    assert "SET-ANUBIS proceeding" not in citation
 
     required_assets = [
         root / "Docs/assets/set-anubis-logo.png",
@@ -377,6 +394,17 @@ def test_release_metadata_and_branding_assets_are_consistent():
     assert zenodo["license"] == "GPL-3.0-or-later"
     assert zenodo["upload_type"] == "software"
     assert zenodo["version"] == project["version"]
+    assert zenodo["creators"] == [
+        {"name": "Reymermier, Théo", "type": "ProjectLeader"},
+        {"name": "Swallow, Paul", "type": "ProjectManager"},
+    ]
+    assert {item["name"] for item in zenodo["contributors"]} == {
+        "Erner, Sofie",
+        "Mullin, Anna",
+        "Satterthwaite, Toby",
+        "Brandt, Oleg",
+    }
+    assert all(item["type"] == "ProjectMember" for item in zenodo["contributors"])
     assert any(
         item["identifier"] == "https://arxiv.org/abs/2606.26862"
         for item in zenodo["related_identifiers"]
@@ -389,6 +417,36 @@ def test_release_metadata_and_branding_assets_are_consistent():
     assert "CC BY-NC-ND 4.0" in assets_notice
     assert "without cropping" in assets_notice
 
+
+
+def test_reproducibility_suite_has_cpc_scenario_contract():
+    """Require independent R1--R5 inputs, outputs and expected results."""
+    root = Path(__file__).parents[3]
+    reproducibility = root / "reproducibility"
+    scenarios = [
+        "R1_core",
+        "R2_branching_ratio",
+        "R3_pythia_cmnd",
+        "R4_madgraph_cards",
+        "R5_selection",
+    ]
+    for name in scenarios:
+        scenario = reproducibility / name
+        assert (scenario / "README.md").is_file()
+        assert (scenario / "run.py").is_file()
+        assert (scenario / "input/config.json").is_file()
+        assert (scenario / "expected_output/summary.json").is_file()
+        assert (scenario / "output/.gitignore").read_text(encoding="utf-8") == "*\n!.gitignore\n"
+
+    workflow = (root / ".github/workflows/reproducibility.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "CPC R1-R5" in workflow
+    assert "run_reproducibility.py" in workflow
+    assert "--output-root .reproducibility-output" in workflow
+    release = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    assert "Run CPC reproducibility gate" in release
+    assert "--output-root .release-reproducibility" in release
 
 def test_final_release_workflow_requires_a_matching_tag():
     """Prevent final PyPI publication from an untagged branch commit."""
@@ -405,3 +463,18 @@ def test_final_release_workflow_requires_a_matching_tag():
     )
     assert "actions/checkout@v7" not in workflow_text
     assert "actions/checkout@v6" in workflow_text
+
+
+def test_release_workflow_is_tag_driven_and_testpypi_gated():
+    """Require TestPyPI verification before any final PyPI promotion."""
+    root = Path(__file__).parents[3]
+    workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+
+    assert 'tags:' in workflow and '- "v*"' in workflow
+    assert 'needs: [build, publish-testpypi]' in workflow
+    assert 'needs: [build, verify-testpypi]' in workflow
+    assert "if: needs.build.outputs.promote == 'true'" in workflow
+    assert workflow.index('publish-testpypi:') < workflow.index('verify-testpypi:')
+    assert workflow.index('verify-testpypi:') < workflow.index('publish-pypi:')
+    assert '^[0-9]+\\.[0-9]+\\.[0-9]+$' in workflow
+    assert 'echo "promote=false"' in workflow

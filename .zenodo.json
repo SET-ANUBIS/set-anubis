@@ -4,21 +4,33 @@
   "upload_type": "software",
   "access_right": "open",
   "license": "GPL-3.0-or-later",
+  "language": "eng",
   "creators": [
     {
-      "name": "Erner, Sofie"
+      "name": "Reymermier, Théo",
+      "type": "ProjectLeader"
     },
     {
-      "name": "Mullin, Anna"
+      "name": "Swallow, Paul",
+      "type": "ProjectManager"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Erner, Sofie",
+      "type": "ProjectMember"
     },
     {
-      "name": "Reymermier, Théo"
+      "name": "Mullin, Anna",
+      "type": "ProjectMember"
     },
     {
-      "name": "Satterthwaite, Toby"
+      "name": "Satterthwaite, Toby",
+      "type": "ProjectMember"
     },
     {
-      "name": "Swallow, Paul"
+      "name": "Brandt, Oleg",
+      "type": "ProjectMember"
     }
   ],
   "keywords": [

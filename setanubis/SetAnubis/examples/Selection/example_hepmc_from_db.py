@@ -1,51 +1,52 @@
-"""Select HepMC artifacts from the event database and write a CSV processing index."""
+"""Select HepMC artifacts from the event database and write a CSV index."""
 
-from SetAnubis.core.Selection.domain.Models import HepmcSelectionQuery, IndexWriterConfig, HepmcRef
-from SetAnubis.core.Selection.adapters.output.EventsDbHepMCSelector import EventsDbHepmcSelectorAdapter
-from SetAnubis.core.Selection.adapters.output.PandasHepMCIndexWriter import PandasHepmcIndexWriterAdapter
-from typing import Optional, Tuple, Any, List
+from __future__ import annotations
 
-if __name__ == "__main__":
-    
-    db_path="db/EventsDatabase.db"
-    storage_dir="db/EventsStorage"
-    model="SM_HeavyN_CKM_AllMasses_LO"
-    index_csv_path="outputs/samples_to_process_SM.csv"
-    extra_columns={"llp_id": 9900012, "geometry": "ceiling"}
-    sql_where: str = ""
-    sql_params: Tuple[Any, ...] = tuple()
-    predicate = None
-    limit: Optional[int] = None
-    rewrite_in_one_go: bool = True
-    batch_size_rows: int = 50_000
-    
-    selector = EventsDbHepmcSelectorAdapter(db_path=db_path, storage_dir=storage_dir)
-    items: List[HepmcRef] = selector.select(
-        HepmcSelectionQuery(
-            model=model,
-            sql_where=sql_where,
-            sql_params=sql_params,
-            predicate=predicate,
-            limit=limit,
-        )
-    )
-    print("----------------------")
-    print(items)
-    print("----------------------")
+import argparse
+from pathlib import Path
+from typing import Any
+
+from SetAnubis.core.Selection.adapters.output.EventsDbHepMCSelector import (
+    EventsDbHepmcSelectorAdapter,
+)
+from SetAnubis.core.Selection.adapters.output.PandasHepMCIndexWriter import (
+    PandasHepmcIndexWriterAdapter,
+)
+from SetAnubis.core.Selection.domain.Models import HepmcSelectionQuery, IndexWriterConfig
+from SetAnubis.examples._runtime import run_example_entrypoint
+
+
+def main() -> int:
+    """Select database-backed HepMC samples and materialize a processing index."""
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--db", default="db/EventsDatabase.db")
+    parser.add_argument("--storage", default="db/EventsStorage")
+    parser.add_argument("--model", default="SM_HeavyN_CKM_AllMasses_LO")
+    parser.add_argument("--output", type=Path, default=Path("outputs/samples_to_process_SM.csv"))
+    parser.add_argument("--limit", type=int, default=None)
+    args = parser.parse_args()
+
+    selector = EventsDbHepmcSelectorAdapter(db_path=args.db, storage_dir=args.storage)
+    items = selector.select(HepmcSelectionQuery(model=args.model, limit=args.limit))
+
+    extra_columns: dict[str, Any] = {"llp_id": 9900012, "geometry": "ceiling"}
     writer = PandasHepmcIndexWriterAdapter()
-    res = writer.write_index(
+    result = writer.write_index(
         items,
         IndexWriterConfig(
-            index_csv_path=index_csv_path,
-            rewrite_in_one_go=rewrite_in_one_go,
-            batch_size_rows=batch_size_rows,
-            extra_columns=extra_columns or {},
+            index_csv_path=str(args.output),
+            rewrite_in_one_go=True,
+            batch_size_rows=50_000,
+            extra_columns=extra_columns,
             dedupe_on_event_id=True,
-        )
+        ),
     )
-    print("...........................................")
-    print(res.selected_df)
-    # res.selected_df.to_csv("test.csv")
-    print("...........................................")
-    
-    print(res.added_rows, res.total_rows_after)
+
+    print(result.selected_df)
+    print(f"Added rows: {result.added_rows}; total rows: {result.total_rows_after}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_example_entrypoint(main))

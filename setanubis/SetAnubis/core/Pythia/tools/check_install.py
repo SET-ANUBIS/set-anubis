@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from SetAnubis.branding import show_banner
+
 import argparse
 import ctypes.util
 import importlib.util
@@ -116,6 +118,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check SetAnubis optional Pythia runtime installation")
     parser.add_argument("--json", action="store_true", help="print the full diagnostic report as JSON")
     args = parser.parse_args(argv)
+
+    # Machine-readable modes must keep stdout free from decorative output.
+    # The human-readable command still displays the SET-ANUBIS banner once.
+    if not args.json:
+        show_banner(force=True)
 
     report = collect_diagnostics()
     if args.json:

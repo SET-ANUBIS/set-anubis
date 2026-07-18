@@ -18,7 +18,7 @@ Before creating the release tag:
 * run the local checks described in :doc:`CIAndDocs`;
 * build the distributions with ``python -m build`` and validate them with
   ``python -m twine check dist/*``;
-* run the complete ``reproducibility/`` package;
+* run and validate all five ``reproducibility/`` scenarios (R1--R5);
 * inspect the wheel and sdist for generated files, local databases, external
   build trees and private samples;
 * merge the release candidate into the protected ``main`` branch.
@@ -32,8 +32,10 @@ Git ref and package metadata agree, builds the distributions once and records
 SHA-256 checksums.
 
 A TestPyPI-only rehearsal should use a release-candidate version such as
-``1.0.0rc1``. Package indexes do not permit an existing distribution filename to
-be replaced, so the final ``1.0.0`` files should be uploaded only by the final
+``1.0.0rc1`` and the matching tag ``v1.0.0rc1``. Pre-release tag pushes stop
+after TestPyPI verification; only a stable ``X.Y.Z`` tag automatically continues
+to PyPI. Package indexes do not permit an existing distribution filename to be
+replaced, so the final ``1.0.0`` files should be uploaded only by the final
 promotion workflow.
 
 Trusted Publishing
@@ -54,17 +56,23 @@ but it should still limit deployment to the release workflow.
 Zenodo archival
 ----------------
 
-Enable the repository in Zenodo before the final public tag if a DOI should be
-created automatically. The repository contains ``.zenodo.json`` metadata for the
-software title, creators, licence and scientific keywords. After GitHub creates
-the ``v1.0.0`` release, verify the Zenodo deposit and then:
+The repository contains ``.zenodo.json`` metadata with Théo Reymermier as
+``ProjectLeader``, Paul Swallow as ``ProjectManager`` and the remaining
+collaborators as contributors. Zenodo uses this file instead of ``CITATION.cff``
+when a GitHub release is archived.
 
-* add the immutable version DOI and the concept DOI to the README;
-* add the preferred software DOI to ``CITATION.cff``;
-* verify the Git tag and GitHub release assets against the checksums produced by the release workflow;
-* record the DOI in the CPC manuscript when the software record is cited.
+For the first release, choose one archival route:
 
-Do not add a fabricated or placeholder DOI before Zenodo has created the record.
+* enable the GitHub repository in Zenodo before tagging, then allow the
+  ``v1.0.0`` GitHub Release to create the software record and DOI automatically;
+* or create a manual Zenodo draft, reserve a DOI, and publish a single cleaned
+  source archive after the tag if the DOI must appear in the manuscript before
+  release.
+
+The automatic GitHub route normally provides the DOI after the GitHub Release.
+Avoid creating both an automatic and a manual record for the same release unless
+duplicate records are being managed intentionally. After publication, add the
+concept DOI to the README and use the version DOI for release-specific citations.
 
 Final promotion sequence
 ------------------------

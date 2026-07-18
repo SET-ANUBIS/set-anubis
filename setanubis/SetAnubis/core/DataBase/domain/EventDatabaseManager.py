@@ -51,7 +51,7 @@ ARTIFACT_HEPMC_GZ = "hepmc_gz"
 SAMPLE_BUNDLE_STAGE_LLP_ANALYZER = "llp_analyzer"
 SAMPLE_BUNDLE_STAGE_SELECTION_READY = "selection_ready"
 
-# Minimal bundle keys needed by SelectionEnginev2 once jets and isolation are
+# Minimal bundle keys needed by SelectionEngine once jets and isolation are
 # already prepared.  chargedFinalStates is kept deliberately: it lets the
 # pipeline/engine recompute isolation later if you explicitly remove the
 # precomputed minDeltaR columns or change that workflow.  neutralFinalStates,
@@ -1082,7 +1082,7 @@ class EventImporter:
             "selection_min_p": min_p,
             "steps": [],
             "note": (
-                "Bundle prepared for SelectionEnginev2: phi-fold is applied before LLPAnalyzer when requested; "
+                "Bundle prepared for SelectionEngine: phi-fold is applied before LLPAnalyzer when requested; "
                 "jets and minDeltaR isolation are precomputed at import time. If you run through SelectionPipeline, "
                 "use the patched pipeline which does not overwrite existing finalStatePromptJets/minDeltaR columns."
             ),

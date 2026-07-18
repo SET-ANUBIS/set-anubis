@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from SetAnubis.branding import show_banner
+
 import argparse
 import shutil
 import subprocess
@@ -26,6 +28,7 @@ def _repo_root() -> Path:
 
 
 def main(argv: list[str] | None = None) -> int:
+    show_banner(force=True)
     """Build the requested Sphinx target and optionally open its index page."""
     parser = argparse.ArgumentParser(
         description="Build the SetAnubis Sphinx documentation"

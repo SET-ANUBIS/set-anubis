@@ -1,5 +1,6 @@
 """Inspect and update parameters through the public model-core interface."""
 
+from SetAnubis.examples._runtime import run_example_entrypoint
 from setanubis import SetAnubisInterface, ufo_path
 
 
@@ -22,4 +23,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_example_entrypoint(main))

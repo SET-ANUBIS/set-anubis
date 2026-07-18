@@ -75,9 +75,6 @@ jobs:
           python -m bandit -q -lll -r setanubis/SetAnubis/core
           -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
 
-      - name: Run CPC reproducibility examples
-        if: matrix.python-version == '3.12'
-        run: python reproducibility/run_all.py --output-dir .ci-reproducibility
 
   packaging:
     name: Packaging smoke test
@@ -119,6 +116,26 @@ jobs:
           assert not failures, "\n".join(failures)
           print("SetAnubis", __version__)
           print(asset_path("particles", "particleData.json"))
+          PY
+      - name: Test example banners and machine-readable diagnostics from the wheel
+        run: |
+          tmpdir=$(mktemp -d)
+          cd "$tmpdir"
+          SETANUBIS_BANNER=always python -m SetAnubis.examples.Pythia.example_pythia_cmnd > pythia-example.txt
+          SETANUBIS_BANNER=always python -m SetAnubis.examples.BranchingRatio.example_BranchingRatioInterface_hnl > branching-ratio-example.txt
+          version=$(python -c 'import setanubis; print(setanubis.__version__)')
+          test "$(grep -c " SET-ANUBIS ${version}" pythia-example.txt)" = "1"
+          test "$(grep -c " SET-ANUBIS ${version}" branching-ratio-example.txt)" = "1"
+          set +e
+          setanubis-pythia-check --json > pythia-diagnostics.json
+          status=$?
+          set -e
+          test "$status" = "0" -o "$status" = "1"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("pythia-diagnostics.json").read_text())
+          assert "python_binding" in report
           PY
       - name: Test optional Dash entry points from the wheel
         run: |

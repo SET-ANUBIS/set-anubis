@@ -68,8 +68,16 @@ def test_collect_print_and_main(monkeypatch, tmp_path, capsys):
     assert "Pythia Python binding: OK" in capsys.readouterr().out
 
     monkeypatch.setattr(check_install, "collect_diagnostics", lambda: report)
+    banner_calls = []
+    monkeypatch.setattr(
+        check_install,
+        "show_banner",
+        lambda **kwargs: banner_calls.append(kwargs) or True,
+    )
+
     assert check_install.main(["--json"]) == 0
     assert json.loads(capsys.readouterr().out)["python_binding"]["available"] is True
+    assert banner_calls == []
 
     missing = dict(report)
     missing["python_binding"] = {"available": False, "module": None, "path": None, "error": "not built"}
@@ -79,3 +87,4 @@ def test_collect_print_and_main(monkeypatch, tmp_path, capsys):
     output = capsys.readouterr().out
     assert "Pythia Python binding: MISSING" in output
     assert "not built" in output
+    assert banner_calls == [{"force": True}]

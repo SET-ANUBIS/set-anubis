@@ -252,7 +252,6 @@ setanubis/SetAnubis/core/MadGraph/app/TestFiles/tag_1_pythia8_events.hepmc
 *.pkl
 *.pkl.gz
 pythia_smoke_outputs/
-reproducibility_outputs/
 .ci-pythia-smoke/
 .ci-pythia-runtime/
 Docs/manual/build/
@@ -269,3 +268,9 @@ External_Integration/Pythia/pythia*-src
 # Versioned compact selection fixtures (small, trusted release inputs)
 !setanubis/SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow.hepmc.gz
 !setanubis/SetAnubis/examples/Selection/InputFiles/hnl_selection_cutflow_bundle.pkl.gz
+# Reproducibility outputs
+reproducibility_outputs/
+.reproducibility-output/
+.release-reproducibility/
+.ci-reproducibility/
+.local-reproducibility/

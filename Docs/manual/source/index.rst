@@ -58,6 +58,7 @@ Contents
 
    ProgramOverview
    Installation
+   ConsoleOutput
    MadGraphGeneration
    BranchingRatioCalculation
    SelectionWorkflow
@@ -111,10 +112,12 @@ selection bundles.
 Citation, archival and licence
 -------------------------------
 
-Citation metadata is provided in the repository ``CITATION.cff`` file. The
-temporary software-article reference should be replaced by the final CPC DOI
-when that record becomes public. The HNL sensitivity study obtained with
-SET-ANUBIS is available at https://arxiv.org/abs/2606.26862.
+Citation metadata is provided in the repository ``CITATION.cff`` file. Until the
+dedicated CPC software article is available, the preferred citation is the
+related ANUBIS proceedings contribution at https://arxiv.org/abs/2512.14942.
+The HNL sensitivity study obtained with SET-ANUBIS is available at
+https://arxiv.org/abs/2606.26862. Replace the temporary preferred citation with
+the final CPC record when it becomes public.
 
 The repository includes ``.zenodo.json`` metadata for archiving tagged releases.
 After the GitHub-Zenodo integration has created the first deposit, the Zenodo

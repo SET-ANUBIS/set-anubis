@@ -1,18 +1,35 @@
-"""Run the optional native Pythia interface with a user-editable CMND card."""
+"""Run the optional native Pythia interface with a packaged CMND card."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
 
 from SetAnubis.core.Pythia.adapters.input.PythiaRunInterface import PythiaRunInterface
-import os
+from SetAnubis.examples._runtime import run_example_entrypoint
 
-if __name__ == "__main__":
-    # This example requires the optional compiled Pythia/HepMC3 binding.
-    py_interface = PythiaRunInterface(os.path.join(os.path.dirname(__file__), "outputs"))
 
-    output_lhe, output_hepmc = py_interface.ensure_directories(["lhe", "hepmc"])
-    py_interface.process_file(
-        config_file=os.path.join(os.path.dirname(__file__), "TestFiles", "test.cmnd"),
+def main() -> int:
+    """Run a small native Pythia sample when the optional binding is available."""
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--events", type=int, default=2000, help="Number of events to generate.")
+    parser.add_argument("--output-dir", type=Path, default=Path("pythia_outputs"))
+    args = parser.parse_args()
+
+    example_dir = Path(__file__).resolve().parent
+    interface = PythiaRunInterface(str(args.output_dir))
+    output_lhe, output_hepmc = interface.ensure_directories(["lhe", "hepmc"])
+    interface.process_file(
+        config_file=str(example_dir / "TestFiles" / "test.cmnd"),
         output_lhe_dir=output_lhe,
         output_hepmc_dir=output_hepmc,
-        num_events=2000,
+        num_events=args.events,
         suffix="test",
-        include_time=True
+        include_time=True,
     )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_example_entrypoint(main))

@@ -1,35 +1,31 @@
 cff-version: 1.2.0
-message: "If SET-ANUBIS contributes to your work, please cite the software and the associated article/preprint."
+message: "If SET-ANUBIS contributes to your work, please cite the software release and the associated publication(s)."
 title: "SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies"
 version: "1.0.0"
 date-released: "2026-07-18"
 license: GPL-3.0-or-later
 repository-code: "https://github.com/SET-ANUBIS/set-anubis"
-url: "https://arxiv.org/abs/2512.14942"
+url: "https://github.com/SET-ANUBIS/set-anubis"
 authors:
-  - family-names: Erner
-    given-names: Sofie
-  - family-names: Mullin
-    given-names: Anna
   - family-names: Reymermier
     given-names: Théo
-  - family-names: Satterthwaite
-    given-names: Toby
   - family-names: Swallow
     given-names: Paul
 preferred-citation:
   type: article
-  title: "SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies"
+  title: "ANUBIS: Projected Sensitivities and Initial Results from the proANUBIS demonstrator with Run 3 LHC data"
   authors:
-    - family-names: Erner
-      given-names: Sofie
-    - family-names: Mullin
-      given-names: Anna
     - family-names: Reymermier
       given-names: Théo
-    - family-names: Satterthwaite
-      given-names: Toby
+    - family-names: Brandt
+      given-names: Oleg
+    - family-names: Mullin
+      given-names: Anna
     - family-names: Swallow
       given-names: Paul
+    - family-names: Revering
+      given-names: Michael
+    - family-names: Fernandez Ruiz
+      given-names: Cayetano
   year: 2025
   url: "https://arxiv.org/abs/2512.14942"

@@ -238,16 +238,67 @@ python setanubis/SetAnubis/examples/Selection/example_real_selection_trace_repor
 
 > **Security note:** loading a pickle can execute arbitrary Python code. Only load bundles produced by a trusted SET-ANUBIS workflow or obtained from a verified source. See [`SECURITY.md`](SECURITY.md).
 
-## Reproducibility
+## Console banners
 
-The `reproducibility/` directory contains deterministic examples for the model interface, branching-ratio layer, Pythia command generation, MadGraph card preparation and selection workflow. External generators are not launched.
+The public API can display a compact SET-ANUBIS banner once per Python process.
+The default `auto` mode only prints in an interactive terminal, so redirected
+logs, notebooks and CI jobs remain quiet unless the banner is explicitly
+requested.
 
 ```bash
-python -m pip install -e .
-python reproducibility/run_all.py --output-dir reproducibility_outputs
+export SETANUBIS_BANNER=always  # force the SET-ANUBIS banner
+export SETANUBIS_BANNER=never   # disable it
 ```
 
-A successful run creates `reproducibility_outputs/VALIDATED` after comparing the generated results with [`reproducibility/expected_results.json`](reproducibility/expected_results.json).
+```python
+from setanubis import show_banner
+
+show_banner(force=True)
+```
+
+The SET-ANUBIS banner identifies the software version and developers, reports
+whether the optional compiled Pythia binding is available in the current Python
+environment, and reminds users to cite the current ANUBIS proceedings
+contribution together with the matching Zenodo software release. Before a
+release DOI is embedded in the package, it can be supplied explicitly with
+`SETANUBIS_ZENODO_DOI=10.5281/zenodo...`.
+
+FastJet prints its own citation banner the first time a clustering sequence is
+created. SET-ANUBIS suppresses that console output by default so that selection
+jobs, notebooks and CI logs remain concise. Users can restore it explicitly:
+
+```bash
+export SETANUBIS_FASTJET_BANNER=1
+```
+
+or in Python:
+
+```python
+from setanubis import JetClustering, JetClusteringConfig
+
+clustering = JetClustering(JetClusteringConfig(show_banner=True))
+```
+
+Suppressing the FastJet console banner does not alter the clustering algorithm
+and does not remove the requirement to cite FastJet in scientific work.
+
+## Reproducibility
+
+The [`reproducibility/`](reproducibility/) directory contains five deterministic CPC scenarios, labelled **R1–R5**. Each scenario has a documented `input/`, a generated `output/` directory excluded from Git, a version-controlled `expected_output/`, and an independently executable `run.py`.
+
+- **R1** checks the public model interface and bundled HNL UFO.
+- **R2** reproduces reference partial widths, total width and branching ratios.
+- **R3** generates a deterministic Pythia command card without running Pythia.
+- **R4** generates MadGraph, run, parameter, shower and MadSpin cards without running MadGraph or Docker.
+- **R5** rebuilds the seven-event sample directly from the packaged HepMC2 input and reproduces the geometry-aware selection cutflow and trace report.
+
+```bash
+python -m pip install -e ".[dev,selection]"
+python reproducibility/run_reproducibility.py \
+  --output-root reproducibility_outputs
+```
+
+A successful run creates `reproducibility_outputs/VALIDATED`. The generated summaries are compared with the corresponding `expected_output/summary.json` files. The dedicated **Reproducibility / CPC R1-R5** GitHub workflow is intended to be a required status check before merging or releasing.
 
 ## Interactive applications
 
@@ -286,11 +337,19 @@ Maintainer-side GitHub environment, branch-protection and Trusted Publisher sett
 
 ## Citation and archival
 
-Citation metadata for the software is provided in [`CITATION.cff`](CITATION.cff). The current entry retains the temporary pre-publication reference used during preparation of the SET-ANUBIS software article; it should be replaced by the final *Computer Physics Communications* DOI when that record is available.
+Citation metadata for the software is provided in [`CITATION.cff`](CITATION.cff). Until the dedicated *Computer Physics Communications* software article is available, its `preferred-citation` points to the related ANUBIS proceedings contribution, [*ANUBIS: Projected Sensitivities and Initial Results from the proANUBIS demonstrator with Run 3 LHC data*](https://arxiv.org/abs/2512.14942). Replace that temporary preferred citation with the final CPC record when it becomes public.
 
 The ANUBIS HNL sensitivity study obtained with SET-ANUBIS is available as [*Projected sensitivity of the ANUBIS detector to heavy neutral leptons*](https://arxiv.org/abs/2606.26862). Users should cite the software record and the physics article(s) relevant to the analysis being reproduced.
 
 The repository also contains [`.zenodo.json`](.zenodo.json) metadata for release archiving. Because Zenodo gives this file precedence over `CITATION.cff`, the two records must be kept consistent. After the GitHub-Zenodo integration is enabled, the `v1.0.0` GitHub release can be deposited on Zenodo and assigned an immutable DOI. Once the first deposit exists, replace the temporary Zenodo badge above with the DOI badge supplied by Zenodo and add the concept DOI to `CITATION.cff`. No placeholder DOI should be published.
+
+## Project roles and contributors
+
+- **Théo Reymermier** — Project Leader and Lead Developer
+- **Paul Swallow** — Project Manager and Developer
+- **Contributors** — Sofie Erner, Anna Mullin, Toby Satterthwaite and Oleg Brandt
+
+The software creator and contributor roles are recorded in [`.zenodo.json`](.zenodo.json); the complete acknowledgement list is maintained in [`AUTHORS.md`](AUTHORS.md).
 
 ## License
 

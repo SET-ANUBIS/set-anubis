@@ -6,12 +6,12 @@ from SetAnubis.core.MadGraph.adapters.input.GeneralCardInterface import (
 )
 from SetAnubis.core.MadGraph.adapters.input.MadGraphInterface import MadgraphInterface
 from SetAnubis.core.interfaces import SetAnubisInterface
+from SetAnubis.examples._runtime import run_example_entrypoint
 from SetAnubis.resources import ufo_path
 
 
-if __name__ == "__main__":
-    # Keep this True to inspect generated cards without requiring Docker/MadGraph.
-    dry_run = True
+def main(*, dry_run: bool = True) -> int:
+    """Generate all cards and optionally execute the Docker-backed workflow."""
 
     # The model interface supplies UFO parameters to all card builders.
     model = SetAnubisInterface(ufo_path("UFO_HNL"))
@@ -67,3 +67,8 @@ if __name__ == "__main__":
         )
         interface.run()
         interface.retrieve_events()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_example_entrypoint(main))

@@ -4,6 +4,8 @@ import traceback
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from SetAnubis.branding import show_banner
+
 from dash import Dash, Input, Output, State, callback_context, dcc, html, no_update
 from dash.exceptions import PreventUpdate
 
@@ -571,6 +573,7 @@ server = app.server
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    show_banner(force=True)
     parser = argparse.ArgumentParser(description="SetAnubis EventDatabase Dash monitor")
     parser.add_argument("--db", default=DEFAULT_DB, help="SQLite database path")
     parser.add_argument("--storage", default=DEFAULT_STORAGE, help="CAS/Event storage directory")

@@ -1,5 +1,6 @@
 """Run the standard selection on seven compact real HNL events."""
 
+from SetAnubis.examples._runtime import run_example_entrypoint
 from SetAnubis.core.Selection.domain.DatasetSource import EventsBundleSource
 from SetAnubis.core.Selection.domain.SelectionEngine import RunConfig
 from SetAnubis.examples.Selection.compact_sample import (
@@ -32,4 +33,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_example_entrypoint(main))

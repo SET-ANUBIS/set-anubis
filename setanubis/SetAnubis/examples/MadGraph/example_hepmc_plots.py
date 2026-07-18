@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from SetAnubis.examples._runtime import run_example_entrypoint
+
 import argparse
 from pathlib import Path
 
@@ -36,4 +38,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_example_entrypoint(main))

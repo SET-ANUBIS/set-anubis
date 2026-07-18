@@ -15,6 +15,7 @@ from importlib import import_module
 from typing import Any
 
 from SetAnubis._version import __version__
+from SetAnubis.branding import show_banner
 from SetAnubis.resources import asset_path, assets_dir, repository_root, ufo_path
 
 _EXPORTS: dict[str, str | tuple[str, str]] = {
@@ -116,6 +117,7 @@ __all__ = [
     "assets_dir",
     "repository_root",
     "ufo_path",
+    "show_banner",
     *_EXPORTS.keys(),
 ]
 
@@ -124,6 +126,7 @@ def __getattr__(name: str) -> Any:
     target = _EXPORTS.get(name)
     if target is None:
         raise AttributeError(f"module 'setanubis' has no attribute {name!r}")
+    show_banner()
     if isinstance(target, tuple):
         module_name, attr_name = target
     else:

@@ -11,7 +11,12 @@ requires-python = ">=3.10"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 authors = [
-  {name = "The SetAnubis contributors"},
+  {name = "Théo Reymermier"},
+  {name = "Paul Swallow"},
+]
+maintainers = [
+  {name = "Théo Reymermier"},
+  {name = "Paul Swallow"},
 ]
 keywords = ["physics", "anubis", "llp", "pythia", "hepmc", "madgraph"]
 classifiers = [
@@ -60,7 +65,8 @@ Homepage = "https://github.com/SET-ANUBIS/set-anubis"
 Repository = "https://github.com/SET-ANUBIS/set-anubis"
 Documentation = "https://set-anubis.github.io/set-anubis/"
 Issues = "https://github.com/SET-ANUBIS/set-anubis/issues"
-Paper = "https://arxiv.org/abs/2606.26862"
+ANUBIS-Proceedings = "https://arxiv.org/abs/2512.14942"
+HNL-Sensitivity-Study = "https://arxiv.org/abs/2606.26862"
 Citation = "https://github.com/SET-ANUBIS/set-anubis/blob/main/CITATION.cff"
 
 [project.scripts]

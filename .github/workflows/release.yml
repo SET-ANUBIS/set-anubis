@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       target:
@@ -25,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.package-version.outputs.version }}
+      promote: ${{ steps.release-mode.outputs.promote }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -58,21 +62,61 @@ jobs:
               raise SystemExit("release license must be GPL-3.0-or-later")
           if "license: GPL-3.0-or-later" not in cff:
               raise SystemExit("CITATION.cff license does not match")
+          import json
+          zenodo = json.loads((root / ".zenodo.json").read_text())
+          creator_roles = {item["name"]: item.get("type") for item in zenodo["creators"]}
+          if creator_roles != {
+              "Reymermier, Théo": "ProjectLeader",
+              "Swallow, Paul": "ProjectManager",
+          }:
+              raise SystemExit("Zenodo creator roles do not match release policy")
           print(f"version={version}")
           PY
 
-      - name: Require a matching tag for final promotion
-        if: github.event.inputs.target == 'testpypi-and-pypi'
+
+      - name: Resolve release mode
+        id: release-mode
+        shell: bash
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            if [[ "${{ steps.package-version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "promote=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "promote=false" >> "$GITHUB_OUTPUT"
+            fi
+          elif [ "${{ github.event.inputs.target }}" = "testpypi-and-pypi" ]; then
+            echo "promote=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "promote=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require a matching release tag
         env:
           SETANUBIS_VERSION: ${{ steps.package-version.outputs.version }}
         run: |
           test "$GITHUB_REF" = "refs/tags/v${SETANUBIS_VERSION}"
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
-      - name: Run release checks
+      - name: Install release dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[dev,docs]"
+          python -m pip install -e ".[dev,docs,selection]"
+
+      - name: Run CPC reproducibility gate
+        run: >-
+          python reproducibility/run_reproducibility.py
+          --output-root .release-reproducibility
+
+      - name: Upload reproducibility evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-reproducibility-${{ steps.package-version.outputs.version }}
+          path: .release-reproducibility
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Run release checks
+        run: |
           python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
           python -m ruff check .
           python -m pip_audit
@@ -82,7 +126,6 @@ jobs:
           python -m pytest -q setanubis/tests \
             --cov=SetAnubis --cov-config=pyproject.toml \
             --cov-report=term-missing --cov-fail-under=58
-          python reproducibility/run_all.py --output-dir .release-reproducibility
           setanubis-docs --strict
 
       - name: Build sdist and wheel
@@ -180,10 +223,25 @@ jobs:
           print(MadGraphDockerRunner, SelectionPipelineBuilder)
           PY
           setanubis-pythia-smoke --out "$tmpdir/pythia-smoke"
+          SETANUBIS_BANNER=always python -m SetAnubis.examples.Pythia.example_pythia_cmnd > "$tmpdir/pythia-example.txt"
+          SETANUBIS_BANNER=always python -m SetAnubis.examples.BranchingRatio.example_BranchingRatioInterface_hnl > "$tmpdir/branching-ratio-example.txt"
+          test "$(grep -c " SET-ANUBIS ${SETANUBIS_VERSION}" "$tmpdir/pythia-example.txt")" = "1"
+          test "$(grep -c " SET-ANUBIS ${SETANUBIS_VERSION}" "$tmpdir/branching-ratio-example.txt")" = "1"
+          set +e
+          setanubis-pythia-check --json > "$tmpdir/pythia-diagnostics.json"
+          status=$?
+          set -e
+          test "$status" = "0" -o "$status" = "1"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("pythia-diagnostics.json").read_text())
+          assert "python_binding" in report
+          PY
 
   publish-pypi:
     name: Promote the same artifacts to PyPI
-    if: github.event.inputs.target == 'testpypi-and-pypi'
+    if: needs.build.outputs.promote == 'true'
     needs: [build, verify-testpypi]
     runs-on: ubuntu-latest
     environment: pypi
@@ -205,7 +263,7 @@ jobs:
 
   github-release:
     name: Create GitHub release from promoted artifacts
-    if: github.event.inputs.target == 'testpypi-and-pypi'
+    if: needs.build.outputs.promote == 'true'
     needs: [build, publish-pypi]
     runs-on: ubuntu-latest
     permissions:
