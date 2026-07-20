@@ -15,6 +15,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  release-metadata:
+    name: Release metadata consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Validate release metadata and repository policy
+        run: python scripts/check_release_metadata.py
+
   tests:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
@@ -98,8 +109,9 @@ jobs:
           cd "$tmpdir"
           python - <<'PY'
           import setanubis
+          from importlib.metadata import version as distribution_version
           from setanubis import __version__, asset_path
-          assert __version__ == "1.0.0", __version__
+          assert __version__ == distribution_version("SetAnubis"), __version__
           import inspect
           assert "SetAnubisInterface" in dir(setanubis)
           failures = []

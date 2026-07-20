@@ -37,13 +37,13 @@ def test_banner_is_emitted_once_in_interactive_mode(monkeypatch):
     assert branding.show_banner(stream=stream) is True
     assert branding.show_banner(stream=stream) is False
     output = stream.getvalue()
-    assert output.count(" SET-ANUBIS 1.0.0") == 1
+    assert output.count(f" SET-ANUBIS {branding.__version__}") == 1
     assert "Théo Reymermier (lead) and Paul Swallow" in output
     assert "Contact: anubis-active@cern.ch" in output
     assert "Pythia binding: unavailable" in output
     assert "ANUBIS proceedings contribution" in output
     assert "arXiv:2512.14942" in output
-    assert "Zenodo software release" in output
+    assert "Zenodo 10.5281/zenodo.21462101" in output
 
 
 def test_banner_auto_mode_stays_quiet_for_redirected_output(monkeypatch):

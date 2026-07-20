@@ -4,17 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
-    inputs:
-      target:
-        description: "Release stage"
-        required: true
-        default: "testpypi"
-        type: choice
-        options:
-          - testpypi
-          - testpypi-and-pypi
-
 permissions:
   contents: read
 
@@ -27,8 +16,9 @@ jobs:
     name: Build release artifacts once
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.package-version.outputs.version }}
-      promote: ${{ steps.release-mode.outputs.promote }}
+      version: ${{ steps.release-metadata.outputs.version }}
+      promote: ${{ steps.release-metadata.outputs.promote }}
+      doi: ${{ steps.release-metadata.outputs.doi }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -41,58 +31,18 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Read and validate release metadata
-        id: package-version
-        run: |
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          import re
-          import tomllib
-          from pathlib import Path
-
-          root = Path.cwd()
-          project = tomllib.loads((root / "pyproject.toml").read_text())["project"]
-          version = project["version"]
-          version_source = (root / "setanubis/SetAnubis/_version.py").read_text()
-          source_match = re.search(r'__version__\s*=\s*"([^"]+)"', version_source)
-          if not source_match or source_match.group(1) != version:
-              raise SystemExit("pyproject.toml and _version.py disagree")
-          cff = (root / "CITATION.cff").read_text()
-          if f'version: "{version}"' not in cff:
-              raise SystemExit("CITATION.cff version does not match")
-          if project.get("license") != "GPL-3.0-or-later":
-              raise SystemExit("release license must be GPL-3.0-or-later")
-          if "license: GPL-3.0-or-later" not in cff:
-              raise SystemExit("CITATION.cff license does not match")
-          import json
-          zenodo = json.loads((root / ".zenodo.json").read_text())
-          creator_roles = {item["name"]: item.get("type") for item in zenodo["creators"]}
-          if creator_roles != {
-              "Reymermier, Théo": "ProjectLeader",
-              "Swallow, Paul": "ProjectManager",
-          }:
-              raise SystemExit("Zenodo creator roles do not match release policy")
-          print(f"version={version}")
-          PY
-
-
-      - name: Resolve release mode
-        id: release-mode
-        shell: bash
-        run: |
-          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-            if [[ "${{ steps.package-version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "promote=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "promote=false" >> "$GITHUB_OUTPUT"
-            fi
-          elif [ "${{ github.event.inputs.target }}" = "testpypi-and-pypi" ]; then
-            echo "promote=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "promote=false" >> "$GITHUB_OUTPUT"
-          fi
+        id: release-metadata
+        env:
+          SETANUBIS_TAG: ${{ github.ref_name }}
+        run: >-
+          python scripts/check_release_metadata.py
+          --tag "$SETANUBIS_TAG"
+          --github-output "$GITHUB_OUTPUT"
+          --json-output RELEASE_METADATA.json
 
       - name: Require a matching release tag
         env:
-          SETANUBIS_VERSION: ${{ steps.package-version.outputs.version }}
+          SETANUBIS_VERSION: ${{ steps.release-metadata.outputs.version }}
         run: |
           test "$GITHUB_REF" = "refs/tags/v${SETANUBIS_VERSION}"
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
@@ -110,7 +60,7 @@ jobs:
       - name: Upload reproducibility evidence
         uses: actions/upload-artifact@v7
         with:
-          name: release-reproducibility-${{ steps.package-version.outputs.version }}
+          name: release-reproducibility-${{ steps.release-metadata.outputs.version }}
           path: release-reproducibility
           if-no-files-found: error
           retention-days: 30
@@ -128,19 +78,29 @@ jobs:
             --cov-report=term-missing --cov-fail-under=58
           setanubis-docs --strict
 
-      - name: Build sdist and wheel
+      - name: Build immutable release files
+        env:
+          SETANUBIS_VERSION: ${{ steps.release-metadata.outputs.version }}
         run: |
-          rm -rf build dist *.egg-info setanubis/*.egg-info
+          rm -rf build dist release-source *.egg-info setanubis/*.egg-info
           python -m build
           python -m twine check dist/*
-          sha256sum dist/* | tee SHA256SUMS
+          mkdir -p release-source
+          git archive \
+            --format=zip \
+            --prefix="set-anubis-${SETANUBIS_VERSION}/" \
+            --output="release-source/set-anubis-${SETANUBIS_VERSION}-source.zip" \
+            "$GITHUB_SHA"
+          sha256sum dist/* release-source/* RELEASE_METADATA.json | tee SHA256SUMS
 
       - name: Upload immutable distribution artifact
         uses: actions/upload-artifact@v7
         with:
-          name: release-dist-${{ steps.package-version.outputs.version }}
+          name: release-dist-${{ steps.release-metadata.outputs.version }}
           path: |
             dist/*
+            release-source/*
+            RELEASE_METADATA.json
             SHA256SUMS
           if-no-files-found: error
           retention-days: 30
@@ -280,5 +240,7 @@ jobs:
           tag_name: v${{ needs.build.outputs.version }}
           files: |
             release-artifact/dist/*
+            release-artifact/release-source/*
+            release-artifact/RELEASE_METADATA.json
             release-artifact/SHA256SUMS
           generate_release_notes: true

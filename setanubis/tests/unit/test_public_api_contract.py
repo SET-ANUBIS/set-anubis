@@ -71,7 +71,7 @@ def _iter_release_input_files(root: Path):
 
 def test_public_facades_export_the_same_names():
     assert set(SetAnubis.__all__) == set(setanubis.__all__)
-    assert SetAnubis.__version__ == setanubis.__version__ == "1.0.0"
+    assert SetAnubis.__version__ == setanubis.__version__
 
 
 def test_every_public_export_imports_and_has_documentation():
@@ -458,7 +458,8 @@ def test_final_release_workflow_requires_a_matching_tag():
     root = Path(__file__).parents[3]
     workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
     assert "refs/tags/v${SETANUBIS_VERSION}" in workflow
-    assert "testpypi-and-pypi" in workflow
+    assert "python scripts/check_release_metadata.py" in workflow
+    assert "workflow_dispatch:" not in workflow
     assert "environment: testpypi" in workflow
     assert "environment: pypi" in workflow
 
@@ -484,8 +485,11 @@ def test_release_workflow_is_tag_driven_and_testpypi_gated():
     assert "if: needs.build.outputs.promote == 'true'" in workflow
     assert workflow.index('publish-testpypi:') < workflow.index('verify-testpypi:')
     assert workflow.index('verify-testpypi:') < workflow.index('publish-pypi:')
-    assert '^[0-9]+\\.[0-9]+\\.[0-9]+$' in workflow
-    assert 'echo "promote=false"' in workflow
+    metadata_checker = (root / "scripts/check_release_metadata.py").read_text(
+        encoding="utf-8"
+    )
+    assert "STABLE_VERSION_PATTERN" in metadata_checker
+    assert "promote={'true' if metadata.stable else 'false'}" in metadata_checker
 
 
 def test_dash_applications_use_packaged_scientific_defaults():

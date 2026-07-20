@@ -10,6 +10,7 @@ version-controlled workflow YAML.
 Require pull requests, at least one approval, resolved conversations, no force
 pushes, and the following status checks:
 
+- `Release metadata consistency`;
 - all Python jobs from `CI`;
 - `Packaging smoke test`;
 - `Reproducibility / CPC R1-R5`;
@@ -31,9 +32,17 @@ maintainers. Use signed annotated release tags where practical.
 
 ## 2. CODEOWNERS
 
-Replace the commented example in `.github/CODEOWNERS` with the actual GitHub
-accounts or team before requiring CODEOWNER review. Do not invent a team name in
-the repository configuration.
+`.github/CODEOWNERS` assigns the repository to `@SET-ANUBIS/maintainers`.
+Before enabling required CODEOWNER review:
+
+1. create or verify the organization team `maintainers`;
+2. add Théo Reymermier and Paul Swallow, or the current release maintainers;
+3. make the team visible;
+4. grant the team write or maintain access to `SET-ANUBIS/set-anubis`;
+5. open the `main` ruleset and enable **Require review from Code Owners**.
+
+GitHub does not accept a hidden team or a team without repository write access
+as a CODEOWNER.
 
 ## 3. GitHub environments
 
@@ -104,50 +113,33 @@ If the project already exists, open **Your projects → SetAnubis → Manage →
 Publishing** and add the GitHub publisher there instead of creating a pending
 publisher.
 
-## 6. Zenodo: choose one first-release route
+## 6. Zenodo reserved record for `v1.0.0`
 
-The repository contains `.zenodo.json`. Zenodo uses it instead of
-`CITATION.cff` for GitHub release archiving. It records Théo Reymermier as
-`ProjectLeader`, Paul Swallow as `ProjectManager`, and the remaining collaborators
-as contributors.
+The first release uses the manually reserved DOI
+`10.5281/zenodo.21462101`. The repository contains `.zenodo.json` metadata with
+Théo Reymermier as `ProjectLeader`, Paul Swallow as `ProjectManager` and the
+remaining collaborators as contributors.
 
-### Recommended route: automatic GitHub release archiving
+For this release:
 
-Use this route when the DOI does not need to be embedded in the repository before
-the tag:
+1. keep the Zenodo GitHub automatic-archiving switch disabled for the repository;
+2. retain the existing Zenodo draft and reserved DOI;
+3. create the GitHub Release through the tag-driven workflow;
+4. download the attached clean source ZIP and `SHA256SUMS`;
+5. verify the source ZIP checksum and upload only that ZIP to the existing Zenodo
+   software draft;
+6. keep the wheel, sdist, checksum manifest and `RELEASE_METADATA.json` on the
+   GitHub Release, then verify the Zenodo metadata and publish the draft.
 
-1. Sign in to Zenodo and connect the GitHub account with access to the repository.
-2. Open the Zenodo GitHub integration, click **Sync now**, locate
-   `SET-ANUBIS/set-anubis`, and enable it.
-3. Create the `v1.0.0` GitHub Release through the release workflow.
-4. Wait for Zenodo to archive the release and create the software record.
-5. Verify creators, roles, contributors, licence, version and related article.
-6. Add the resulting concept DOI badge to the README in a follow-up documentation
-   commit and use the version DOI in release-specific citation material.
-
-With the automatic route, the DOI is normally created after the GitHub Release,
-not before the tag.
-
-### Alternative route: reserve a DOI before the tag
-
-Use this route only if the CPC manuscript or release files must contain the DOI in
-advance:
-
-1. Create a **New upload** in Zenodo and select resource type **Software**.
-2. Complete the metadata but keep the record as a draft.
-3. In the DOI field choose **Get a DOI now** to reserve one.
-4. Add the reserved DOI to the manuscript and repository metadata.
-5. After the release artifacts are final, upload one cleaned source ZIP, preview
-   the record, and publish it.
-
-Do not use the manual draft and automatic GitHub integration for the same
-`v1.0.0` object unless you intentionally manage the duplicate-record risk. Pick
-one archival route for the first software version.
+The DOI is embedded in `CITATION.cff`, the README, PyPI project URLs and the
+console banner. It becomes publicly resolvable when the Zenodo draft is
+published. Do not enable automatic GitHub archiving for the same `v1.0.0`
+release, because it may create a duplicate Zenodo record.
 
 ## 7. Final release sequence
 
 1. Merge the release pull request into `main` only after all required checks pass.
-2. Verify `git status --short` is empty and metadata versions agree.
+2. Run `python scripts/run_patch_checks.py --full`, verify `git status --short` is empty, and confirm metadata versions agree.
 3. Create and push `v1.0.0`. A stable `X.Y.Z` tag starts the full TestPyPI-to-PyPI workflow automatically; pre-release tags stop after TestPyPI verification.
 4. The workflow builds once, publishes to TestPyPI, downloads the TestPyPI wheel,
    compares its SHA-256 checksum, installs it in isolation and runs smoke tests.
@@ -155,7 +147,7 @@ one archival route for the first software version.
    green. A failed TestPyPI publish or verification prevents every downstream
    PyPI job from running.
 6. Verify the PyPI files and GitHub Release attachments.
-7. Complete the chosen Zenodo route and record the DOI.
+7. Upload the attached clean source ZIP to the reserved Zenodo draft and publish DOI `10.5281/zenodo.21462101`.
 
 ```bash
 git checkout main
