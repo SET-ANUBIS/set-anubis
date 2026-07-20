@@ -2,7 +2,8 @@
 
 Use GitHub Discussions or Issues on
 https://github.com/SET-ANUBIS/set-anubis for questions, reproducible bug reports
-and feature requests.
+and feature requests. General contact is available at
+[`anubis-active@cern.ch`](mailto:anubis-active@cern.ch).
 
 For physics-analysis questions, include:
 

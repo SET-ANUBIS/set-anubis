@@ -34,6 +34,8 @@ First public stable release of SET-ANUBIS.
 - Changed the project licence from MIT to GPL-3.0-or-later.
 - Packaged the two optional Dash applications and added console entry points with bundled branding assets.
 - Documented the protected-tag, Trusted Publisher and immutable-artifact release process.
+- Added automated release-metadata and post-patch check scripts shared by local development, CI and the tag-driven publication workflow.
+- Reserved and embedded the versioned Zenodo DOI `10.5281/zenodo.21462101` and added shared maintainer contact metadata.
 - Public examples now use HNL-oriented MadGraph, branching-ratio and selection
   configurations rather than Pythia-first examples.
 - Pythia documentation repositioned as an optional support layer.

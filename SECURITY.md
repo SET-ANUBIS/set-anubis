@@ -13,7 +13,8 @@ that means the `1.x` line.
 ## Reporting a vulnerability
 
 Please do not open a public issue for vulnerabilities. Use GitHub private
-vulnerability reporting when available, or contact the maintainers directly.
+vulnerability reporting when available, or contact the maintainers at
+[`anubis-active@cern.ch`](mailto:anubis-active@cern.ch).
 
 Include:
 

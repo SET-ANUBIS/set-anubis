@@ -275,3 +275,8 @@ reproducibility_outputs/
 .reproducibility-output/
 .ci-reproducibility/
 .local-reproducibility/
+
+# Retired generated validation products
+/Assets/Test/
+/.release-reproducibility/
+/.release-pythia-smoke/

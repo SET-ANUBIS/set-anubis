@@ -9,7 +9,7 @@ stable interfaces are therefore as important as adding new functionality.
 git clone https://github.com/SET-ANUBIS/set-anubis.git
 cd set-anubis
 python -m pip install -e ".[dev,docs,selection,madgraph]"
-python -m pytest -q setanubis/tests
+python scripts/run_patch_checks.py
 ```
 
 ## Branch model
@@ -54,10 +54,32 @@ before and after native-interface changes. If the extension cannot be compiled
 locally, state that limitation in the pull request and ensure that the
 Python-only command-file smoke tests remain green.
 
+## Validation after each patch
+
+Run the shared quick gate before pushing any patch:
+
+```bash
+python scripts/run_patch_checks.py
+```
+
+It validates release metadata, compiles the Python sources, runs Ruff and
+executes the targeted release-policy tests. Before a release pull request, run
+the complete gate:
+
+```bash
+python scripts/run_patch_checks.py --full
+```
+
+The full mode adds dependency and source audits, the complete test suite with
+coverage, reproducibility scenarios, strict documentation generation and
+package construction. Use `--skip-dependency-audit` only when local network
+access is unavailable; GitHub Actions still performs the dependency audit.
+
 ## Pull request checklist
 
 - The scientific or technical motivation is stated clearly.
-- Tests pass locally, or an external-runtime limitation is documented.
+- `python scripts/run_patch_checks.py` passes, or an external-runtime limitation
+  is documented.
 - Public interfaces, examples and documentation are consistent.
 - New data files are minimal, have documented provenance and are redistributable.
 - No generated or private artefacts are included.

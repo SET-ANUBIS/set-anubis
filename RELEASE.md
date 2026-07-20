@@ -1,126 +1,193 @@
 # SET-ANUBIS release checklist
 
-This checklist describes the publication of SET-ANUBIS 1.0.0 to TestPyPI, PyPI
-and GitHub Releases.
+This checklist describes the publication of SET-ANUBIS `1.0.0` to TestPyPI,
+PyPI, GitHub Releases and the reserved Zenodo software record
+[`10.5281/zenodo.21462101`](https://doi.org/10.5281/zenodo.21462101).
 
-## 1. Repository and metadata
+The release workflow is deliberately tag-driven. Pushing a matching stable tag
+builds the distributions once, validates them on TestPyPI, pauses for approval,
+promotes the same files to PyPI and creates the GitHub Release. Do not start a
+second manual release workflow after pushing the tag.
 
-Before tagging the release:
+## 1. Automated metadata checks
 
-- merge the release candidate into `main`;
-- confirm that CI, the dedicated R1--R5 reproducibility workflow, CodeQL, documentation and optional Pythia checks are green;
-- confirm version `1.0.0` in `pyproject.toml`, `SetAnubis/_version.py`,
-  `CHANGELOG.md` and `CITATION.cff`;
-- confirm `GPL-3.0-or-later` in `LICENSE`, `pyproject.toml`, `CITATION.cff`, the
-  README and the CPC manuscript;
-- replace the temporary article reference when the CPC identifier is available;
-- make sure the working tree contains no generated event folders, databases,
-  external build trees, caches or macOS metadata.
-
-## 2. Local release gates
+Run the fast checker after every release-related patch:
 
 ```bash
-python -m pip install -e ".[dev,docs,selection,madgraph]"
-python -m compileall -q setanubis/SetAnubis setanubis/setanubis.py setanubis/__init__.py
-setanubis-pythia-smoke --out .release-pythia-smoke
-python -m ruff check .
-python -m pip_audit
-python -m bandit -q -lll -r setanubis/SetAnubis/core \
-  -x setanubis/SetAnubis/core/UFOInterface/SM_NLO,setanubis/SetAnubis/core/BranchingRatio/app,setanubis/SetAnubis/core/DataBase/app,setanubis/SetAnubis/core/Geometry/app,setanubis/SetAnubis/core/MadGraph/app,setanubis/SetAnubis/core/Pythia/app,setanubis/SetAnubis/core/Selection/app
-python -m pytest -q setanubis/tests \
-  --cov=SetAnubis --cov-config=pyproject.toml \
-  --cov-report=term-missing --cov-fail-under=58
-python reproducibility/run_reproducibility.py --output-root .release-reproducibility
-setanubis-docs --strict
-rm -rf build dist *.egg-info setanubis/*.egg-info
-python -m build
-python -m twine check dist/*
-sha256sum dist/*
+python scripts/check_release_metadata.py
+python scripts/run_patch_checks.py
 ```
 
-Optional native Pythia/HepMC3 validation:
+The metadata checker validates, among other invariants:
+
+- the version in `pyproject.toml`, `SetAnubis/_version.py`, `CITATION.cff`,
+  `.zenodo.json`, `CHANGELOG.md` and the Sphinx configuration;
+- the release date and `GPL-3.0-or-later` licence declaration;
+- the Zenodo DOI in `CITATION.cff`, the README and the PyPI project URLs;
+- the shared maintainer contact, `CODEOWNERS` policy and release workflow;
+- the absence of the retired `Assets/Test` directory and known DOI placeholders.
+
+The full release-candidate gate is:
 
 ```bash
-./External_Integration/install.sh HepMC3 Pythia
-SETANUBIS_BUILD_PYTHIA=1 \
-SETANUBIS_PYTHIA8_DIR=$PWD/External_Integration/Pythia/pythia8315 \
-SETANUBIS_HEPMC3_DIR=$PWD/External_Integration/HepMC3/hepmc3-install \
-python -m pip install -e ".[pythia,dev]"
-setanubis-pythia-check
-setanubis-pythia-smoke --run-pythia --no-hard-cut --events 3
+python scripts/run_patch_checks.py --full
+# Offline fallback; CI still performs the dependency audit:
+python scripts/run_patch_checks.py --full --skip-dependency-audit
 ```
 
-## 3. One-time GitHub, TestPyPI and PyPI setup
+This adds dependency and source audits, the complete test suite with coverage,
+the R1--R5 reproducibility scenarios, strict documentation generation, package
+construction and `twine` validation. The optional native Pythia/HepMC3 test
+remains separate because it requires locally installed external libraries.
+
+## 2. One-time GitHub configuration
+
+### Maintainer team and CODEOWNERS
+
+Create or verify the visible organization team `SET-ANUBIS/maintainers`, add the
+release maintainers, and grant that team write or maintain access to the
+repository. `.github/CODEOWNERS` assigns the full repository to that team.
+
+After the team is valid, enable **Require review from Code Owners** in the
+`main` branch ruleset. GitHub only recognizes a team as a code owner when the
+team is visible and has repository write access.
+
+### Required status checks
+
+Keep the existing protected-branch checks and add the CI check named
+`Release metadata consistency` after it has appeared in the first pull request.
+Require pull requests, resolved conversations, no force pushes and the desired
+review policy. The existing PR-only maintainer bypass can remain in place for
+maintainer-authored release pull requests.
+
+### Deployment environments
 
 Create GitHub environments named exactly:
 
-- `testpypi`
-- `pypi`
-- `github-pages`
+- `testpypi`: allow tags matching `v*`; no manual reviewer is required;
+- `pypi`: allow tags matching `v*`; require the other release maintainer and
+  enable prevention of self-review where practical;
+- `github-pages`: allow documentation deployment from `main`.
 
-Recommended protection:
+### Trusted Publishers
 
-- `pypi`: required maintainer approval, no self-review where practical, and
-  deployment restricted to tags matching `v*`;
-- `testpypi`: release workflow only; release-candidate branches or tags may be
-  allowed;
-- `github-pages`: deployments allowed from `main`.
+Configure separate GitHub Actions Trusted Publishers on TestPyPI and PyPI:
 
-Configure a separate Trusted Publisher on **TestPyPI** and **PyPI** with:
+| Field | TestPyPI | PyPI |
+| --- | --- | --- |
+| Project | `SetAnubis` | `SetAnubis` |
+| Owner | `SET-ANUBIS` | `SET-ANUBIS` |
+| Repository | `set-anubis` | `set-anubis` |
+| Workflow | `release.yml` | `release.yml` |
+| Environment | `testpypi` | `pypi` |
 
-- owner: `SET-ANUBIS`
-- repository: `set-anubis`
-- workflow: `release.yml`
-- environment: `testpypi` or `pypi`
+No long-lived package-index token is required.
 
-No long-lived PyPI token is required by the workflow.
+### Reserved Zenodo DOI
 
-## 4. TestPyPI rehearsal
+Version `1.0.0` uses the manually reserved DOI
+`10.5281/zenodo.21462101`. Keep the GitHub--Zenodo automatic archiving switch
+disabled for this first release, otherwise the GitHub Release may create a
+second Zenodo record.
 
-Use a release-candidate version, for example `1.0.0rc1`, for a rehearsal. Update
-the package metadata to that version and push the matching tag `v1.0.0rc1`.
-Pre-release tag pushes publish to TestPyPI and stop after verification; they do
-not continue to PyPI. The manual workflow can also be run from that tag with
-`target=testpypi`. Do not repeatedly upload the final `1.0.0` filename: package
-indexes do not allow an uploaded distribution file to be replaced.
+Before tagging, keep the Zenodo record as a draft and verify its title,
+creators, contributors, licence, version, release date and related HNL article.
+The DOI will resolve publicly after the draft is published.
 
-## 5. Final tagged release
+## 3. Release pull request
 
-After all checks are green on `main`:
+Create a release branch from the current protected `main` branch:
 
 ```bash
-git checkout main
+git switch main
+git pull --ff-only
+git switch -c release/v1.0.0
+```
+
+Apply the final metadata changes and run:
+
+```bash
+python scripts/run_patch_checks.py
+python scripts/run_patch_checks.py --full
+git status --short
+```
+
+Commit and push the release candidate:
+
+```bash
+git add -A
+git commit -S -m "Prepare SET-ANUBIS 1.0.0 release"
+git push -u origin release/v1.0.0
+```
+
+Open `release/v1.0.0 -> main`, wait for all required checks, obtain the required
+review or use the configured PR-only maintainer bypass, and merge the pull
+request without creating the release tag in the GitHub interface.
+
+## 4. Final tag
+
+After the pull request is merged:
+
+```bash
+git switch main
 git pull --ff-only
 git status --short
-git tag -s v1.0.0 -m "SET-ANUBIS 1.0.0"
-git push origin v1.0.0
+python scripts/check_release_metadata.py
+VERSION=$(python scripts/check_release_metadata.py --print-version)
+git tag -s "v${VERSION}" -m "SET-ANUBIS ${VERSION}"
+git push origin "v${VERSION}"
 ```
 
-An annotated tag can be used when signing is not configured, but a signed tag is
-preferred.
+An annotated tag can be used when tag signing is not configured, but a signed
+tag is preferred. The tag must point to a commit contained in `origin/main`.
 
-Run the workflow from the tag:
+Do not invoke `gh workflow run release.yml` after this push. The tag push starts
+the release workflow automatically.
 
-```bash
-gh workflow run release.yml \
-  --ref v1.0.0 \
-  -f target=testpypi-and-pypi
-```
+## 5. Automated publication sequence
 
-The workflow:
+For a stable `X.Y.Z` tag, `.github/workflows/release.yml`:
 
-1. verifies that `GITHUB_REF` is `refs/tags/v1.0.0` and matches the package
-   version;
-2. builds one wheel/sdist pair and records SHA-256 checksums;
-3. uploads the files to TestPyPI;
-4. downloads the TestPyPI wheel and compares its checksum with the retained
-   build;
-5. installs the wheel and runs smoke tests;
-6. waits for approval of the `pypi` environment;
-7. publishes the same files to PyPI;
-8. creates the GitHub Release for the existing tag and attaches the same files.
+1. validates the version, date, DOI, licence, contacts and tag using
+   `scripts/check_release_metadata.py`;
+2. verifies that the tagged commit belongs to `main`;
+3. executes the reproducibility, test, security and documentation gates;
+4. builds one wheel and one sdist;
+5. creates a clean source ZIP, `RELEASE_METADATA.json` and `SHA256SUMS`;
+6. uploads the wheel and sdist to TestPyPI;
+7. downloads the TestPyPI wheel, verifies its checksum, installs it and runs
+   smoke tests;
+8. waits for approval of the protected `pypi` environment;
+9. uploads the unchanged wheel and sdist to PyPI;
+10. creates the GitHub Release and attaches the distributions, source ZIP,
+    metadata report and checksums.
 
-## 6. Post-publication verification
+A pre-release tag such as `v1.0.1rc1` stops after successful TestPyPI
+verification. Package indexes do not permit replacing an uploaded filename, so
+never use the final version number for a rehearsal.
+
+If a workflow job fails before publication, fix the underlying problem and move
+to a new version or pre-release as appropriate. If a transient job fails after
+an artefact was uploaded, use GitHub's **Re-run failed jobs** action rather than
+starting a second independent workflow.
+
+## 6. Zenodo publication
+
+After the GitHub Release is complete, download
+`set-anubis-1.0.0-source.zip` and `SHA256SUMS`. Verify the source archive against
+the published checksum, then upload **only that clean source ZIP** to the existing
+Zenodo software draft. Keeping one compressed source archive allows Zenodo to
+forward the software record for Software Heritage archival. The wheel, source
+distribution, checksum manifest and `RELEASE_METADATA.json` remain immutable
+attachments of the GitHub Release.
+
+Preview the Zenodo record and publish the draft. Then confirm that
+<https://doi.org/10.5281/zenodo.21462101> resolves to the public software record.
+Do not create a second automatic GitHub-derived Zenodo deposit for `v1.0.0`.
+
+## 7. Post-publication verification
+
+Test the public PyPI package outside the repository:
 
 ```bash
 python -m venv /tmp/setanubis-release-check
@@ -133,15 +200,22 @@ setanubis-pythia-smoke --out /tmp/setanubis-pythia-smoke
 
 Also verify:
 
-- PyPI metadata, licence and README rendering;
+- TestPyPI and PyPI metadata, licence and README rendering;
 - installation on Python 3.10 and 3.13;
-- GitHub Release attachments and checksums;
+- all GitHub Release attachments and SHA-256 values;
 - GitHub Pages documentation;
-- the DOI/archive record when it is created.
+- the public Zenodo record and citation export;
+- the release entry in `CHANGELOG.md`.
 
-## 7. Branch model after 1.0.0
+## 8. CPC article follow-up
 
-Use `develop` as the integration branch and protect both `main` and `develop`.
-Feature branches should merge into `develop`; release pull requests merge
-`develop` into `main`. Hotfixes branch from `main` and are merged back into both
-branches. Require CI and documentation checks before merging.
+The CPC article is not required for `1.0.0`. Until the final CPC record is
+public, `CITATION.cff` keeps the related ANUBIS proceedings article as its
+`preferred-citation` and the software DOI identifies the released code.
+
+When the CPC DOI and bibliographic record become available, update
+`CITATION.cff`, the README and documentation. A repository-only documentation
+commit is sufficient for the default branch, but PyPI metadata for an existing
+file is immutable. Publish a metadata patch release, normally `1.0.1`, if the
+CPC citation should also appear in the PyPI-rendered README and the archived
+package metadata.

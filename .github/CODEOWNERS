@@ -1,3 +1,3 @@
-# Configure a valid maintainer or team before enabling required CODEOWNER reviews.
-# Example:
-# * @SET-ANUBIS/maintainers
+# Default ownership for the maintained SET-ANUBIS repository.
+# The organization team must be visible and have write access to this repository.
+* @SET-ANUBIS/maintainers

@@ -1,8 +1,10 @@
 cff-version: 1.2.0
 message: "If SET-ANUBIS contributes to your work, please cite the software release and the associated publication(s)."
 title: "SET-ANUBIS: a modular pipeline for ANUBIS long-lived particle sensitivity studies"
+type: software
 version: "1.0.0"
 date-released: "2026-07-20"
+doi: 10.5281/zenodo.21462101
 license: GPL-3.0-or-later
 repository-code: "https://github.com/SET-ANUBIS/set-anubis"
 url: "https://github.com/SET-ANUBIS/set-anubis"

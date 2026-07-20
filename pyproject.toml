@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77", "wheel", "pybind11>=2.12"]
+requires = ["setuptools>=83.0.0", "wheel", "pybind11>=2.12"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -15,8 +15,8 @@ authors = [
   {name = "Paul Swallow"},
 ]
 maintainers = [
-  {name = "Théo Reymermier"},
-  {name = "Paul Swallow"},
+  {name = "Théo Reymermier", email = "anubis-active@cern.ch"},
+  {name = "Paul Swallow", email = "anubis-active@cern.ch"},
 ]
 keywords = ["physics", "anubis", "llp", "pythia", "hepmc", "madgraph"]
 classifiers = [
@@ -52,12 +52,12 @@ selection = ["pyhepmc", "fastjet", "awkward"]
 madgraph = ["docker"]
 app = ["dash", "plotly", "pyhepmc", "requests", "python-dotenv", "python-multipart"]
 docs = ["sphinx", "sphinx_rtd_theme"]
-dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit", "tomli>=2; python_version < '3.11'"]
+dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit", "setuptools>=83.0.0", "tomli>=2; python_version < '3.11'"]
 all = [
   "pybind11>=2.12", "pyhepmc", "fastjet", "awkward", "docker",
   "dash", "plotly", "requests", "python-dotenv", "python-multipart",
   "sphinx", "sphinx_rtd_theme", "pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit",
-  "tomli>=2; python_version < '3.11'",
+  "setuptools>=83.0.0", "tomli>=2; python_version < '3.11'",
 ]
 
 [project.urls]
@@ -68,6 +68,7 @@ Issues = "https://github.com/SET-ANUBIS/set-anubis/issues"
 ANUBIS-Proceedings = "https://arxiv.org/abs/2512.14942"
 HNL-Sensitivity-Study = "https://arxiv.org/abs/2606.26862"
 Citation = "https://github.com/SET-ANUBIS/set-anubis/blob/main/CITATION.cff"
+Archive = "https://doi.org/10.5281/zenodo.21462101"
 
 [project.scripts]
 setanubis-pythia-check = "SetAnubis.core.Pythia.tools.check_install:main"

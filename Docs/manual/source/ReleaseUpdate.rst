@@ -11,8 +11,8 @@ Pre-release requirements
 
 Before creating the release tag:
 
-* ensure the version agrees in ``pyproject.toml``, ``SetAnubis/_version.py``,
-  ``CHANGELOG.md`` and ``CITATION.cff``;
+* run ``python scripts/check_release_metadata.py`` to validate the version,
+  release date, DOI, licence, contacts, changelog, Sphinx metadata and workflow;
 * confirm that the licence expression is ``GPL-3.0-or-later`` and that the CPC
   manuscript uses the same wording;
 * run the local checks described in :doc:`CIAndDocs`;
@@ -61,33 +61,31 @@ The repository contains ``.zenodo.json`` metadata with Théo Reymermier as
 collaborators as contributors. Zenodo uses this file instead of ``CITATION.cff``
 when a GitHub release is archived.
 
-For the first release, choose one archival route:
+The first release uses a manual Zenodo draft with reserved version DOI
+``10.5281/zenodo.21462101``. The DOI is embedded in the repository metadata
+before tagging. The automatic GitHub--Zenodo archiving switch must remain
+disabled for ``v1.0.0`` to avoid creating a duplicate record.
 
-* enable the GitHub repository in Zenodo before tagging, then allow the
-  ``v1.0.0`` GitHub Release to create the software record and DOI automatically;
-* or create a manual Zenodo draft, reserve a DOI, and publish a single cleaned
-  source archive after the tag if the DOI must appear in the manuscript before
-  release.
-
-The automatic GitHub route normally provides the DOI after the GitHub Release.
-Avoid creating both an automatic and a manual record for the same release unless
-duplicate records are being managed intentionally. After publication, add the
-concept DOI to the README and use the version DOI for release-specific citations.
+After the GitHub Release is complete, upload its clean source ZIP, wheel, source
+distribution, ``SHA256SUMS`` and ``RELEASE_METADATA.json`` to the existing
+Zenodo draft, verify the metadata and checksums, and publish that draft.
 
 Final promotion sequence
 ------------------------
 
 The final workflow performs the following steps:
 
-1. check out the tagged commit and execute all release gates;
-2. build the wheel and sdist once and record their checksums;
+1. check out the tagged commit, validate it with
+   ``scripts/check_release_metadata.py`` and execute all release gates;
+2. build the wheel and sdist once, create a clean source ZIP and record all
+   checksums and release metadata;
 3. publish those files to TestPyPI;
 4. download the TestPyPI wheel, compare its SHA-256 digest with the retained
    artefact, install it and run smoke tests;
 5. pause at the protected ``pypi`` environment for manual approval;
 6. publish the same files to PyPI;
-7. create the GitHub Release for the existing tag and attach the distributions
-   and checksum file.
+7. create the GitHub Release for the existing tag and attach the distributions,
+   clean source ZIP, metadata report and checksum file.
 
 Scientific provenance
 ---------------------

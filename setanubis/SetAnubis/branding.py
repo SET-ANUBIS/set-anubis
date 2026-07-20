@@ -22,6 +22,7 @@ from SetAnubis._version import __version__
 
 _BANNER_LOCK = threading.Lock()
 _BANNER_SHOWN = False
+_RELEASE_ZENODO_DOI = "10.5281/zenodo.21462101"
 
 
 def _pythia_binding_status() -> str:
@@ -45,7 +46,7 @@ def _pythia_binding_status() -> str:
 def _zenodo_citation_text() -> str:
     """Return the Zenodo citation label, optionally including a known DOI."""
 
-    doi = os.getenv("SETANUBIS_ZENODO_DOI", "").strip()
+    doi = os.getenv("SETANUBIS_ZENODO_DOI", _RELEASE_ZENODO_DOI).strip()
     if doi:
         return f"Zenodo {doi}"
     return "the matching SET-ANUBIS Zenodo software release"

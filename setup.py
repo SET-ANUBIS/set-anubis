@@ -190,7 +190,7 @@ def _pythia_extension() -> Extension:
 
     return Extension(
         "SetAnubis.core.Pythia.bindings.pythia_sim",
-        sources=[str(PYTHIA_CPP_DIR / "bindings.cpp")],
+        sources=[(PYTHIA_CPP_DIR / "bindings.cpp").relative_to(ROOT).as_posix()],
         include_dirs=[
             str(PYTHIA_CPP_DIR),
             str(pythia_inc),

@@ -16,7 +16,7 @@
 [![License: GPL v3+](https://img.shields.io/badge/License-GPL%20v3%2B-blue.svg)](LICENSE)
 [![Paper](https://img.shields.io/badge/arXiv-2606.26862-b31b1b.svg)](https://arxiv.org/abs/2606.26862)
 [![Citation](https://img.shields.io/badge/citation-CITATION.cff-b31b1b.svg)](CITATION.cff)
-[![Zenodo](https://img.shields.io/badge/Zenodo-DOI%20after%20v1.0.0-1682D4?logo=zenodo)](#citation-and-archival)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21462101.svg)](https://doi.org/10.5281/zenodo.21462101)
 
 **SET-ANUBIS** is a modular framework for studying the sensitivity of the proposed **ANUBIS** detector to scenarios containing long-lived particles (LLPs). It provides a common analysis chain from the definition of a beyond-the-Standard-Model (BSM) spectrum to the calculation of decay properties, event generation, event ingestion, detector-geometry acceptance and truth-level event selection.
 
@@ -259,9 +259,10 @@ show_banner(force=True)
 The SET-ANUBIS banner identifies the software version and developers, reports
 whether the optional compiled Pythia binding is available in the current Python
 environment, and reminds users to cite the current ANUBIS proceedings
-contribution together with the matching Zenodo software release. Before a
-release DOI is embedded in the package, it can be supplied explicitly with
-`SETANUBIS_ZENODO_DOI=10.5281/zenodo...`.
+contribution together with the versioned Zenodo software record
+[`10.5281/zenodo.21462101`](https://doi.org/10.5281/zenodo.21462101). The
+`SETANUBIS_ZENODO_DOI` environment variable remains available as an explicit
+override for development builds and later releases.
 
 FastJet prints its own citation banner the first time a clustering sequence is
 created. SET-ANUBIS suppresses that console output by default so that selection
@@ -328,7 +329,14 @@ setanubis-docs --strict
 
 The release gate includes the Python 3.10–3.13 test matrix, public-API contract tests, static checks, dependency and source security scans, deterministic reproducibility examples, documentation warnings as errors, package construction and clean-wheel installation.
 
-Maintainer-side GitHub environment, branch-protection and Trusted Publisher settings are documented in [`GITHUB_RELEASE_SETUP.md`](GITHUB_RELEASE_SETUP.md).
+Maintainers can run the fast post-patch checks and the complete release-candidate gate with:
+
+```bash
+python scripts/run_patch_checks.py
+python scripts/run_patch_checks.py --full
+```
+
+The underlying `scripts/check_release_metadata.py` command verifies that the package version, release date, DOI, licence, contacts, changelog, Sphinx metadata and release workflow remain coherent. Maintainer-side GitHub environment, branch-protection and Trusted Publisher settings are documented in [`GITHUB_RELEASE_SETUP.md`](GITHUB_RELEASE_SETUP.md).
 
 ## Citation and archival
 
@@ -336,7 +344,7 @@ Citation metadata for the software is provided in [`CITATION.cff`](CITATION.cff)
 
 The ANUBIS HNL sensitivity study obtained with SET-ANUBIS is available as [*Projected sensitivity of the ANUBIS detector to heavy neutral leptons*](https://arxiv.org/abs/2606.26862). Users should cite the software record and the physics article(s) relevant to the analysis being reproduced.
 
-The repository also contains [`.zenodo.json`](.zenodo.json) metadata for release archiving. Because Zenodo gives this file precedence over `CITATION.cff`, the two records must be kept consistent. After the GitHub-Zenodo integration is enabled, the `v1.0.0` GitHub release can be deposited on Zenodo and assigned an immutable DOI. Once the first deposit exists, replace the temporary Zenodo badge above with the DOI badge supplied by Zenodo and add the concept DOI to `CITATION.cff`. No placeholder DOI should be published.
+Version `1.0.0` is archived under the reserved Zenodo DOI [`10.5281/zenodo.21462101`](https://doi.org/10.5281/zenodo.21462101). The repository also contains [`.zenodo.json`](.zenodo.json) metadata for the manual software deposit. Because the DOI was reserved in a Zenodo draft before tagging, the GitHub--Zenodo automatic archiving integration must remain disabled for this first release to avoid creating a duplicate record. Upload the clean `set-anubis-1.0.0-source.zip` attached to the GitHub Release to that draft before publication, and verify its SHA-256 value against `SHA256SUMS`. The wheel, source distribution, checksums and validated release-metadata report remain available as immutable GitHub Release assets.
 
 ## Project roles and contributors
 

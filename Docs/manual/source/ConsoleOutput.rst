@@ -32,8 +32,9 @@ Théo Reymermier and Paul Swallow, reports whether the optional compiled Pythia
 binding is available in the active environment, and reminds users to cite the
 current ANUBIS proceedings contribution together with the corresponding Zenodo software release.
 
-If a Zenodo DOI is known but has not yet been embedded in the release, it can be
-shown with ``SETANUBIS_ZENODO_DOI``.
+The ``1.0.0`` banner embeds the versioned Zenodo DOI
+``10.5281/zenodo.21462101``. ``SETANUBIS_ZENODO_DOI`` can override this value
+for development builds and later releases.
 
 FastJet banner
 --------------
