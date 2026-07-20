@@ -388,6 +388,7 @@ def test_release_metadata_and_branding_assets_are_consistent():
     assert not missing, f"Missing release branding assets: {missing}"
 
     dev_dependencies = project["optional-dependencies"]["dev"]
+    assert "setuptools>=83.0.0" in dev_dependencies
     assert any(dependency.startswith("tomli") for dependency in dev_dependencies)
 
     zenodo = json.loads((root / ".zenodo.json").read_text(encoding="utf-8"))

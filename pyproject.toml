@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77", "wheel", "pybind11>=2.12"]
+requires = ["setuptools>=83.0.0", "wheel", "pybind11>=2.12"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -52,12 +52,12 @@ selection = ["pyhepmc", "fastjet", "awkward"]
 madgraph = ["docker"]
 app = ["dash", "plotly", "pyhepmc", "requests", "python-dotenv", "python-multipart"]
 docs = ["sphinx", "sphinx_rtd_theme"]
-dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit", "tomli>=2; python_version < '3.11'"]
+dev = ["pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit", "setuptools>=83.0.0", "tomli>=2; python_version < '3.11'"]
 all = [
   "pybind11>=2.12", "pyhepmc", "fastjet", "awkward", "docker",
   "dash", "plotly", "requests", "python-dotenv", "python-multipart",
   "sphinx", "sphinx_rtd_theme", "pytest", "pytest-cov", "build", "twine", "ruff", "bandit", "pip-audit",
-  "tomli>=2; python_version < '3.11'",
+  "setuptools>=83.0.0", "tomli>=2; python_version < '3.11'",
 ]
 
 [project.urls]
