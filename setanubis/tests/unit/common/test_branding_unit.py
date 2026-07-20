@@ -39,6 +39,7 @@ def test_banner_is_emitted_once_in_interactive_mode(monkeypatch):
     output = stream.getvalue()
     assert output.count(" SET-ANUBIS 1.0.0") == 1
     assert "Théo Reymermier (lead) and Paul Swallow" in output
+    assert "Contact: anubis-active@cern.ch" in output
     assert "Pythia binding: unavailable" in output
     assert "ANUBIS proceedings contribution" in output
     assert "arXiv:2512.14942" in output

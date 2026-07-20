@@ -57,6 +57,7 @@ def _banner_text() -> str:
         f" SET-ANUBIS {__version__}\n"
         " Simulation, accEptance and sensiTivity studies framework for ANUBIS\n"
         " Developers: Théo Reymermier (lead) and Paul Swallow\n"
+        " Contact: anubis-active@cern.ch\n"
         f" Pythia binding: {_pythia_binding_status()}\n"
         " Cite: ANUBIS proceedings contribution, arXiv:2512.14942\n"
         f"       and {_zenodo_citation_text()}\n"
