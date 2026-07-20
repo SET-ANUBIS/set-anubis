@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import runpy
+import types
 import shutil
 import subprocess
 import sys
@@ -115,3 +117,34 @@ def test_release_metadata_checker_rejects_dashboard_version_drift(tmp_path):
 
     assert result.returncode != 0
     assert "standalone database-dashboard version" in result.stderr
+
+
+def test_optional_pythia_extension_uses_a_relative_source_path(monkeypatch, tmp_path):
+    import setuptools
+
+    monkeypatch.setenv("SETANUBIS_BUILD_PYTHIA", "0")
+    monkeypatch.setattr(setuptools, "setup", lambda **_: None)
+    namespace = runpy.run_path(str(ROOT / "setup.py"))
+
+    namespace["_pythia_extension"].__globals__["_dependency_report"] = lambda: (
+        True,
+        {
+            "pythia8_prefix": str(tmp_path / "pythia8"),
+            "pythia8_include": str(tmp_path / "pythia8/include"),
+            "pythia8_lib": str(tmp_path / "pythia8/lib"),
+            "hepmc3_prefix": str(tmp_path / "hepmc3"),
+            "hepmc3_include": str(tmp_path / "hepmc3/include"),
+            "hepmc3_lib": str(tmp_path / "hepmc3/lib"),
+            "pybind11": "available",
+        },
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "pybind11",
+        types.SimpleNamespace(get_include=lambda: str(tmp_path / "pybind11/include")),
+    )
+
+    extension = namespace["_pythia_extension"]()
+
+    assert extension.sources == ["External_Integration/Pythia/bindings.cpp"]
+    assert all(not Path(source).is_absolute() for source in extension.sources)
