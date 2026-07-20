@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 - 2026-07-18
+## 1.0.0 - 2026-07-20
 
 First public stable release of SET-ANUBIS.
 
