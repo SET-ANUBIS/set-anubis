@@ -44,6 +44,9 @@ _EXPORTS: dict[str, str | tuple[str, str]] = {
     "EventAccessor": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
     "DataframeBundleIO": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
     "BundleBuildConfig": "SetAnubis.core.DataBase.domain.EventDatabaseManager",
+    "SelectionResultsDatabaseManager": "SetAnubis.core.DataBase.domain.SelectionResultsDatabaseManager",
+    "SelectionResultsAccessor": "SetAnubis.core.DataBase.domain.SelectionResultsDatabaseManager",
+    "SelectionResultRecord": "SetAnubis.core.DataBase.domain.SelectionResultsDatabaseManager",
 
     # Pythia
     "PythiaCMNDInterface": "SetAnubis.core.Pythia.adapters.input.PythiaCMNDInterface",

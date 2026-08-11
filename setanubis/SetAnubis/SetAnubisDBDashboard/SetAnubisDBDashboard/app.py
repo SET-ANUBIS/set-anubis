@@ -68,6 +68,15 @@ def _model_options(payload: Dict[str, Any]) -> List[Dict[str, str]]:
     return out
 
 
+def _campaign_options(payload: Dict[str, Any]) -> List[Dict[str, str]]:
+    out = []
+    for c in payload.get("campaigns") or []:
+        campaign = c.get("campaign")
+        if campaign:
+            out.append({"label": f"{campaign} ({c.get('n_events', 0)})", "value": campaign})
+    return out
+
+
 def _events_for_table(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     rows = []
     for e in events:
@@ -76,6 +85,7 @@ def _events_for_table(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "event": short_id(e.get("id")),
             "run": e.get("run_name"),
             "pre_decay": e.get("pre_decay_run_name"),
+            "campaign": e.get("campaign"),
             "model": e.get("model"),
             "llp": e.get("llp_pid"),
             "xsec_pb": e.get("cross_section_pb"),
@@ -201,6 +211,15 @@ def controls_sidebar(default_db: str, default_storage: str, default_events_root:
                         placeholder="All stored models",
                         className="science-dropdown",
                     ),
+                    html.Div("Campaign", className="label", style={"marginTop": "10px"}),
+                    dcc.Dropdown(
+                        id="campaign-filter",
+                        options=[],
+                        value=None,
+                        clearable=True,
+                        placeholder="All import campaigns",
+                        className="science-dropdown",
+                    ),
                     html.Div("LLP PDG identifier", className="label", style={"marginTop": "10px"}),
                     dcc.Input(id="llp-pid-filter", type="text", value="", placeholder="9900012", style={"width": "100%"}),
                     html.Div("Selection-ready bundle", className="label", style={"marginTop": "10px"}),
@@ -302,6 +321,7 @@ def events_page(payload: Dict[str, Any]) -> html.Div:
         {"name": "event", "id": "event"},
         {"name": "run", "id": "run"},
         {"name": "pre-decay", "id": "pre_decay"},
+        {"name": "campaign", "id": "campaign"},
         {"name": "model", "id": "model"},
         {"name": "llp", "id": "llp"},
         {"name": "xsec [pb]", "id": "xsec_pb"},
@@ -520,29 +540,37 @@ def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAG
         Output("payload-store", "data"),
         Output("status-line", "children"),
         Output("model-filter", "options"),
+        Output("campaign-filter", "options"),
         Input("refresh-btn", "n_clicks"),
         Input("backfill-btn", "n_clicks"),
         State("db-path", "value"),
         State("storage-dir", "value"),
         State("events-root", "value"),
         State("model-filter", "value"),
+        State("campaign-filter", "value"),
         State("llp-pid-filter", "value"),
         State("bundle-filter", "value"),
         State("event-limit", "value"),
         State("include-particles", "value"),
     )
-    def load_or_backfill(refresh_clicks, backfill_clicks, db_path, storage_dir, events_root, model, llp_pid, bundle_filter, event_limit, include_particles):
+    def load_or_backfill(refresh_clicks, backfill_clicks, db_path, storage_dir, events_root, model, campaign, llp_pid, bundle_filter, event_limit, include_particles):
         trigger = callback_context.triggered[0]["prop_id"].split(".")[0] if callback_context.triggered else "refresh-btn"
         db_path = str(db_path or "").strip()
         storage_dir = str(storage_dir or "").strip()
         events_root = str(events_root or "").strip()
         if not db_path or not storage_dir:
-            return no_update, "Missing DB path or storage dir.", no_update
+            return no_update, "Missing DB path or storage dir.", no_update, no_update
         try:
             if trigger == "backfill-btn":
                 if not events_root:
-                    return no_update, "Missing Events root for backfill.", no_update
-                res = dbdata.refresh_storage_metadata(db_path, storage_dir, events_root, dry_run=False)
+                    return no_update, "Missing Events root for backfill.", no_update, no_update
+                res = dbdata.refresh_storage_metadata(
+                    db_path,
+                    storage_dir,
+                    events_root,
+                    campaign=campaign,
+                    dry_run=False,
+                )
                 ok = sum(1 for r in res if r.get("ok"))
                 ko = len(res) - ok
                 backfill_msg = f"Backfill storage metadata: {ok} ok, {ko} failed.\n"
@@ -553,6 +581,7 @@ def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAG
                 db_path,
                 storage_dir,
                 model=model,
+                campaign=campaign,
                 llp_pid=_int_or_none(llp_pid),
                 has_bundle=_bool_from_dropdown(bundle_filter),
                 limit=_int_or_none(event_limit) or 500,
@@ -565,9 +594,9 @@ def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAG
                 + f"CAS: {human_bytes((payload.get('storage') or {}).get('cas_size_bytes'))} • "
                 + f"Bundles: {human_bytes((payload.get('storage') or {}).get('stored_bundle_size_bytes'))}"
             )
-            return payload, status, _model_options(payload)
+            return payload, status, _model_options(payload), _campaign_options(payload)
         except Exception as exc:
-            return no_update, f"ERROR: {exc}\n\n{traceback.format_exc(limit=8)}", no_update
+            return no_update, f"ERROR: {exc}\n\n{traceback.format_exc(limit=8)}", no_update, no_update
 
     @app.callback(Output("page-content", "children"), Input("page-tabs", "value"), Input("payload-store", "data"))
     def render_page(tab, payload):
@@ -605,6 +634,7 @@ def make_app(default_db: str = DEFAULT_DB, default_storage: str = DEFAULT_STORAG
             comparison = storage.get("comparison") or {}
             summary = (
                 f"Event {event_id}\n"
+                f"Campaign: {detail.get('campaign')}\n"
                 f"Run: {detail.get('run_name')} • pre-decay: {detail.get('pre_decay_run_name')}\n"
                 f"Model: {detail.get('model')} • seed: {detail.get('seed')} • LLP: {detail.get('llp_pid')}\n"
                 f"Source HEPMC: {human_bytes(detail.get('source_hepmc_size_bytes'))} • bundle: {human_bytes(detail.get('stored_bundle_size_bytes'))}\n"

@@ -52,16 +52,13 @@ SAMPLE_BUNDLE_STAGE_LLP_ANALYZER = "llp_analyzer"
 SAMPLE_BUNDLE_STAGE_SELECTION_READY = "selection_ready"
 
 # Minimal bundle keys needed by SelectionEngine once jets and isolation are
-# already prepared.  chargedFinalStates is kept deliberately: it lets the
-# pipeline/engine recompute isolation later if you explicitly remove the
-# precomputed minDeltaR columns or change that workflow.  neutralFinalStates,
-# finalStates and finalStates_NoLLP are only intermediates for jet/MET building
-# and are no longer stored by default.
+# already prepared.  Jet building and isolation are performed before pruning;
+# their result is retained directly on LLPs through minDeltaR_Jets and
+# minDeltaR_Tracks.  All jet/track/final-state DataFrames are therefore
+# intermediates and are not stored in the compact selection-ready bundle.
 SELECTION_ENGINE_BUNDLE_KEYS = (
     "LLPs",
     "LLPchildren",
-    "finalStatePromptJets",
-    "chargedFinalStates",
 )
 
 DEFAULT_SELECTION_MIN_PT = {
@@ -96,6 +93,7 @@ class Event:
     scan_params_json: Optional[str]
     scan_widths_json: Optional[str]
 
+    campaign: Optional[str] = None
     sample_bundle_sha256: Optional[str] = None
     sample_bundle_format: Optional[str] = None
     bundle_metadata_json: Optional[str] = None
@@ -451,6 +449,7 @@ class EventDatabaseManager:
                     decay_info_json TEXT,
                     banner_text TEXT,
                     run_name TEXT,
+                    campaign TEXT,
                     scan_params_json TEXT,
                     scan_widths_json TEXT,
                     sample_bundle_sha256 TEXT,
@@ -499,6 +498,7 @@ class EventDatabaseManager:
                 conn,
                 {
                     "run_name": "TEXT",
+                    "campaign": "TEXT",
                     "scan_params_json": "TEXT",
                     "scan_widths_json": "TEXT",
                     "sample_bundle_sha256": "TEXT",
@@ -524,6 +524,7 @@ class EventDatabaseManager:
             c.execute("CREATE INDEX IF NOT EXISTS idx_artifacts_event ON artifacts(event_id);")
             c.execute("CREATE INDEX IF NOT EXISTS idx_artifacts_sha ON artifacts(sha256);")
             c.execute("CREATE INDEX IF NOT EXISTS idx_events_run_name ON events(run_name);")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_events_campaign ON events(campaign);")
             c.execute("CREATE INDEX IF NOT EXISTS idx_events_llp_pid ON events(llp_pid);")
             c.execute("CREATE INDEX IF NOT EXISTS idx_events_bundle_sha ON events(sample_bundle_sha256);")
 
@@ -618,6 +619,7 @@ class EventImporter:
         events_folder: str,
         *,
         model: Optional[str] = None,
+        campaign: Optional[str] = None,
         neo_manager: Any = None,
         llp_pid: Optional[int] = None,
         pt_min_cfg: Optional[Dict[str, float]] = None,
@@ -641,6 +643,9 @@ class EventImporter:
         through HepmcFrameBuilder + LLPAnalyzer, and stores the bundle in CAS.
 
         Args:
+            campaign: optional human-readable import/campaign label. This is
+                stored on every imported event and can later be used as a query
+                filter; it does not participate in content deduplication.
             neo_manager: SetAnubisInterface-like object used by HepmcFrameBuilder.
             llp_pid: LLP PDG id required when creating the sample dataframe bundle.
             pt_min_cfg: LLPAnalyzer pT thresholds, e.g. {"chargedTrack": 0.5}.
@@ -657,6 +662,9 @@ class EventImporter:
         """
         if not os.path.isdir(events_folder):
             raise FileNotFoundError(events_folder)
+        campaign = str(campaign).strip() if campaign is not None else None
+        if campaign == "":
+            campaign = None
         if (neo_manager is None) ^ (llp_pid is None):
             raise ValueError("neo_manager and llp_pid must be provided together to build dataframe bundles")
 
@@ -681,6 +689,7 @@ class EventImporter:
             ev = self._import_single_run(
                 run,
                 model=model,
+                campaign=campaign,
                 neo_manager=neo_manager,
                 llp_pid=llp_pid,
                 pt_min_cfg=pt_min_cfg or {},
@@ -707,6 +716,7 @@ class EventImporter:
         run_folder: str,
         *,
         model: Optional[str],
+        campaign: Optional[str],
         neo_manager: Any,
         llp_pid: Optional[int],
         pt_min_cfg: Dict[str, float],
@@ -848,11 +858,11 @@ class EventImporter:
                 INSERT INTO events (
                     id, model_id, date_added, is_decayed, cross_section, path,
                     lhe_sha256, hepmc_sha256, masses_json, seed, run_hash,
-                    decay_info_json, banner_text, run_name, scan_params_json, scan_widths_json,
+                    decay_info_json, banner_text, run_name, campaign, scan_params_json, scan_widths_json,
                     sample_bundle_sha256, sample_bundle_format, bundle_metadata_json,
                     unknown_pids_json, llp_pid, pt_min_cfg_json, madgraph_metadata_json,
                     pre_decay_run_name, source_hepmc_filename, sample_bundle_stage, bundle_processing_json
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 (
                     event_id,
@@ -869,6 +879,7 @@ class EventImporter:
                     json.dumps(decay_info) if decay_info else None,
                     banner_text or None,
                     run_name,
+                    campaign,
                     json.dumps(scan_params) if scan_params else None,
                     json.dumps(scan_widths) if scan_widths else None,
                     sample_bundle_sha256,
@@ -920,7 +931,7 @@ class EventImporter:
 
         print(
             f"Imported event {event_id} "
-            f"(run={run_name}, pre_decay={pre_decay_run_name}, model={detected_model}, "
+            f"(run={run_name}, campaign={campaign}, pre_decay={pre_decay_run_name}, model={detected_model}, "
             f"bundle={sample_bundle_format}, stage={sample_bundle_stage}, hepmc_stored={bool(hepmc_sha256)})"
         )
         return event_id
@@ -1090,34 +1101,67 @@ class EventImporter:
 
         if build_jets:
             _, createJetDF, _ = cls._load_selection_postprocessors()
-            cfs = out.get("chargedFinalStates", pd.DataFrame())
-            nfs = out.get("neutralFinalStates", pd.DataFrame())
-            event_numbers = set()
-            if cfs is not None and not cfs.empty and "eventNumber" in cfs.columns:
-                event_numbers.update(int(x) for x in cfs["eventNumber"].dropna().unique().tolist())
-            if nfs is not None and not nfs.empty and "eventNumber" in nfs.columns:
-                event_numbers.update(int(x) for x in nfs["eventNumber"].dropna().unique().tolist())
-            if event_numbers:
-                out["finalStatePromptJets"] = createJetDF(sorted(event_numbers), cfs, nfs)
+            have_prebuilt_jets = (
+                "finalStatePromptJets" in out
+                and isinstance(out.get("finalStatePromptJets"), pd.DataFrame)
+            )
+            if have_prebuilt_jets:
+                processing["steps"].append({
+                    "name": "jet_builder",
+                    "action": "reuse_precomputed",
+                    "output_key": "finalStatePromptJets",
+                    "rows": int(len(out.get("finalStatePromptJets", pd.DataFrame()))),
+                })
             else:
-                out["finalStatePromptJets"] = pd.DataFrame()
-            processing["steps"].append({
-                "name": "jet_builder",
-                "output_key": "finalStatePromptJets",
-                "rows": int(len(out.get("finalStatePromptJets", pd.DataFrame()))),
-            })
+                cfs = out.get("chargedFinalStates", pd.DataFrame())
+                nfs = out.get("neutralFinalStates", pd.DataFrame())
+                event_numbers = set()
+                if cfs is not None and not cfs.empty and "eventNumber" in cfs.columns:
+                    event_numbers.update(int(x) for x in cfs["eventNumber"].dropna().unique().tolist())
+                if nfs is not None and not nfs.empty and "eventNumber" in nfs.columns:
+                    event_numbers.update(int(x) for x in nfs["eventNumber"].dropna().unique().tolist())
+                if event_numbers:
+                    out["finalStatePromptJets"] = createJetDF(sorted(event_numbers), cfs, nfs)
+                else:
+                    out["finalStatePromptJets"] = pd.DataFrame()
+                processing["steps"].append({
+                    "name": "jet_builder",
+                    "action": "computed",
+                    "output_key": "finalStatePromptJets",
+                    "rows": int(len(out.get("finalStatePromptJets", pd.DataFrame()))),
+                })
 
         if compute_isolation:
             _, _, IsolationComputer = cls._load_selection_postprocessors()
             llps = out.get("LLPs", pd.DataFrame())
             if llps is not None and not llps.empty:
-                iso = IsolationComputer(selection=cls._selection_view(min_pt, min_p))
-                out["LLPs"] = iso.attach_min_delta_r(out)
+                have_precomputed_iso = (
+                    "minDeltaR_Jets" in llps.columns
+                    and "minDeltaR_Tracks" in llps.columns
+                )
+                if have_precomputed_iso:
+                    action = "reuse_precomputed"
+                else:
+                    have_iso_inputs = (
+                        "finalStatePromptJets" in out
+                        or "chargedFinalStates" in out
+                    )
+                    if not have_iso_inputs:
+                        raise ValueError(
+                            "Cannot compute isolation for a compact bundle without precomputed "
+                            "minDeltaR_Jets/minDeltaR_Tracks: finalStatePromptJets or "
+                            "chargedFinalStates is required. Reimport/repack from a fuller bundle."
+                        )
+                    iso = IsolationComputer(selection=cls._selection_view(min_pt, min_p))
+                    out["LLPs"] = iso.attach_min_delta_r(out)
+                    action = "computed"
                 rows = int(len(out["LLPs"]))
             else:
+                action = "empty_llp_frame"
                 rows = 0
             processing["steps"].append({
                 "name": "isolation",
+                "action": action,
                 "llp_key": "LLPs",
                 "columns": ["minDeltaR_Jets", "minDeltaR_Tracks"],
                 "rows": rows,
@@ -1561,11 +1605,16 @@ class EventAccessor:
         self,
         *,
         model: Optional[str] = None,
+        campaign: Optional[str] = None,
+        campaign_like: Optional[str] = None,
         is_decayed: Optional[bool] = None,
         run_name: Optional[str] = None,
         run_name_like: Optional[str] = None,
         llp_pid: Optional[int] = None,
         has_bundle: Optional[bool] = None,
+        scan_params: Optional[Dict[str, Any]] = None,
+        scan_widths: Optional[Dict[str, Any]] = None,
+        masses: Optional[Dict[Any, Any]] = None,
         where: str = "",
         params: Tuple[Any, ...] = (),
     ) -> List[sqlite3.Row]:
@@ -1576,6 +1625,10 @@ class EventAccessor:
         args: List[Any] = []
         if model:
             sql += " AND m.name=?"; args.append(model)
+        if campaign:
+            sql += " AND e.campaign=?"; args.append(campaign)
+        if campaign_like:
+            sql += " AND e.campaign LIKE ?"; args.append(campaign_like)
         if is_decayed is not None:
             sql += " AND e.is_decayed=?"; args.append(int(is_decayed))
         if run_name:
@@ -1586,6 +1639,19 @@ class EventAccessor:
             sql += " AND e.llp_pid=?"; args.append(int(llp_pid))
         if has_bundle is not None:
             sql += " AND e.sample_bundle_sha256 IS " + ("NOT NULL" if has_bundle else "NULL")
+
+        def _json_path(key: Any) -> str:
+            escaped = str(key).replace("\\", "\\\\").replace('"', '\\"')
+            return f'$."{escaped}"'
+
+        for column, filters in (
+            ("scan_params_json", scan_params),
+            ("scan_widths_json", scan_widths),
+            ("masses_json", masses),
+        ):
+            for key, value in (filters or {}).items():
+                sql += f" AND json_extract(e.{column}, ?) = ?"
+                args.extend((_json_path(key), value))
         if where:
             sql += f" AND ({where})"; args.extend(params)
         sql += " ORDER BY date_added DESC"
@@ -1623,6 +1689,7 @@ class EventAccessor:
             decay_info_json=row["decay_info_json"],
             banner_text=row["banner_text"],
             run_name=cls._row_get(row, "run_name"),
+            campaign=cls._row_get(row, "campaign"),
             scan_params_json=cls._row_get(row, "scan_params_json"),
             scan_widths_json=cls._row_get(row, "scan_widths_json"),
             sample_bundle_sha256=cls._row_get(row, "sample_bundle_sha256"),
@@ -1690,16 +1757,55 @@ class EventAccessor:
         meta = self.get_bundle_metadata(event_id)
         return meta.get("processing", {}) if isinstance(meta, dict) else {}
 
+    def selection_metadata(self, event_id: str) -> Dict[str, Any]:
+        """Return lightweight provenance/physics metadata for selection output.
+
+        The values are intentionally detached from the dataframe bundle so they
+        can be copied into the lightweight selection-results database.  Both the
+        event database UUID and the content hashes are preserved verbatim.
+        """
+        ev = self.get_event(event_id)
+        if not ev:
+            raise ValueError(f"Event {event_id} not found")
+        return {
+            "event_id": ev.id,
+            "event_hash": ev.run_hash,
+            "run_hash": ev.run_hash,
+            "bundle_sha256": ev.sample_bundle_sha256,
+            "sample_bundle_sha256": ev.sample_bundle_sha256,
+            "model": ev.model,
+            "campaign": ev.campaign,
+            "run_name": ev.run_name,
+            "pre_decay_run_name": ev.pre_decay_run_name,
+            "date_added": ev.date_added,
+            "llp_pid": ev.llp_pid,
+            "cross_section": ev.cross_section,
+            "seed": ev.seed,
+            "masses": self._loads_json(ev.masses_json, {}),
+            "scan_params": self._loads_json(ev.scan_params_json, {}),
+            "scan_widths": self._loads_json(ev.scan_widths_json, {}),
+            "bundle_processing": self.get_bundle_processing(event_id),
+        }
+
     def get_selection_ready_bundle(self, event_id: str, *, require_ready: bool = True) -> Dict[str, "pd.DataFrame"]:
         ev = self.get_event(event_id)
         if not ev:
             raise ValueError(f"Event {event_id} not found")
         bundle = self.get_sample_bundle(event_id)
         missing = [k for k in SELECTION_ENGINE_BUNDLE_KEYS if k not in bundle]
-        if require_ready and (ev.sample_bundle_stage != SAMPLE_BUNDLE_STAGE_SELECTION_READY or missing):
+        llps = bundle.get("LLPs", pd.DataFrame()) if pd is not None else None
+        missing_iso_columns = []
+        if llps is not None:
+            missing_iso_columns = [c for c in ("minDeltaR_Jets", "minDeltaR_Tracks") if c not in llps.columns]
+        if require_ready and (
+            ev.sample_bundle_stage != SAMPLE_BUNDLE_STAGE_SELECTION_READY
+            or missing
+            or missing_iso_columns
+        ):
             raise ValueError(
                 f"Event {event_id} is not a selection-ready bundle "
-                f"(stage={ev.sample_bundle_stage}, missing={missing})"
+                f"(stage={ev.sample_bundle_stage}, missing_frames={missing}, "
+                f"missing_LLP_columns={missing_iso_columns})"
             )
         return bundle
 
@@ -1787,6 +1893,7 @@ class EventAccessor:
         *,
         event_ids: Optional[Iterable[str]] = None,
         model: Optional[str] = None,
+        campaign: Optional[str] = None,
         where: str = "",
         params: Tuple[Any, ...] = (),
         output_root: str = "db/Temp/regenerated_madgraph",
@@ -1803,7 +1910,7 @@ class EventAccessor:
           factory(metadata)
         """
         if event_ids is None:
-            rows = self.query(model=model, where=where, params=params)
+            rows = self.query(model=model, campaign=campaign, where=where, params=params)
             ids = [r["id"] for r in rows]
         else:
             ids = list(event_ids)
@@ -1888,15 +1995,35 @@ class EventAccessor:
             """).fetchall()
         return [dict(r) for r in rows]
 
-    def events_table(self, *, model: Optional[str] = None, llp_pid: Optional[int] = None, has_bundle: Optional[bool] = None,
+    def list_campaigns(self) -> List[Dict[str, Any]]:
+        """Return import campaigns with basic event/bundle counts."""
+        with self.db._conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT campaign,
+                       COUNT(*) AS n_events,
+                       SUM(CASE WHEN sample_bundle_sha256 IS NOT NULL THEN 1 ELSE 0 END) AS n_bundles,
+                       MIN(date_added) AS first_import,
+                       MAX(date_added) AS last_import
+                FROM events
+                WHERE campaign IS NOT NULL AND TRIM(campaign) <> ''
+                GROUP BY campaign
+                ORDER BY last_import DESC, campaign
+                """
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def events_table(self, *, model: Optional[str] = None, campaign: Optional[str] = None,
+                     llp_pid: Optional[int] = None, has_bundle: Optional[bool] = None,
                      limit: Optional[int] = None, include_json: bool = False) -> List[Dict[str, Any]]:
-        rows = self.query(model=model, llp_pid=llp_pid, has_bundle=has_bundle)
+        rows = self.query(model=model, campaign=campaign, llp_pid=llp_pid, has_bundle=has_bundle)
         if limit is not None:
             rows = rows[: int(limit)]
         out: List[Dict[str, Any]] = []
         for r in rows:
             item = {
                 "id": r["id"], "date_added": r["date_added"], "model": r["model"],
+                "campaign": self._row_get(r, "campaign"),
                 "run_name": self._row_get(r, "run_name"), "pre_decay_run_name": self._row_get(r, "pre_decay_run_name"),
                 "cross_section_pb": r["cross_section"], "seed": r["seed"], "llp_pid": self._row_get(r, "llp_pid"),
                 "sample_bundle_format": self._row_get(r, "sample_bundle_format"),
@@ -1972,10 +2099,31 @@ class EventAccessor:
             "bundle_stages": self.bundle_stage_summary(),
         }
 
-    def dashboard_payload(self, *, event_limit: Optional[int] = None, include_particles: bool = False) -> Dict[str, Any]:
-        payload = {"created_at": dt.datetime.now().isoformat(), "storage": self.storage_stats(), "models": self.list_models(), "events": self.events_table(limit=event_limit)}
+    def dashboard_payload(
+        self,
+        *,
+        model: Optional[str] = None,
+        campaign: Optional[str] = None,
+        llp_pid: Optional[int] = None,
+        has_bundle: Optional[bool] = None,
+        event_limit: Optional[int] = None,
+        include_particles: bool = False,
+    ) -> Dict[str, Any]:
+        payload = {
+            "created_at": dt.datetime.now().isoformat(),
+            "storage": self.storage_stats(),
+            "models": self.list_models(),
+            "campaigns": self.list_campaigns(),
+            "events": self.events_table(
+                model=model,
+                campaign=campaign,
+                llp_pid=llp_pid,
+                has_bundle=has_bundle,
+                limit=event_limit,
+            ),
+        }
         if include_particles:
-            payload["particles"] = self.list_particles(include_decays=False)
+            payload["particles"] = self.list_particles(model=model, include_decays=False)
         return payload
 
     def _stored_bundle_size(self, event_id: str, ev: Optional[Event] = None) -> int:
@@ -1990,10 +2138,17 @@ class EventAccessor:
             if os.path.exists(path): return int(os.path.getsize(path))
         return 0
 
-    def refresh_storage_metadata_from_events_root(self, events_root: str, *, event_ids: Optional[Iterable[str]] = None, dry_run: bool = False) -> List[Dict[str, Any]]:
+    def refresh_storage_metadata_from_events_root(
+        self,
+        events_root: str,
+        *,
+        event_ids: Optional[Iterable[str]] = None,
+        campaign: Optional[str] = None,
+        dry_run: bool = False,
+    ) -> List[Dict[str, Any]]:
         if not os.path.isdir(events_root): raise FileNotFoundError(events_root)
         run_folders = {os.path.basename(p.rstrip(os.sep)): p for p in glob.glob(os.path.join(events_root, "*")) if os.path.isdir(p)}
-        ids = list(event_ids) if event_ids is not None else [r["id"] for r in self.query()]
+        ids = list(event_ids) if event_ids is not None else [r["id"] for r in self.query(campaign=campaign)]
         results: List[Dict[str, Any]] = []
         for event_id in ids:
             ev = self.get_event(event_id)
@@ -2125,6 +2280,7 @@ def programmatic_import(
     events_root: str,
     model: Optional[str] = None,
     *,
+    campaign: Optional[str] = None,
     neo_manager: Any = None,
     llp_pid: Optional[int] = None,
     pt_min_cfg: Optional[Dict[str, float]] = None,
@@ -2142,6 +2298,7 @@ def programmatic_import(
     imported = importer.import_from_events_folder(
         events_root,
         model=model,
+        campaign=campaign,
         neo_manager=neo_manager,
         llp_pid=llp_pid,
         pt_min_cfg=pt_min_cfg,
@@ -2168,12 +2325,40 @@ def programmatic_get_bundle(acc: EventAccessor, event_id: str) -> Dict[str, "pd.
     return acc.get_sample_bundle(event_id)
 
 
-def programmatic_dashboard_payload(acc: EventAccessor, *, event_limit: Optional[int] = None, include_particles: bool = False) -> Dict[str, Any]:
-    return acc.dashboard_payload(event_limit=event_limit, include_particles=include_particles)
+def programmatic_dashboard_payload(
+    acc: EventAccessor,
+    *,
+    model: Optional[str] = None,
+    campaign: Optional[str] = None,
+    llp_pid: Optional[int] = None,
+    has_bundle: Optional[bool] = None,
+    event_limit: Optional[int] = None,
+    include_particles: bool = False,
+) -> Dict[str, Any]:
+    return acc.dashboard_payload(
+        model=model,
+        campaign=campaign,
+        llp_pid=llp_pid,
+        has_bundle=has_bundle,
+        event_limit=event_limit,
+        include_particles=include_particles,
+    )
 
 
-def programmatic_refresh_storage_metadata(acc: EventAccessor, events_root: str, *, dry_run: bool = False) -> List[Dict[str, Any]]:
-    return acc.refresh_storage_metadata_from_events_root(events_root, dry_run=dry_run)
+def programmatic_refresh_storage_metadata(
+    acc: EventAccessor,
+    events_root: str,
+    *,
+    event_ids: Optional[Iterable[str]] = None,
+    campaign: Optional[str] = None,
+    dry_run: bool = False,
+) -> List[Dict[str, Any]]:
+    return acc.refresh_storage_metadata_from_events_root(
+        events_root,
+        event_ids=event_ids,
+        campaign=campaign,
+        dry_run=dry_run,
+    )
 
 
 def programmatic_particle_info(acc: EventAccessor, pdg: int, *, model: Optional[str] = None, event_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
@@ -2186,6 +2371,7 @@ def programmatic_regenerate(
     *,
     event_ids: Optional[Iterable[str]] = None,
     model: Optional[str] = None,
+    campaign: Optional[str] = None,
     where: str = "",
     params: Tuple[Any, ...] = (),
     output_root: str = "db/Temp/regenerated_madgraph",
@@ -2194,6 +2380,7 @@ def programmatic_regenerate(
         madgraph_factory,
         event_ids=event_ids,
         model=model,
+        campaign=campaign,
         where=where,
         params=params,
         output_root=output_root,
@@ -2209,12 +2396,13 @@ Examples:
   # Import decayed HEPMC into dataframe bundles, without storing HEPMC
   python EventDatabaseManager_storage_dashboard.py import \
     --events-root db/Temp/madgraph/Events/Events \
+    --campaign hnl_tau_rerun_2026 \
     --model SM_HeavyN_CKM_AllMasses_LO \
     --ufo-path Assets/UFO/UFO_HNL \
     --llp-pid 9900012 \
     --charged-pt-min 0.5
 
-  python EventDatabaseManager_storage_dashboard.py list --model SM_HeavyN_CKM_AllMasses_LO --has-bundle
+  python EventDatabaseManager_storage_dashboard.py list --campaign hnl_tau_rerun_2026 --model SM_HeavyN_CKM_AllMasses_LO --has-bundle
   python EventDatabaseManager_storage_dashboard.py show --id <EVENT_UUID>
   python EventDatabaseManager_storage_dashboard.py export-bundle --id <EVENT_UUID> --out out
   python EventDatabaseManager_storage_dashboard.py stats
@@ -2234,6 +2422,7 @@ def _build_argparser():
     p.add_argument("--hardlinks", action="store_true")
     p.add_argument("--events-root", dest="events_root")
     p.add_argument("--model", dest="model")
+    p.add_argument("--campaign", dest="campaign", help="Human-readable import campaign label / exact campaign filter")
     p.add_argument("--id", dest="event_id")
     p.add_argument("--name", dest="transform_name")
     p.add_argument("--out", dest="output_dir", default="out")
@@ -2296,6 +2485,7 @@ def _cmd_import(args) -> None:
     imported = importer.import_from_events_folder(
         args.events_root,
         model=args.model,
+        campaign=args.campaign,
         neo_manager=neo,
         llp_pid=args.llp_pid,
         pt_min_cfg=pt_min_cfg,
@@ -2315,10 +2505,10 @@ def _cmd_import(args) -> None:
 def _cmd_list(args) -> None:
     db = EventDatabaseManager(args.db_path, args.storage_dir, use_hardlinks=args.hardlinks)
     acc = EventAccessor(db)
-    rows = acc.query(model=args.model, has_bundle=True if args.has_bundle else None)
+    rows = acc.query(model=args.model, campaign=args.campaign, has_bundle=True if args.has_bundle else None)
     for r in rows:
         print(
-            f"{r['id']} | run={r['run_name']} | pre={r['pre_decay_run_name']} | model={r['model']} | "
+            f"{r['id']} | campaign={r['campaign']} | run={r['run_name']} | pre={r['pre_decay_run_name']} | model={r['model']} | "
             f"xsec={r['cross_section']} pb | llp={r['llp_pid']} | bundle={r['sample_bundle_format']} | stage={r['sample_bundle_stage']} | "
             f"bundle_size={r['stored_bundle_size_bytes']} B | hepmc_source={r['source_hepmc_size_bytes']} B | "
             f"hepmc_stored={bool(r['hepmc_sha256'])} | date={r['date_added']}"
@@ -2376,7 +2566,9 @@ def _cmd_repack_selection_ready(args) -> None:
         "neutralTrack": args.iso_min_p_neutral,
         "jet": args.iso_min_p_jet,
     }
-    ids = [args.event_id] if args.event_id else [r["id"] for r in acc.query(model=args.model, has_bundle=True)]
+    ids = [args.event_id] if args.event_id else [
+        r["id"] for r in acc.query(model=args.model, campaign=args.campaign, has_bundle=True)
+    ]
     results = []
     for event_id in ids:
         try:
@@ -2403,13 +2595,24 @@ def _cmd_storage_refresh(args) -> None:
         raise SystemExit("--events-root is required for storage-refresh")
     db = EventDatabaseManager(args.db_path, args.storage_dir, use_hardlinks=args.hardlinks)
     acc = EventAccessor(db)
-    print(json.dumps(acc.refresh_storage_metadata_from_events_root(args.events_root, dry_run=args.dry_run), indent=2))
+    print(json.dumps(acc.refresh_storage_metadata_from_events_root(
+        args.events_root,
+        campaign=args.campaign,
+        dry_run=args.dry_run,
+    ), indent=2))
 
 
 def _cmd_dashboard_json(args) -> None:
     db = EventDatabaseManager(args.db_path, args.storage_dir, use_hardlinks=args.hardlinks)
     acc = EventAccessor(db)
-    payload = acc.dashboard_payload(event_limit=args.limit, include_particles=args.include_particles)
+    payload = acc.dashboard_payload(
+        model=args.model,
+        campaign=args.campaign,
+        llp_pid=args.llp_pid,
+        has_bundle=True if args.has_bundle else None,
+        event_limit=args.limit,
+        include_particles=args.include_particles,
+    )
     if args.output_dir and args.output_dir != "out":
         os.makedirs(os.path.dirname(os.path.abspath(args.output_dir)) or ".", exist_ok=True)
         with open(args.output_dir, "w") as f:

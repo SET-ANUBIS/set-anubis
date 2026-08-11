@@ -1,12 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Protocol, Any, Iterable
+from typing import Callable, Dict, List, Optional, Protocol, Any, Iterable, Mapping
 
 import numpy as np
 import pandas as pd
 import os
 import pickle
 import gzip
+from pathlib import Path
 
 from SetAnubis.core.Selection.domain.SelectionEngine import (
     SelectionEngine, SelectionConfig, RunConfig
@@ -83,6 +84,54 @@ class PipelineOptions:
     enable_reweight_gate: bool = True
     phiFold: bool = False
 
+def _selection_geometry_payload(geometry: Any) -> Dict[str, Any]:
+    """Return stable, human-readable geometry metadata for result provenance."""
+    payload: Dict[str, Any] = {
+        "adapter_class": f"{geometry.__class__.__module__}.{geometry.__class__.__name__}"
+    }
+    region = getattr(geometry, "default_decay_region", None)
+    payload["default_decay_region"] = getattr(region, "value", str(region) if region is not None else None)
+    radius = getattr(geometry, "default_fiducial_radius", None)
+    if radius is not None:
+        try:
+            payload["default_fiducial_radius"] = float(radius)
+        except Exception:
+            payload["default_fiducial_radius"] = repr(radius)
+
+    concrete = getattr(geometry, "_geometry", None)
+    if concrete is not None:
+        payload["geometry_class"] = f"{concrete.__class__.__module__}.{concrete.__class__.__name__}"
+        cfg = getattr(concrete, "_cfg", None)
+        if cfg is not None:
+            try:
+                payload["geometry_config"] = dataclasses.asdict(cfg) if dataclasses.is_dataclass(cfg) else dict(vars(cfg))
+            except Exception:
+                payload["geometry_config"] = repr(cfg)
+    return payload
+
+
+def _selection_config_payload(sel_cfg: SelectionConfig) -> Dict[str, Any]:
+    """Serialize the physics cuts without trying to pickle the geometry object."""
+    return {
+        "geometry": _selection_geometry_payload(sel_cfg.geometry),
+        "minMET": float(sel_cfg.minMET),
+        "minP": dataclasses.asdict(sel_cfg.minP),
+        "minPt": dataclasses.asdict(sel_cfg.minPt),
+        "minDR": dataclasses.asdict(sel_cfg.minDR),
+        "nStations": int(sel_cfg.nStations),
+        "nIntersections": int(sel_cfg.nIntersections),
+        "nTracks": int(sel_cfg.nTracks),
+        "eachTrack": bool(sel_cfg.eachTrack),
+        "RPCeff": float(sel_cfg.RPCeff),
+        "nRPCsPerLayer": int(sel_cfg.nRPCsPerLayer),
+    }
+
+
+def _run_config_payload(run_cfg: RunConfig) -> Dict[str, Any]:
+    """Return runtime switches used by one selection execution."""
+    return dataclasses.asdict(run_cfg)
+
+
 @dataclass
 class SelectionPipeline:
     """
@@ -155,7 +204,48 @@ class SelectionPipeline:
 
         return out
 
-    def run(self, source: EventsBundleSource, sel_cfg: SelectionConfig, run_cfg: RunConfig) -> Dict[str, Any]:
+    def _pipeline_provenance(self) -> Dict[str, Any]:
+        """Return options that affect cut-flow reproducibility."""
+        payload: Dict[str, Any] = {"options": dataclasses.asdict(self.options)}
+        if self.reweighter is not None:
+            payload["reweighter"] = {
+                "class": f"{self.reweighter.__class__.__module__}.{self.reweighter.__class__.__name__}",
+                "lifetime_s": float(self.reweighter.lifetime_s),
+                "llp_pid": int(self.reweighter.llp_pid),
+                "kernels": [getattr(kernel, "name", kernel.__class__.__name__) for kernel in self.reweighter.kernels],
+            }
+        else:
+            payload["reweighter"] = None
+        payload["pre_df_transforms"] = [getattr(t, "__name__", t.__class__.__name__) for t in self.pre_df_transforms]
+        payload["post_bundle_transforms"] = [getattr(t, "__name__", t.__class__.__name__) for t in self.post_bundle_transforms]
+        return payload
+
+    @staticmethod
+    def _resolve_results_db(results_db: Any) -> Any:
+        """Accept either a result DB manager object or a SQLite path."""
+        if results_db is None:
+            raise ValueError("results_db is required when store=True")
+        if isinstance(results_db, (str, os.PathLike, Path)):
+            from SetAnubis.core.DataBase.domain.SelectionResultsDatabaseManager import (
+                SelectionResultsDatabaseManager,
+            )
+            return SelectionResultsDatabaseManager(str(results_db))
+        if not hasattr(results_db, "store_result"):
+            raise TypeError("results_db must be a SelectionResultsDatabaseManager or a database path")
+        return results_db
+
+    def run(
+        self,
+        source: EventsBundleSource,
+        sel_cfg: SelectionConfig,
+        run_cfg: RunConfig,
+        *,
+        store: bool = False,
+        results_db: Any = None,
+        analysis_name: str = "default",
+        on_conflict: str = "replace",
+        extra_metadata: Optional[Mapping[str, Any]] = None,
+    ) -> Dict[str, Any]:
         pre_df_transforms = list(self.pre_df_transforms)
 
         if getattr(self.options, "phiFold", False):
@@ -180,6 +270,26 @@ class SelectionPipeline:
             result = self.engine.apply_2dv_selection(bundle, run_cfg, sel_cfg)
         else:
             result = self.engine.apply_selection(bundle, run_cfg, sel_cfg)
+
+        if store:
+            metadata = dict(getattr(source, "metadata", {}) or {})
+            if not metadata.get("event_id"):
+                raise ValueError(
+                    "Selection result storage requires source provenance with event_id. "
+                    "Use EventsBundleSource.from_event_database(...) or provide metadata explicitly."
+                )
+            db = self._resolve_results_db(results_db)
+            stored_result_id = db.store_result(
+                event_metadata=metadata,
+                cut_flow=result.get("cutFlow", {}),
+                selection_config=_selection_config_payload(sel_cfg),
+                run_config=_run_config_payload(run_cfg),
+                pipeline_options=self._pipeline_provenance(),
+                analysis_name=analysis_name,
+                on_conflict=on_conflict,
+                extra_metadata=extra_metadata,
+            )
+            result["stored_result_id"] = stored_result_id
 
         return result
 

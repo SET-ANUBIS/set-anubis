@@ -106,8 +106,12 @@ class SourceConfig:
 
 @dataclass
 class EventsBundleSource:
-    """
-    Unique Facade to get bundle(dict[str->DataFrame]) from cache dict, dataframe or hepmc. Deal with df and bundle cache.
+    """Materialize one selection bundle and keep lightweight source provenance.
+
+    A source may come from an already prepared bundle, a dataframe, HepMC, or
+    the event database through :meth:`from_event_database`.  ``metadata`` is
+    deliberately lightweight and is propagated to the optional selection-results
+    database; it never contains the dataframe bundle itself.
     """
     # One of the three needs to exist
     ready_bundle: Optional[Dict[str, pd.DataFrame]] = None
@@ -116,6 +120,8 @@ class EventsBundleSource:
     hepmc_loader: Optional[HepmcLoader] = None
 
     cfg: SourceConfig = field(default_factory=SourceConfig)
+    dataset_key: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     cache_dir: Optional[str] = None
     df_cache_key: Optional[str] = None 
@@ -127,6 +133,18 @@ class EventsBundleSource:
         os.makedirs(self.cache_dir, exist_ok=True)
         return (os.path.join(self.cache_dir, f"{prefix}_df.pkl.gz"),
                 os.path.join(self.cache_dir, f"{prefix}_bundle.pkl.gz"))
+
+    def dataset_id(self) -> str:
+        """Return the stable source identifier used for provenance and logs."""
+        if self.dataset_key:
+            return str(self.dataset_key)
+        if self.metadata.get("event_id"):
+            return str(self.metadata["event_id"])
+        if self.hepmc_paths:
+            return f"hepmc:{_fingerprint_paths(self.hepmc_paths)}"
+        if self.events_df is not None:
+            return f"df:{self.df_cache_key or _fingerprint_df(self.events_df)}"
+        return "bundle:in-memory"
 
     def materialize(
         self,
@@ -173,13 +191,55 @@ class EventsBundleSource:
         return bundle
 
     @classmethod
-    def from_bundle_dict(cls, bundle: Dict[str, pd.DataFrame]) -> "EventsBundleSource":
-        return cls(ready_bundle=bundle)
+    def from_bundle_dict(
+        cls,
+        bundle: Dict[str, pd.DataFrame],
+        *,
+        metadata: Optional[Dict[str, Any]] = None,
+        dataset_id: Optional[str] = None,
+    ) -> "EventsBundleSource":
+        """Create a source from an in-memory bundle and optional provenance."""
+        return cls(ready_bundle=bundle, metadata=dict(metadata or {}), dataset_key=dataset_id)
 
     @classmethod
-    def from_bundle_file(cls, filepath: str) -> "EventsBundleSource":
+    def from_bundle_file(
+        cls,
+        filepath: str,
+        *,
+        metadata: Optional[Dict[str, Any]] = None,
+        dataset_id: Optional[str] = None,
+    ) -> "EventsBundleSource":
+        """Create a source from a trusted bundle file and optional provenance."""
         bundle = BundleIO.load_bundle(filepath)
-        return cls(ready_bundle=bundle)
+        return cls(ready_bundle=bundle, metadata=dict(metadata or {}), dataset_key=dataset_id)
+
+    @classmethod
+    def from_event_database(
+        cls,
+        accessor: Any,
+        event_id: str,
+        *,
+        require_selection_ready: bool = True,
+    ) -> "EventsBundleSource":
+        """Load one compact bundle and its metadata from an event DB accessor.
+
+        ``accessor`` is intentionally duck-typed to keep the Selection domain
+        independent from a concrete database implementation.  The standard
+        :class:`EventAccessor` provides ``get_selection_ready_bundle`` and
+        ``selection_metadata``.
+        """
+        bundle = accessor.get_selection_ready_bundle(
+            event_id, require_ready=require_selection_ready
+        )
+        metadata = accessor.selection_metadata(event_id)
+        llp_pid = metadata.get("llp_pid")
+        cfg = SourceConfig(llp_pid=int(llp_pid)) if llp_pid is not None else SourceConfig()
+        return cls(
+            ready_bundle=bundle,
+            cfg=cfg,
+            dataset_key=str(event_id),
+            metadata=dict(metadata),
+        )
 
     @classmethod
     def from_events_dataframe(

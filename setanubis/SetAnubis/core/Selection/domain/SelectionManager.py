@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Any, Mapping
 
 import pandas as pd
 
@@ -39,12 +39,33 @@ class SelectionManager:
         named_sources: List[Tuple[str, EventsBundleSource]],
         sel_cfg: SelectionConfig,
         run_cfg: RunConfig,
+        *,
+        store: bool = False,
+        results_db: Any = None,
+        analysis_name: str = "default",
+        on_conflict: str = "replace",
+        extra_metadata: Optional[Mapping[str, Any]] = None,
     ) -> CombinedResult:
+        """Run one pipeline over many sources and optionally persist each cut flow."""
         per_sample: List[SampleResult] = []
         sum_cutflow: Dict[str, float | int] = {}
 
         for name, source in named_sources:
-            res = self.pipeline.run(source, sel_cfg, run_cfg)
+            if store or results_db is not None or analysis_name != "default" or on_conflict != "replace" or extra_metadata:
+                res = self.pipeline.run(
+                    source,
+                    sel_cfg,
+                    run_cfg,
+                    store=store,
+                    results_db=results_db,
+                    analysis_name=analysis_name,
+                    on_conflict=on_conflict,
+                    extra_metadata=extra_metadata,
+                )
+            else:
+                # Preserve compatibility with lightweight/custom pipelines that
+                # implement the original three-argument run() contract.
+                res = self.pipeline.run(source, sel_cfg, run_cfg)
             sample = SampleResult(
                 name=name,
                 cutFlow=res.get("cutFlow", {}),

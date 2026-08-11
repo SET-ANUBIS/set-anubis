@@ -80,3 +80,55 @@ def test_cas_ingest_and_link(tmp_path):
     with db._conn() as conn:
         row = conn.execute("SELECT refcount FROM cas_blobs WHERE sha256=?", (sha,)).fetchone()
         assert int(row[0]) >= 2
+
+
+def test_selection_ready_pruning_keeps_only_llps_and_children(monkeypatch):
+    import pandas as pd
+
+    llps = pd.DataFrame({
+        "eventNumber": [1],
+        "PID": [9900012],
+        "eta": [0.1],
+        "phi": [0.2],
+        "minDeltaR_Jets": [0.7],
+        "minDeltaR_Tracks": [0.8],
+    })
+    children = pd.DataFrame({"eventNumber": [1], "LLPindex": [0]})
+    prebuilt_jets = pd.DataFrame({"eventNumber": [1], "pt": [20.0], "p": [25.0], "eta": [1.0], "phi": [1.0]})
+    charged = pd.DataFrame({"eventNumber": [1], "pt": [6.0], "p": [7.0], "eta": [1.2], "phi": [1.2]})
+
+    def should_not_rebuild(*args, **kwargs):
+        raise AssertionError("prebuilt jets/isolation should be reused")
+
+    class FakeIsolation:
+        def __init__(self, selection):
+            self.selection = selection
+
+        def attach_min_delta_r(self, bundle):
+            raise AssertionError("precomputed isolation should be reused")
+
+    monkeypatch.setattr(
+        events_mod.EventImporter,
+        "_load_selection_postprocessors",
+        staticmethod(lambda: (lambda df, pid: df, should_not_rebuild, FakeIsolation)),
+    )
+
+    bundle, processing = events_mod.EventImporter._prepare_selection_ready_bundle(
+        {
+            "LLPs": llps,
+            "LLPchildren": children,
+            "finalStatePromptJets": prebuilt_jets,
+            "chargedFinalStates": charged,
+        },
+        llp_pid=9900012,
+        selection_min_pt=None,
+        selection_min_p=None,
+        build_jets=True,
+        compute_isolation=True,
+        prune_bundle=True,
+    )
+
+    assert set(bundle) == {"LLPs", "LLPchildren"}
+    assert bundle["LLPs"]["minDeltaR_Jets"].iloc[0] == pytest.approx(0.7)
+    assert bundle["LLPs"]["minDeltaR_Tracks"].iloc[0] == pytest.approx(0.8)
+    assert processing["frames_after_processing"] == ["LLPchildren", "LLPs"]

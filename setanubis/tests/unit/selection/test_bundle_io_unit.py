@@ -52,3 +52,14 @@ def test_invalid_pickle_is_reported(tmp_path):
 
     with pytest.raises((pickle.UnpicklingError, EOFError)):
         BundleIO.load_bundle(path)
+
+
+def test_reweight_databundle_accepts_minimal_database_bundle():
+    from SetAnubis.core.Selection.domain.ReweightTransformer import DataBundle
+
+    source = {
+        "LLPs": pd.DataFrame({"PID": [9900012]}),
+        "LLPchildren": pd.DataFrame({"LLPindex": [0]}),
+    }
+    bundle = DataBundle.from_dict(source)
+    assert set(bundle.to_dict()) == {"LLPs", "LLPchildren"}

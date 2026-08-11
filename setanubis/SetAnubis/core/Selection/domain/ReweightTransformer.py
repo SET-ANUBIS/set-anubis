@@ -41,31 +41,28 @@ def _add_fourvec(a: Tuple[float, float, float, float],
 @dataclass(frozen=True)
 class DataBundle:
     """
-    Not mutable container for df produced by analyzer.
+    Immutable minimal container used by lifetime reweighting.
+
+    ReweightDecayPositions only needs LLPs and LLPchildren.  Keeping this
+    container minimal makes it compatible with compact selection-ready bundles
+    stored by the event database while SelectionPipeline preserves any extra
+    DataFrames separately.
     """
-    finalStates: pd.DataFrame
     LLPs: pd.DataFrame
     LLPchildren: pd.DataFrame
-    finalStates_NoLLP: pd.DataFrame
-    finalStates_Neutrinos: pd.DataFrame
-    chargedFinalStates: pd.DataFrame
-    neutralFinalStates: pd.DataFrame
 
     @staticmethod
     def from_dict(d: Dict[str, pd.DataFrame]) -> "DataBundle":
-        # Copy to avoid mutability
-        return DataBundle(**{k: v.copy() for k, v in d.items()})
+        missing = [k for k in ("LLPs", "LLPchildren") if k not in d]
+        if missing:
+            raise ValueError(f"DataBundle is missing required frame(s): {missing}")
+        return DataBundle(LLPs=d["LLPs"].copy(), LLPchildren=d["LLPchildren"].copy())
 
     def to_dict(self) -> Dict[str, pd.DataFrame]:
         # Defensive copy.
         return {
-            "finalStates": self.finalStates.copy(),
             "LLPs": self.LLPs.copy(),
             "LLPchildren": self.LLPchildren.copy(),
-            "finalStates_NoLLP": self.finalStates_NoLLP.copy(),
-            "finalStates_Neutrinos": self.finalStates_Neutrinos.copy(),
-            "chargedFinalStates": self.chargedFinalStates.copy(),
-            "neutralFinalStates": self.neutralFinalStates.copy(),
         }
 
 

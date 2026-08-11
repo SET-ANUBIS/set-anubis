@@ -71,6 +71,16 @@ def test_import_two_runs_scan_cas_and_transforms(tmp_path):
 
     rows = acc.query()
     assert len(rows) == 2
+
+    # High-level JSON filters avoid hand-written json_extract clauses for scans.
+    unit_mixing = acc.query(
+        model="SM_HeavyN_CKM_AllMasses_LO",
+        scan_params={"numixing#1": 1.0},
+        scan_widths={"width#9900012": 8.97e-15},
+    )
+    assert len(unit_mixing) == 1
+    assert unit_mixing[0]["run_name"] == "run_01_decayed_1"
+
     for r in rows:
         assert r["cross_section"] in (pytest.approx(2.22e-06), pytest.approx(1.50e+03))
         assert r["model"] == "SM_HeavyN_CKM_AllMasses_LO"
@@ -150,3 +160,34 @@ def test_import_with_hepmc_and_query_filters(tmp_path):
 
     stats = acc.storage_stats()
     assert stats["events"] == 1 and stats["models"] == 1 and stats["cas_blobs"] >= 3
+
+
+def test_campaign_labels_distinguish_separate_imports(tmp_path):
+    db_path = os.path.join(tmp_path, "Events.db")
+    storage_dir = os.path.join(tmp_path, "Storage")
+    db = events_mod.EventDatabaseManager(db_path, storage_dir, use_hardlinks=False)
+    importer = events_mod.EventImporter(db)
+    acc = events_mod.EventAccessor(db)
+
+    banner = "# Integrated weight (pb) : 1.0e-03\nimport model CampaignModel\n"
+    for label, payload in (("original_2025", b"HEPMC-ORIGINAL"), ("rerun_2026", b"HEPMC-RERUN")):
+        evroot = os.path.join(tmp_path, label, "Events")
+        os.makedirs(evroot, exist_ok=True)
+        _mk_run(
+            os.path.join(evroot, "run_00_decayed_1"),
+            banner,
+            hepmc_gz_bytes=_deterministic_gzip_bytes(payload),
+        )
+        imported = importer.import_from_events_folder(evroot, campaign=label)
+        assert len(imported) == 1
+
+    rows = acc.query(run_name="run_00_decayed_1")
+    assert len(rows) == 2
+    assert {r["campaign"] for r in rows} == {"original_2025", "rerun_2026"}
+    assert len(acc.query(campaign="original_2025")) == 1
+    assert len(acc.query(campaign_like="%2026")) == 1
+
+    campaigns = acc.list_campaigns()
+    assert {c["campaign"] for c in campaigns} == {"original_2025", "rerun_2026"}
+    table = acc.events_table(campaign="rerun_2026")
+    assert len(table) == 1 and table[0]["campaign"] == "rerun_2026"

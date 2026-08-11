@@ -146,6 +146,7 @@ def load_payload(
     storage_dir: str,
     *,
     model: Optional[str] = None,
+    campaign: Optional[str] = None,
     llp_pid: Optional[int] = None,
     has_bundle: Optional[bool] = None,
     limit: Optional[int] = 500,
@@ -163,10 +164,15 @@ def load_payload(
     else:
         models = []
 
-    if hasattr(acc, "events_table"):
-        events = acc.events_table(model=model, llp_pid=llp_pid, has_bundle=has_bundle, limit=limit, include_json=True)
+    if hasattr(acc, "list_campaigns"):
+        campaigns = acc.list_campaigns()
     else:
-        rows = acc.query(model=model, llp_pid=llp_pid, has_bundle=has_bundle)
+        campaigns = []
+
+    if hasattr(acc, "events_table"):
+        events = acc.events_table(model=model, campaign=campaign, llp_pid=llp_pid, has_bundle=has_bundle, limit=limit, include_json=True)
+    else:
+        rows = acc.query(model=model, campaign=campaign, llp_pid=llp_pid, has_bundle=has_bundle)
         events = [dict(r) for r in (rows[:limit] if limit else rows)]
 
     particles = []
@@ -190,9 +196,10 @@ def load_payload(
     return {
         "db_path": db_path,
         "storage_dir": storage_dir,
-        "filters": {"model": model, "llp_pid": llp_pid, "has_bundle": has_bundle, "limit": limit},
+        "filters": {"model": model, "campaign": campaign, "llp_pid": llp_pid, "has_bundle": has_bundle, "limit": limit},
         "storage": storage,
         "models": models,
+        "campaigns": campaigns,
         "events": events,
         "particles": particles,
         "bundle_frames": frame_summary,
@@ -229,11 +236,17 @@ def refresh_storage_metadata(
     *,
     dry_run: bool = False,
     event_ids: Optional[Iterable[str]] = None,
+    campaign: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     acc = make_accessor(db_path, storage_dir)
     if not hasattr(acc, "refresh_storage_metadata_from_events_root"):
         raise RuntimeError("EventDatabaseManager does not yet provide refresh_storage_metadata_from_events_root")
-    return acc.refresh_storage_metadata_from_events_root(events_root, event_ids=event_ids, dry_run=dry_run)
+    return acc.refresh_storage_metadata_from_events_root(
+        events_root,
+        event_ids=event_ids,
+        campaign=campaign,
+        dry_run=dry_run,
+    )
 
 
 def get_event_detail(db_path: str, storage_dir: str, event_id: str) -> Dict[str, Any]:

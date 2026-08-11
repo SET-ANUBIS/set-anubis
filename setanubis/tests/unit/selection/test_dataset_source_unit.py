@@ -64,3 +64,28 @@ def test_cache_fingerprints_are_compact_sha256(tmp_path):
 def test_missing_source_is_rejected():
     with pytest.raises(ValueError, match="Provide either"):
         dataset_source.EventsBundleSource().materialize()
+
+
+def test_event_database_source_keeps_bundle_and_provenance():
+    bundle = {"LLPs": pd.DataFrame({"eventNumber": [1]}), "LLPchildren": pd.DataFrame()}
+
+    class FakeAccessor:
+        def get_selection_ready_bundle(self, event_id, require_ready=True):
+            assert event_id == "event-42"
+            assert require_ready is True
+            return bundle
+
+        def selection_metadata(self, event_id):
+            return {
+                "event_id": event_id,
+                "event_hash": "hash-42",
+                "bundle_sha256": "bundle-42",
+                "llp_pid": 9900012,
+                "model": "HNL",
+            }
+
+    source = dataset_source.EventsBundleSource.from_event_database(FakeAccessor(), "event-42")
+    assert source.materialize() is bundle
+    assert source.dataset_id() == "event-42"
+    assert source.metadata["event_hash"] == "hash-42"
+    assert source.cfg.llp_pid == 9900012
