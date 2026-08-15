@@ -204,6 +204,28 @@ class SelectionPipeline:
 
         return out
 
+
+    @staticmethod
+    def _prune_selection_ready_bundle(bundle: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+        """Drop preprocessing frames once isolation is embedded in LLPs.
+
+        SelectionEngine needs only LLPs and LLPchildren when minDeltaR_Jets and
+        minDeltaR_Tracks are already present on LLPs.  Keeping charged/neutral
+        final states and jets alive beyond this point only increases peak RSS.
+        """
+        llps = bundle.get("LLPs", pd.DataFrame())
+        have_iso = (
+            isinstance(llps, pd.DataFrame)
+            and "minDeltaR_Jets" in llps.columns
+            and "minDeltaR_Tracks" in llps.columns
+        )
+        if not have_iso:
+            return bundle
+        return {
+            "LLPs": llps,
+            "LLPchildren": bundle.get("LLPchildren", pd.DataFrame()),
+        }
+
     def _pipeline_provenance(self) -> Dict[str, Any]:
         """Return options that affect cut-flow reproducibility."""
         payload: Dict[str, Any] = {"options": dataclasses.asdict(self.options)}
@@ -251,9 +273,24 @@ class SelectionPipeline:
         if getattr(self.options, "phiFold", False):
             pre_df_transforms.append(lambda df: phi_fold_df(df, source.cfg.llp_pid))
         
-        # Bundle  (already cached by source)
-        bundle = source.materialize(pre_df_transforms=pre_df_transforms,
-        bundle_cache_tag=f"phiFold={getattr(self.options, 'phiFold', False)}",)
+        # Bundle.  For a native large-HepMC source with no transforms/reweighting,
+        # preprocess in bounded event chunks and retain only LLPs/LLPchildren.
+        # Any feature whose semantics could depend on the full dataframe keeps
+        # the historical one-shot path.
+        can_chunk = (
+            hasattr(source, "can_materialize_selection_ready_chunked")
+            and source.can_materialize_selection_ready_chunked()
+            and not pre_df_transforms
+            and not self.post_bundle_transforms
+            and self.reweighter is None
+        )
+        if can_chunk:
+            bundle = source.materialize_selection_ready_chunked(sel_cfg)
+        else:
+            bundle = source.materialize(
+                pre_df_transforms=pre_df_transforms,
+                bundle_cache_tag=f"phiFold={getattr(self.options, 'phiFold', False)}",
+            )
 
         # Post-bundle transforms
         for t in self.post_bundle_transforms:
@@ -264,6 +301,10 @@ class SelectionPipeline:
 
         # Jets/Isolation (add finalStatePromptJets, minDeltaR, etc.)
         bundle = self._ensure_jets_and_isolation(bundle, sel_cfg)
+
+        # Once minDeltaR is attached, all jet/track/final-state frames are
+        # preprocessing-only.  Do not keep them resident during SelectionEngine.
+        bundle = self._prune_selection_ready_bundle(bundle)
 
         # Selection
         if self.options.selection_mode.lower() in ("2dv", "two-dv", "twodv"):

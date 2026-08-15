@@ -26,7 +26,7 @@
 #define HNL_H_INCLUDED
 
 #include "sm.h"
-#include "../../../External_Integration/Marty/MARTY_INSTALL/include/marty.h"
+#include "marty.h"
 #include <vector>
 
 using namespace mty::sm_input;
@@ -41,7 +41,7 @@ namespace mty {
 class HNL_Model : public SM_Model {
 
 protected:
-    csl::Expr mN1;
+    csl::Expr mN2;
     csl::Expr VmuN1;
 
   public:
@@ -95,6 +95,10 @@ protected:
         E->setFundamentalFlavorRep("SM_flavor");
         
         Particle N = diracfermion_s("N", *this);
+        // The HNL UFO defines N1/N2/N3 as self-conjugate Majorana states.
+        // Set the parent flavor multiplet self-conjugate before flavor
+        // symmetry breaking so the generated N_i states inherit it.
+        N->setSelfConjugate(true);
         N->setFundamentalFlavorRep("SM_flavor");
 
         addParticles({Q, U, D, L, E, N});
@@ -137,7 +141,7 @@ protected:
 
         addLagrangianTerm(
             VmuN1 * sm_input::e_em / (csl::sqrt_s(2) * sW) *
-            W({nu}) *
+            GetComplexConjugate(W({nu})) *
             GetComplexConjugate(mu_L({dirac[0]})) *
             gamma({+nu, dirac[0], dirac[1]}) *
             N({dirac[1]}),
@@ -146,7 +150,7 @@ protected:
 
         // Z – ν_μ – N
         addLagrangianTerm(
-            - VmuN1 * sm_input::e_em / (2 * sW * cW) *
+            VmuN1 * sm_input::e_em / (2 * sW * cW) *
             Z({nu}) *
             GetComplexConjugate(nu_mu({dirac[0]})) *
             gamma({+nu, dirac[0], dirac[1]}) *
@@ -154,9 +158,12 @@ protected:
             true
         );
 
-        mN1 = constant_s("mN1");
+        // PDG 9900014 is N_2 in the UFO and its mass parameter is mN2.
+        // Keeping mN1 here makes MARTY impose the wrong on-shell mass in the
+        // symbolic squared amplitude while the runtime phase space uses mN2.
+        mN2 = constant_s("mN2");
 
-        addFermionicMass(N, mN1);
+        addFermionicMass(N, mN2);
     }   
 };
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 import pytest
 
 import SetAnubis.core.BranchingRatio.domain.MartyManager as mm_mod
@@ -22,7 +23,7 @@ class FakeNSA:
 
 
 class FakeTemplateManager:
-    def __init__(self, model_name, mother, daughters, template_type, nsa):
+    def __init__(self, model_name, mother, daughters, template_type, nsa, path_config=None, **kwargs):
         self.model_name = model_name
         self.mother = mother
         self.daughters = daughters
@@ -44,7 +45,7 @@ class FakeTemplateManager:
 
 class FakeCopyManager:
     instances = []
-    def __init__(self, ampli_name, builder):
+    def __init__(self, ampli_name, builder, path_config=None):
         self.ampli_name = ampli_name
         self.builder = builder
         self.writes = []
@@ -61,11 +62,10 @@ class FakeCopyManager:
 
 class FakeCompiler:
     last_calls = []
-    def __init__(self, compiler_type, ampli_name=None):
+    def __init__(self, compiler_type, ampli_name=None, path_config=None):
         self.compiler_type = compiler_type
         self.ampli_name = ampli_name
-        root = mm_mod.Path(mm_mod.__file__).resolve().parents[5]
-        self.libs_path = root / "Assets" / "MARTY" / "MartyTemp" / "libs" / (ampli_name or "none")
+        self.libs_path = path_config.workspace_dir / "libs" / (ampli_name or "none")
 
     def compile_run(self, source_file, output_binary=None, output_dir=None, pattern=None):
         FakeCompiler.last_calls.append(
@@ -81,7 +81,7 @@ class FakeCompiler:
 
 
 class FakeParamManager:
-    def __init__(self, header_path, nsa):
+    def __init__(self, header_path, nsa, mapping_dir=None):
         self.header_path = Path(header_path)
         self.nsa = nsa
     def create_csv(self):
@@ -92,19 +92,51 @@ class FakeParamManager:
 
 @pytest.fixture(autouse=True)
 def patch_dependencies(monkeypatch, tmp_path):
-    _ = _patch_root(monkeypatch, tmp_path, mm_mod)
-    
-    monkeypatch.setattr(mm_mod, "decay_name",
-                        lambda mother, daughters, neo, mapping: "fake",
-                        raising=True)
-    monkeypatch.setattr(mm_mod, "load_ufo_mappings",
-                        lambda reversed=True: {},
-                        raising=True)
+    root = tmp_path / "root"
+    mapping_dir = root / "Assets" / "MARTY" / "model"
+    mapping_dir.mkdir(parents=True)
+    template_dir = root / "Assets" / "MARTY" / "templates"
+    template_dir.mkdir(parents=True)
+    workspace_dir = root / "Assets" / "MARTY" / "MartyTemp"
+    workspace_dir.mkdir(parents=True)
+    paths = SimpleNamespace(
+        mapping_dir=mapping_dir,
+        model_path=None,
+        template_dir=template_dir,
+        workspace_dir=workspace_dir,
+        marty_install=None,
+        as_dict=lambda: {
+            "mapping_dir": str(mapping_dir),
+            "model_path": None,
+            "template_dir": str(template_dir),
+            "workspace_dir": str(workspace_dir),
+            "marty_prefix": None,
+            "marty_include_dir": None,
+            "marty_lib_dir": None,
+        },
+    )
 
+    monkeypatch.setattr(
+        mm_mod.MartyPathConfig,
+        "resolve",
+        lambda *args, **kwargs: paths,
+        raising=True,
+    )
+    monkeypatch.setattr(
+        mm_mod, "decay_name",
+        lambda mother, daughters, neo, mapping: "fake",
+        raising=True,
+    )
+    monkeypatch.setattr(
+        mm_mod, "load_ufo_mappings",
+        lambda reversed=True, *args, **kwargs: {},
+        raising=True,
+    )
     monkeypatch.setattr(mm_mod, "MartyTemplateManager", FakeTemplateManager, raising=True)
     monkeypatch.setattr(mm_mod, "CopyManager", FakeCopyManager, raising=True)
     monkeypatch.setattr(mm_mod, "MartyCompiler", FakeCompiler, raising=True)
     monkeypatch.setattr(mm_mod, "ParamManager", FakeParamManager, raising=True)
+    return paths
 
 
 
@@ -181,3 +213,26 @@ def test_calculate_process_orchestrates(monkeypatch):
     res = mgr.calculate_process(23, MultiSet([2, -2]), FakeNSA(), object())
     assert calls == ["build_analytic", "launch_analytic", "build_numeric", "launch_numeric"]
     assert res == 42.0
+
+
+def test_mediator_fermion_orders_use_distinct_cache_name():
+    mgr_w = mm_mod.MartyManager(
+        "SM", mediator_fermion_orders={"W": [2, 0, 3, 1]}
+    )
+    mgr_z = mm_mod.MartyManager(
+        "SM", mediator_fermion_orders={"Z": [3, 0, 2, 1]}
+    )
+    mgr_wz = mm_mod.MartyManager(
+        "SM",
+        mediator_fermion_orders={
+            "W": [2, 0, 3, 1],
+            "Z": [3, 0, 2, 1],
+        },
+    )
+
+    name_w = mgr_w._decay_name(23, MultiSet([2, -2]), FakeNSA())
+    name_z = mgr_z._decay_name(23, MultiSet([2, -2]), FakeNSA())
+    name_wz = mgr_wz._decay_name(23, MultiSet([2, -2]), FakeNSA())
+
+    assert name_w.startswith("fake__mfo_")
+    assert len({name_w, name_z, name_wz}) == 3

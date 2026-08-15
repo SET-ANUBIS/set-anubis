@@ -28,68 +28,124 @@ class Schema:
 
 
 class EventGraph:
+    """Memory-efficient graph lookup over one HepMC dataframe.
+
+    The public API is intentionally identical to the historical implementation
+    (``row_of``, ``children_of``, ``pid_of`` and ``nchildren_of``), so the
+    selection physics and traversal order are unchanged.
+
+    Historically SET-ANUBIS materialised four Python dictionaries with one
+    ``(eventNumber, particleIndex)`` key per particle.  On showered HepMC files
+    that representation dominates memory.  The implementation below keeps the
+    source columns as NumPy views and stores only:
+
+    * one sorted row-position array;
+    * one sorted particle-index array; and
+    * one small event -> slice dictionary (one entry per event, not particle).
+
+    A particle lookup is then a binary search inside the corresponding event.
+    Duplicate ``(event, particleIndex)`` pairs retain the old behaviour: the
+    last dataframe row wins.
     """
-    Graph representation by event:
-     O(1) access to children of an event/particleIndex 
-     O(1) access if a PID and nChildren of an event/particleIndex 
-     O(1) of the pandas line index from event/particleIndex
-    """
+
     def __init__(self, df: pd.DataFrame) -> None:
         Schema.ensure(df)
         self.df = df
 
-        self._row_index: Dict[Tuple[int, int], int] = {
-            (int(ev), int(pidx)): int(i)
-            for i, ev, pidx in zip(df.index, df["eventNumber"].to_list(), df["particleIndex"].to_list())
+        # Column views: these normally share the dataframe's underlying storage
+        # and therefore do not duplicate the full HepMC table.
+        self._event_values = df["eventNumber"].to_numpy(dtype=np.int64, copy=False)
+        self._pidx_values = df["particleIndex"].to_numpy(dtype=np.int64, copy=False)
+        self._pid_values = df["PID"].to_numpy(copy=False)
+        self._nchildren_values = df["nChildren"].to_numpy(copy=False)
+        self._children_values = df["childrenIndices"].to_numpy(copy=False)
+        # Keep the existing pandas Index object by reference; converting a
+        # RangeIndex to NumPy would allocate another O(N) integer array.
+        self._row_index_labels = df.index
+
+        n_rows = len(df)
+        if n_rows == 0:
+            self._lookup_order = np.empty(0, dtype=np.intp)
+            self._lookup_pidx = np.empty(0, dtype=np.int64)
+            self._event_slices: Dict[int, Tuple[int, int]] = {}
+            return
+
+        # Sort by event, then particleIndex, then original row position.  The
+        # final key means that searchsorted(..., side="right") reproduces the
+        # previous dict-comprehension semantics for duplicate particle keys.
+        positions = np.arange(n_rows, dtype=np.intp)
+        order = np.lexsort((positions, self._pidx_values, self._event_values))
+        sorted_events = self._event_values[order]
+
+        self._lookup_order = order
+        self._lookup_pidx = self._pidx_values[order]
+
+        # Only one Python dict entry per event.  ``sorted_events`` is temporary
+        # and can be released after the slices have been constructed.
+        starts = np.flatnonzero(
+            np.r_[True, sorted_events[1:] != sorted_events[:-1]]
+        )
+        ends = np.r_[starts[1:], n_rows]
+        self._event_slices = {
+            int(sorted_events[start]): (int(start), int(end))
+            for start, end in zip(starts, ends)
         }
 
-        def _to_list(x) -> List[int]:
-            if isinstance(x, list):
-                return x
-            if isinstance(x, str):
-                try:
-                    v = ast.literal_eval(x)
-                    return v if isinstance(v, list) else []
-                except Exception:
-                    return []
-            return []
+    @staticmethod
+    def _to_list(value) -> List[int]:
+        """Parse ``childrenIndices`` exactly like the historical graph."""
+        if isinstance(value, list):
+            return list(value)
+        if isinstance(value, str):
+            try:
+                parsed = ast.literal_eval(value)
+                return list(parsed) if isinstance(parsed, list) else []
+            except Exception:
+                return []
+        return []
 
-        children_series = df["childrenIndices"].apply(_to_list)
+    def _position_of(self, event: int, pidx: int) -> Optional[int]:
+        """Return the positional dataframe row for ``(event, particleIndex)``."""
+        span = self._event_slices.get(int(event))
+        if span is None:
+            return None
 
-        # (event, pidx) -> [child_pidx, etc.]
-        self._children: Dict[Tuple[int, int], List[int]] = {
-            (int(ev), int(pidx)): list(children)
-            for ev, pidx, children in zip(df["eventNumber"].to_list(),
-                                          df["particleIndex"].to_list(),
-                                          children_series.to_list())
-        }
+        start, end = span
+        block = self._lookup_pidx[start:end]
+        if block.size == 0:
+            return None
 
-        # (event, pidx) -> PID, nChildren
-        self._pid: Dict[Tuple[int, int], int] = {
-            (int(ev), int(pidx)): int(pid)
-            for ev, pidx, pid in zip(df["eventNumber"].to_list(),
-                                     df["particleIndex"].to_list(),
-                                     df["PID"].to_list())
-        }
-        self._nchildren: Dict[Tuple[int, int], int] = {
-            (int(ev), int(pidx)): int(nc) if not pd.isna(nc) else 0
-            for ev, pidx, nc in zip(df["eventNumber"].to_list(),
-                                    df["particleIndex"].to_list(),
-                                    df["nChildren"].to_list())
-        }
+        # ``right - 1`` intentionally selects the last duplicate key, matching
+        # ``{key: value for ...}`` from the previous implementation.
+        rel = int(np.searchsorted(block, int(pidx), side="right")) - 1
+        if rel < 0 or int(block[rel]) != int(pidx):
+            return None
+        return int(self._lookup_order[start + rel])
 
-    #$ O(1) access
     def row_of(self, event: int, pidx: int) -> Optional[int]:
-        return self._row_index.get((int(event), int(pidx)))
+        pos = self._position_of(event, pidx)
+        if pos is None:
+            return None
+        return int(self._row_index_labels[pos])
 
     def children_of(self, event: int, pidx: int) -> List[int]:
-        return self._children.get((int(event), int(pidx)), [])
+        pos = self._position_of(event, pidx)
+        if pos is None:
+            return []
+        return self._to_list(self._children_values[pos])
 
     def pid_of(self, event: int, pidx: int) -> int:
-        return self._pid.get((int(event), int(pidx)), 0)
+        pos = self._position_of(event, pidx)
+        if pos is None:
+            return 0
+        return int(self._pid_values[pos])
 
     def nchildren_of(self, event: int, pidx: int) -> int:
-        return self._nchildren.get((int(event), int(pidx)), 0)
+        pos = self._position_of(event, pidx)
+        if pos is None:
+            return 0
+        value = self._nchildren_values[pos]
+        return int(value) if not pd.isna(value) else 0
 
 
 # Hunter (iterative DFS without recursion)
@@ -146,7 +202,10 @@ class LLPAnalyzer:
     """
     def __init__(self, df: pd.DataFrame, pt_min_cfg: Dict[str, float]) -> None:
         Schema.ensure(df)
-        self.df = df.copy()
+        # Keep the source dataframe by reference.  All returned dataframes that
+        # are mutated later (LLPs / LLPchildren) are explicitly copied below, so
+        # duplicating the complete HepMC table here is unnecessary.
+        self.df = df
         self.pt_min_cfg = dict(pt_min_cfg)
         self.graph = EventGraph(self.df)
 
@@ -205,6 +264,86 @@ class LLPAnalyzer:
         sums.rename(columns={"px": "METx", "py": "METy"}, inplace=True)
         sums["MET"] = PhysicsUtils.pt(sums["METx"].to_numpy(), sums["METy"].to_numpy())
         return sums
+
+
+    def create_selection_working_set(self, llpid: int) -> Dict[str, pd.DataFrame]:
+        """Build only the temporary frames required before SelectionEngine.
+
+        This method is physics-equivalent to ``create_sample_dataframes`` for
+        the selection path, but deliberately avoids materialising the large
+        diagnostic/intermediate frames ``finalStates``, ``finalStates_NoLLP``
+        and ``finalStates_Neutrinos``.
+
+        The returned charged/neutral frames contain only columns consumed by
+        JetBuilder/IsolationComputer.  After jets and minDeltaR are computed,
+        SelectionPipeline can discard them and keep only ``LLPs`` and
+        ``LLPchildren``.
+        """
+        llp_children, _originating_llp = self._build_llp_children(llpid)
+
+        llps_all = self.select_llps(llpid).copy()
+        if len(llp_children):
+            keep_llp_idx = set(llp_children["LLPindex"].tolist())
+            llps = llps_all[
+                (llps_all.index.isin(keep_llp_idx)) | (llps_all["status"] == 1)
+            ].copy()
+        else:
+            llps = llps_all[llps_all["status"] == 1].copy()
+
+        # Reproduce exactly the masks used by create_sample_dataframes without
+        # creating full-width copies for every intermediate final-state table.
+        final_mask = (self.df["nChildren"] == 0) & (self.df["status"] == 1)
+        if len(llp_children):
+            child_mask = self.df.index.isin(llp_children.index)
+            final_mask = final_mask & (~child_mask)
+        final_mask = final_mask & (self.df["PID"] != int(llpid))
+
+        non_nu_mask = final_mask & (~self.df["PID"].isin([12, 14, 16, 18]))
+
+        # MET uses precisely the non-neutrino, non-LLP final states used by the
+        # historical implementation.
+        if not llps.empty:
+            met_input = self.df.loc[non_nu_mask, ["eventNumber", "px", "py"]]
+            met_by_event = self._compute_event_met(met_input)
+            llps["METx"] = llps["eventNumber"].map(met_by_event["METx"]).fillna(0.0).to_numpy()
+            llps["METy"] = llps["eventNumber"].map(met_by_event["METy"]).fillna(0.0).to_numpy()
+            llps["MET"] = PhysicsUtils.pt(llps["METx"].to_numpy(), llps["METy"].to_numpy())
+        else:
+            llps["METx"] = []
+            llps["METy"] = []
+            llps["MET"] = []
+
+        charge = self.df["charge"]
+        prompt = self.df["prodVertexDist"] < 10.0
+        charged_mask = (
+            non_nu_mask
+            & (charge != 0)
+            & (charge != None)
+            & prompt
+            & (self.df["pt"] > float(self.pt_min_cfg.get("chargedTrack", 0.0)))
+        )
+        neutral_mask = non_nu_mask & (charge == 0) & prompt
+
+        charged_cols = [
+            c for c in (
+                "eventNumber", "px", "py", "pz", "E", "pt", "eta", "phi", "weight"
+            ) if c in self.df.columns
+        ]
+        neutral_cols = [
+            c for c in (
+                "eventNumber", "px", "py", "pz", "E", "weight"
+            ) if c in self.df.columns
+        ]
+
+        charged = self.df.loc[charged_mask, charged_cols].copy()
+        neutral = self.df.loc[neutral_mask, neutral_cols].copy()
+
+        return {
+            "LLPs": llps,
+            "LLPchildren": llp_children,
+            "chargedFinalStates": charged,
+            "neutralFinalStates": neutral,
+        }
 
     def create_sample_dataframes(self, llpid: int) -> Dict[str, pd.DataFrame]:
         final_states = self.select_final_states()

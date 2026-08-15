@@ -52,7 +52,13 @@ class HepmcFrameBuilder:
         self.progress_hook = progress_hook
 
 
-    def build_from_events(self, events: Iterable[Any]) -> Tuple[pd.DataFrame, List[int]]:
+    def build_from_events(
+        self,
+        events: Iterable[Any],
+        *,
+        event_number_start: int = 0,
+        row_index_start: int = 0,
+    ) -> Tuple[pd.DataFrame, List[int]]:
         """
         Args:
             events: Iterable of pyhepmc objects
@@ -63,11 +69,15 @@ class HepmcFrameBuilder:
         hepMCdict: Dict[str, List[Any]] = {c: [] for c in self.COLUMNS}
         unknown_pids: Set[int] = set()
 
-        event_number = 0
+        processed_events = 0
         for event in events:
-            if self.opt.stop_after_events is not None and event_number >= self.opt.stop_after_events:
+            if (
+                self.opt.stop_after_events is not None
+                and processed_events >= self.opt.stop_after_events
+            ):
                 break
 
+            event_number = int(event_number_start) + processed_events
             weight = self._get_event_weight(event)
 
             for p in event.particles:
@@ -140,11 +150,21 @@ class HepmcFrameBuilder:
                 hepMCdict["status"].append(status)
                 hepMCdict["ctau"].append(ctau)
 
-            event_number += 1
-            if self.opt.progress_every and self.progress_hook and (event_number % self.opt.progress_every == 0):
-                self.progress_hook(event_number)
+            processed_events += 1
+            if (
+                self.opt.progress_every
+                and self.progress_hook
+                and (processed_events % self.opt.progress_every == 0)
+            ):
+                self.progress_hook(int(event_number_start) + processed_events)
 
         df = pd.DataFrame.from_dict(hepMCdict)
+        if row_index_start:
+            df.index = pd.RangeIndex(
+                start=int(row_index_start),
+                stop=int(row_index_start) + len(df),
+                step=1,
+            )
 
         # Ensure the MET branches are treated as floats
         for col in ("MET", "METx", "METy"):

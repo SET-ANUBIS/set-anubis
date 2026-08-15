@@ -274,5 +274,11 @@ class BranchingRatioManager:
                 self.nsa,
                 config.get("model_name", "SM"),
                 is_br,
+                mapping_dir=config.get("mapping_dir"),
+                model_path=config.get("model_path"),
+                marty_path=config.get("marty_path"),
+                workspace_dir=config.get("workspace_dir"),
+                template_dir=config.get("template_dir"),
+                mediator_fermion_orders=config.get("mediator_fermion_orders"),
             )
         raise ValueError(f"Unknown decay calculation strategy: {strategy_type}")

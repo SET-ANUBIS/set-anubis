@@ -37,16 +37,26 @@ class Parameter:
 class ParamManager:
     """Map generated MARTY parameters and particles back to a UFO model."""
 
-    def __init__(self, header_path: Path, nsa: SetAnubisInterface) -> None:
+    def __init__(
+        self,
+        header_path: Path,
+        nsa: SetAnubisInterface,
+        mapping_dir: Path | str | None = None,
+    ) -> None:
         """Parse ``header_path`` and evaluate every supported model parameter."""
         self.nsa = nsa
         self.header_path = Path(header_path)
+        self.mapping_dir = mapping_dir
         self.cpp_param_names: Dict[str, ParameterType] = self._parse_cpp_header()
         self.parameters: List[Parameter] = []
         self.excluded: Set[str] = {"s_12", "s_13", "s_14", "s_23", "s_34", "s_24"}
         self.special: Set[str] = {"sw", "reg_prop", "Finite"}
-        self.ufo_map = load_ufo_mappings()
-        self.ufo_part_map = load_particle_mappings()
+        if self.mapping_dir is None:
+            self.ufo_map = load_ufo_mappings()
+            self.ufo_part_map = load_particle_mappings()
+        else:
+            self.ufo_map = load_ufo_mappings(mapping_dir=self.mapping_dir)
+            self.ufo_part_map = load_particle_mappings(mapping_dir=self.mapping_dir)
         self._initialize_parameters()
 
     def _parse_cpp_header(self) -> Dict[str, ParameterType]:

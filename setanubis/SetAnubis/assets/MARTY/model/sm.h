@@ -25,7 +25,7 @@
 #ifndef SM_H_INCLUDED
 #define SM_H_INCLUDED
 
-#include "../../../External_Integration/Marty/MARTY_INSTALL/include/marty/core/model.h"
+#include "marty/core/model.h"
 
 namespace mty {
 

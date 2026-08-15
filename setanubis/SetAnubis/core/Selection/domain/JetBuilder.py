@@ -1,7 +1,7 @@
 from __future__ import annotations
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, Iterator, Optional
+from typing import Dict, Iterable, Iterator, Optional, Tuple
 
 import os
 import threading
@@ -79,6 +79,84 @@ def _pt(px: np.ndarray, py: np.ndarray) -> np.ndarray:
 
 def _p(px: np.ndarray, py: np.ndarray, pz: np.ndarray) -> np.ndarray:
     return np.sqrt(px * px + py * py + pz * pz)
+
+
+class _EventRowIndex:
+    """Compact event -> row-position lookup for one final-state dataframe.
+
+    ``JetDFBuilder`` used to keep one pandas ``DataFrame`` object per event in
+    two dictionaries (charged and neutral).  For large samples, the Python and
+    pandas object overhead can exceed the actual particle data by a large
+    factor.  This helper stores only one stable sort permutation plus one small
+    event -> slice table and creates temporary NumPy arrays for the event being
+    clustered.
+
+    Row order inside each event is preserved exactly.
+    """
+
+    __slots__ = ("_order", "_event_slices", "_arrays", "_empty")
+
+    _KINEMATIC_COLUMNS = ("px", "py", "pz", "E")
+
+    def __init__(self, df: Optional[pd.DataFrame]) -> None:
+        if df is None or df.empty:
+            self._order = np.empty(0, dtype=np.intp)
+            self._event_slices: Dict[int, Tuple[int, int]] = {}
+            self._arrays: Dict[str, np.ndarray] = {}
+            self._empty = True
+            return
+
+        events = df["eventNumber"].to_numpy(dtype=np.int64, copy=False)
+        # Stable sorting is important: the historical pandas groupby kept the
+        # original particle order inside each event.
+        order = np.argsort(events, kind="stable")
+        sorted_events = events[order]
+
+        starts = np.flatnonzero(
+            np.r_[True, sorted_events[1:] != sorted_events[:-1]]
+        )
+        ends = np.r_[starts[1:], len(sorted_events)]
+
+        self._order = order
+        self._event_slices = {
+            int(sorted_events[start]): (int(start), int(end))
+            for start, end in zip(starts, ends)
+        }
+        self._arrays = {
+            name: df[name].to_numpy(copy=False)
+            for name in (*self._KINEMATIC_COLUMNS, "weight")
+            if name in df.columns
+        }
+        self._empty = False
+
+    def positions(self, event: int) -> np.ndarray:
+        if self._empty:
+            return self._order[:0]
+        span = self._event_slices.get(int(event))
+        if span is None:
+            return self._order[:0]
+        start, end = span
+        # This is a view of the permutation, not a new per-event DataFrame.
+        return self._order[start:end]
+
+    def has_event(self, event: int) -> bool:
+        return int(event) in self._event_slices
+
+    def has_column(self, name: str) -> bool:
+        return name in self._arrays
+
+    def values(self, event: int, name: str, *, dtype=float) -> np.ndarray:
+        positions = self.positions(event)
+        if positions.size == 0:
+            return np.empty(0, dtype=dtype)
+        values = self._arrays[name][positions]
+        return values.astype(dtype, copy=False)
+
+    def first_value(self, event: int, name: str):
+        positions = self.positions(event)
+        if positions.size == 0:
+            raise IndexError("event has no rows")
+        return self._arrays[name][int(positions[0])]
 
 
 @dataclass(frozen=True)
@@ -214,11 +292,12 @@ class JetDFBuilder:
         charged_final_states: pd.DataFrame,
         neutral_final_states: pd.DataFrame,
     ) -> pd.DataFrame:
-        # Pre-group to avoid O(N) search for each events
-        c_groups = self._group_by_event(charged_final_states)
-        n_groups = self._group_by_event(neutral_final_states)
+        # Compact event indexes.  Unlike the previous implementation, these do
+        # not retain one pandas DataFrame object per event.
+        c_index = _EventRowIndex(charged_final_states)
+        n_index = _EventRowIndex(neutral_final_states)
 
-        # buffers (faster than append on DataFrame)
+        # Buffers (same output order and schema as before).
         out_event   = []
         out_p       = []
         out_pt      = []
@@ -232,38 +311,42 @@ class JetDFBuilder:
 
         for ev in event_numbers:
             ev = int(ev)
-            cdf = c_groups.get(ev)
-            ndf = n_groups.get(ev)
+            c_positions = c_index.positions(ev)
+            n_positions = n_index.positions(ev)
 
-            if (cdf is None or cdf.empty) and (ndf is None or ndf.empty):
+            has_c = c_positions.size != 0
+            has_n = n_positions.size != 0
+            if not has_c and not has_n:
                 continue
 
-            if cdf is None or cdf.empty:
-                px = ndf["px"].to_numpy(dtype=float, copy=False)
-                py = ndf["py"].to_numpy(dtype=float, copy=False)
-                pz = ndf["pz"].to_numpy(dtype=float, copy=False)
-                E  = ndf["E" ].to_numpy(dtype=float, copy=False)
-            elif ndf is None or ndf.empty:
-                px = cdf["px"].to_numpy(dtype=float, copy=False)
-                py = cdf["py"].to_numpy(dtype=float, copy=False)
-                pz = cdf["pz"].to_numpy(dtype=float, copy=False)
-                E  = cdf["E" ].to_numpy(dtype=float, copy=False)
+            if not has_c:
+                px = n_index.values(ev, "px", dtype=float)
+                py = n_index.values(ev, "py", dtype=float)
+                pz = n_index.values(ev, "pz", dtype=float)
+                E  = n_index.values(ev, "E", dtype=float)
+            elif not has_n:
+                px = c_index.values(ev, "px", dtype=float)
+                py = c_index.values(ev, "py", dtype=float)
+                pz = c_index.values(ev, "pz", dtype=float)
+                E  = c_index.values(ev, "E", dtype=float)
             else:
+                # Charged rows followed by neutral rows is exactly the ordering
+                # used by the historical implementation before clustering.
                 px = np.concatenate([
-                    cdf["px"].to_numpy(dtype=float, copy=False),
-                    ndf["px"].to_numpy(dtype=float, copy=False)
+                    c_index.values(ev, "px", dtype=float),
+                    n_index.values(ev, "px", dtype=float),
                 ])
                 py = np.concatenate([
-                    cdf["py"].to_numpy(dtype=float, copy=False),
-                    ndf["py"].to_numpy(dtype=float, copy=False)
+                    c_index.values(ev, "py", dtype=float),
+                    n_index.values(ev, "py", dtype=float),
                 ])
                 pz = np.concatenate([
-                    cdf["pz"].to_numpy(dtype=float, copy=False),
-                    ndf["pz"].to_numpy(dtype=float, copy=False)
+                    c_index.values(ev, "pz", dtype=float),
+                    n_index.values(ev, "pz", dtype=float),
                 ])
-                E  = np.concatenate([
-                    cdf["E" ].to_numpy(dtype=float, copy=False),
-                    ndf["E" ].to_numpy(dtype=float, copy=False)
+                E = np.concatenate([
+                    c_index.values(ev, "E", dtype=float),
+                    n_index.values(ev, "E", dtype=float),
                 ])
 
             if px.size == 0:
@@ -273,14 +356,17 @@ class JetDFBuilder:
             if len(jets) == 0:
                 continue
 
-            w = self._event_weight(cdf, ndf)
+            # Preserve the historical _event_weight semantics: if a charged
+            # group has a weight column, its first value wins; otherwise use
+            # the first neutral weight.  Missing weights remain NaN.
+            if has_c and c_index.has_column("weight"):
+                w = float(c_index.first_value(ev, "weight"))
+            elif has_n and n_index.has_column("weight"):
+                w = float(n_index.first_value(ev, "weight"))
+            else:
+                w = float("nan")
 
-            # jpx = np.fromiter((j.px for j in jets), count=len(jets), dtype=float)
-            # jpy = np.fromiter((j.py for j in jets), count=len(jets), dtype=float)
-            # jpz = np.fromiter((j.pz for j in jets), count=len(jets), dtype=float)
-            # jE  = np.fromiter((j.E  for j in jets), count=len(jets), dtype=float)
-
-            #PAUL check
+            # Keep the exact FastJet/Awkward result extraction used before.
             jpx = ak.to_numpy(jets["px"])
             jpy = ak.to_numpy(jets["py"])
             jpz = ak.to_numpy(jets["pz"])
@@ -288,8 +374,8 @@ class JetDFBuilder:
 
             _, jeta, jphi = self.__to_spherical_vec(jpx, jpy, jpz)
 
-            jpt  = _pt(jpx, jpy)
-            jp   = _p(jpx, jpy, jpz)
+            jpt = _pt(jpx, jpy)
+            jp = _p(jpx, jpy, jpz)
 
             out_event.extend([ev] * len(jets))
             out_p.extend(jp.tolist())
@@ -314,6 +400,7 @@ class JetDFBuilder:
             "phi": out_phi,
             "weight": out_weight,
         })
+
 
 
 def createJetDF(eventNumbers, chargedFinalStates, neutralFinalStates) -> pd.DataFrame:

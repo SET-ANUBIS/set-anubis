@@ -213,7 +213,7 @@ def test_madgraph_and_marty_strategy_configuration(monkeypatch):
         def calculate(self, *args): return 0.0
 
     class CapturingMarty(FakeAdapterBase):
-        def __init__(self, model, model_name="SM", is_br=False):
+        def __init__(self, model, model_name="SM", is_br=False, **kwargs):
             super().__init__(is_br)
             captured["marty"] = (model, model_name, is_br)
         def calculate(self, *args): return 0.0

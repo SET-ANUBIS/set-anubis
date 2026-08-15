@@ -20,10 +20,10 @@ def patch_all(monkeypatch, tmp_path):
                         lambda mother, daug, nsa, mapping: "fake",
                         raising=True)
     monkeypatch.setattr(mtm_mod, "load_particle_mappings",
-                        lambda: {"24": "W", "11": "e", "12": "nu_e", "23": "Z"},
+                        lambda *args, **kwargs: {"24": "W", "11": "e", "12": "nu_e", "23": "Z"},
                         raising=True)
     monkeypatch.setattr(mtm_mod, "load_ufo_mappings",
-                        lambda reversed=True: {},
+                        lambda reversed=True, *args, **kwargs: {},
                         raising=True)
     real_abspath = os.path.abspath
     module_file = mtm_mod.__file__
@@ -68,8 +68,13 @@ def test_end_to_end_strings_for_analytic_and_numeric():
     )
     num._change_paramlist()
     num._change_particles()
+    num._change_partlist()
     txt_n = num._temp
 
     assert '#include "decay_widths_fake.h"' in txt_n
     assert 'using namespace decay_widths_fake;' in txt_n
-    assert "{{80.379, 80.379}, {0.000511, 0.0}," in txt_n
+    assert "auto [outgoing_masses, incoming_masses] = readParts(PartFile);" in txt_n
+    assert "Kinematics kin{incoming_masses, outgoing_masses, s, &param};" in txt_n
+    assert "80.379" not in txt_n
+    assert "0.000511" not in txt_n
+    assert "partlist.csv" in txt_n

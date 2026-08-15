@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 
 import SetAnubis.core.BranchingRatio.domain.MartyCompiler as mc_mod
 
@@ -9,6 +10,19 @@ def _patch_root_for_module(monkeypatch, tmp_path: Path, module):
     nested.parent.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(module.Path, "resolve", lambda *_a, **_k: nested, raising=False)
     return root
+
+
+def _path_config(root: Path, *, with_install: bool = False):
+    workspace = root / "Assets" / "MARTY" / "MartyTemp"
+    workspace.mkdir(parents=True, exist_ok=True)
+    install = None
+    if with_install:
+        include_dir = root / "marty" / "include"
+        lib_dir = root / "marty" / "lib"
+        include_dir.mkdir(parents=True, exist_ok=True)
+        lib_dir.mkdir(parents=True, exist_ok=True)
+        install = SimpleNamespace(include_dir=include_dir, lib_dir=lib_dir)
+    return SimpleNamespace(workspace_dir=workspace, marty_install=install)
 
 
 class StubProc:
@@ -32,8 +46,12 @@ class StubProc:
 
 
 def test_make_flow_with_existing_binary(monkeypatch, tmp_path):
-    _patch_root_for_module(monkeypatch, tmp_path, mc_mod)
-    comp = mc_mod.MartyCompiler(mc_mod.CompilerType.MAKE, "decay_widths_Z_ee")
+    root = _patch_root_for_module(monkeypatch, tmp_path, mc_mod)
+    comp = mc_mod.MartyCompiler(
+        mc_mod.CompilerType.MAKE,
+        "decay_widths_Z_ee",
+        path_config=_path_config(root),
+    )
 
     bin_dir = comp.libs_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
@@ -54,8 +72,12 @@ def test_make_flow_with_existing_binary(monkeypatch, tmp_path):
 
 
 def test_gcc_flow_compile_then_run(monkeypatch, tmp_path):
-    _patch_root_for_module(monkeypatch, tmp_path, mc_mod)
-    comp = mc_mod.MartyCompiler(mc_mod.CompilerType.GCC, "decay_widths_W_en")
+    root = _patch_root_for_module(monkeypatch, tmp_path, mc_mod)
+    comp = mc_mod.MartyCompiler(
+        mc_mod.CompilerType.GCC,
+        "decay_widths_W_en",
+        path_config=_path_config(root, with_install=True),
+    )
     comp.marty_lib_path.mkdir(parents=True, exist_ok=True)
 
     source = tmp_path / "calc.cpp"

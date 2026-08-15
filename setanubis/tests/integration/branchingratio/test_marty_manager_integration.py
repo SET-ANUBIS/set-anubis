@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 import os
 import pytest
 
@@ -16,7 +17,7 @@ def _patch_root(monkeypatch, tmp_path: Path, module):
 
 class WritingCopyManager:
     instances = []
-    def __init__(self, ampli_name, builder):
+    def __init__(self, ampli_name, builder, path_config=None):
         self.ampli_name = ampli_name
         self.builder = builder
         self.executed = False
@@ -34,7 +35,7 @@ class WritingCopyManager:
 
 
 class StubTemplateManager:
-    def __init__(self, model_name, mother, daughters, template_type, nsa):
+    def __init__(self, model_name, mother, daughters, template_type, nsa, **kwargs):
         self._temp = f"{template_type.value}_CODE"
     def _change_model(self): pass
     def _change_particles(self): pass
@@ -45,7 +46,7 @@ class StubTemplateManager:
 
 
 class StubParamManager:
-    def __init__(self, header_path, nsa):
+    def __init__(self, header_path, nsa, **kwargs):
         self.header_path = Path(header_path)
         self.nsa = nsa
     def create_csv(self):
@@ -56,11 +57,15 @@ class StubParamManager:
 
 class StubCompiler:
     calls = []
-    def __init__(self, compiler_type, ampli_name=None):
+    def __init__(self, compiler_type, ampli_name=None, path_config=None):
         self.compiler_type = compiler_type
         self.ampli = ampli_name
-        root = mm_mod.Path(mm_mod.__file__).resolve().parents[5]
-        self.libs_path = root / "Assets" / "MARTY" / "MartyTemp" / "libs" / (ampli_name or "none")
+        if path_config is not None:
+            workspace = path_config.workspace_dir
+        else:
+            root = mm_mod.Path(mm_mod.__file__).resolve().parents[5]
+            workspace = root / "Assets" / "MARTY" / "MartyTemp"
+        self.libs_path = workspace / "libs" / (ampli_name or "none")
 
     def compile_run(self, source_file, output_binary=None, output_dir=None, pattern=None):
         StubCompiler.calls.append(
@@ -78,12 +83,32 @@ class StubCompiler:
 
 @pytest.fixture(autouse=True)
 def patch_all(monkeypatch, tmp_path):
-    _ = _patch_root(monkeypatch, tmp_path, mm_mod)
+    root = _patch_root(monkeypatch, tmp_path, mm_mod)
+    mapping_dir = root / "Assets" / "MARTY" / "model"
+    template_dir = root / "Assets" / "MARTY" / "templates"
+    workspace_dir = root / "Assets" / "MARTY" / "MartyTemp"
+    mapping_dir.mkdir(parents=True, exist_ok=True)
+    template_dir.mkdir(parents=True, exist_ok=True)
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+    path_config = SimpleNamespace(
+        mapping_dir=mapping_dir,
+        model_path=None,
+        workspace_dir=workspace_dir,
+        template_dir=template_dir,
+        marty_install=None,
+        as_dict=lambda: {},
+    )
+    monkeypatch.setattr(
+        mm_mod.MartyPathConfig,
+        "resolve",
+        classmethod(lambda cls, *args, **kwargs: path_config),
+        raising=True,
+    )
     monkeypatch.setattr(mm_mod, "decay_name",
                         lambda mother, dau, neo, mapping: "fake",
                         raising=True)
     monkeypatch.setattr(mm_mod, "load_ufo_mappings",
-                        lambda reversed=True: {},
+                        lambda reversed=True, *args, **kwargs: {},
                         raising=True)
     monkeypatch.setattr(mm_mod, "CopyManager", WritingCopyManager, raising=True)
     monkeypatch.setattr(mm_mod, "MartyTemplateManager", StubTemplateManager, raising=True)

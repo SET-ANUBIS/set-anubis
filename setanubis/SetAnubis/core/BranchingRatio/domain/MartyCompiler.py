@@ -1,9 +1,8 @@
 """Compilation helpers for generated MARTY sources.
 
-Commands are executed without a shell.  Paths supplied by callers are passed as
-individual subprocess arguments, which avoids shell expansion and command
-injection when working directories or filenames contain whitespace or special
-characters.
+Commands are executed without a shell. Runtime include/library paths are
+resolved explicitly through :mod:`MartyRuntimeConfig` instead of assuming a
+fixed checkout layout.
 """
 
 from __future__ import annotations
@@ -14,6 +13,11 @@ import subprocess
 from enum import Enum
 from pathlib import Path
 from typing import Sequence
+
+from SetAnubis.core.BranchingRatio.domain.MartyRuntimeConfig import (
+    MartyPathConfig,
+    require_marty_install,
+)
 
 
 class CompilerType(Enum):
@@ -26,29 +30,24 @@ class CompilerType(Enum):
 class MartyCompiler:
     """Compile and execute generated MARTY programs without invoking a shell."""
 
-    def __init__(self, compiler_type: CompilerType, ampli_name: str | None = None):
+    def __init__(
+        self,
+        compiler_type: CompilerType,
+        ampli_name: str | None = None,
+        path_config: MartyPathConfig | None = None,
+    ):
         """Configure a direct GCC build or a generated-library Make build."""
         self.compiler_type = compiler_type
-        self.project_root = Path(__file__).resolve().parents[5]
+        self.path_config = path_config or MartyPathConfig.resolve("SM")
         self.libs_path: Path | None = None
         self.ampli_name: str | None = None
         if ampli_name:
-            self.libs_path = (
-                self.project_root
-                / "Assets"
-                / "MARTY"
-                / "MartyTemp"
-                / "libs"
-                / ampli_name
-            )
+            self.libs_path = self.path_config.workspace_dir / "libs" / ampli_name
             self.ampli_name = ampli_name
-        self.marty_lib_path = (
-            self.project_root
-            / "External_Integration"
-            / "Marty"
-            / "MARTY_INSTALL"
-            / "lib"
-        )
+
+        install = self.path_config.marty_install
+        self.marty_include_path = None if install is None else install.include_dir
+        self.marty_lib_path = None if install is None else install.lib_dir
 
         if self.libs_path is None and compiler_type == CompilerType.MAKE:
             raise ValueError("ampli_name needs to be specified for compiler if make mode.")
@@ -58,7 +57,17 @@ class MartyCompiler:
         if self.compiler_type == CompilerType.MAKE:
             assert self.libs_path is not None
             assert self.ampli_name is not None
-            return (self.libs_path / "bin" / f"example_{self.ampli_name}.x").is_file()
+            binary = self.libs_path / "bin" / f"example_{self.ampli_name}.x"
+            if not binary.is_file() or not os.access(binary, os.X_OK):
+                return False
+
+            # Rebuild only when the generated numeric driver itself changed.
+            # paramlist.csv and partlist.csv are runtime inputs and therefore do
+            # not invalidate the executable during parameter or mass scans.
+            source = self.libs_path / "script" / f"example_{self.ampli_name}.cpp"
+            if source.is_file() and source.stat().st_mtime_ns > binary.stat().st_mtime_ns:
+                return False
+            return True
 
         if output_binary is None:
             raise ValueError("output_binary is required in GCC mode")
@@ -91,7 +100,11 @@ class MartyCompiler:
             if output_binary is None:
                 raise ValueError("output_binary is required in GCC mode")
             binary = Path(output_binary).expanduser()
-            cwd = Path(os.path.abspath(os.path.expanduser(os.fspath(output_dir)))) if output_dir else None
+            cwd = (
+                Path(os.path.abspath(os.path.expanduser(os.fspath(output_dir))))
+                if output_dir
+                else None
+            )
             if not binary.is_absolute():
                 binary = cwd / binary if cwd else Path.cwd() / binary
             binary = Path(os.path.abspath(os.fspath(binary)))
@@ -100,7 +113,19 @@ class MartyCompiler:
             assert self.libs_path is not None
             assert self.ampli_name is not None
             cwd = self.libs_path
-            command = [str(Path(os.path.abspath(os.fspath(self.libs_path / "bin" / f"example_{self.ampli_name}.x"))))]
+            command = [
+                str(
+                    Path(
+                        os.path.abspath(
+                            os.fspath(
+                                self.libs_path
+                                / "bin"
+                                / f"example_{self.ampli_name}.x"
+                            )
+                        )
+                    )
+                )
+            ]
 
         return self.execute_command(command, cwd=cwd, pattern=pattern)
 
@@ -113,16 +138,31 @@ class MartyCompiler:
         if self.compiler_type == CompilerType.GCC:
             if output_binary is None:
                 raise ValueError("output_binary is required in GCC mode")
+
+            install = require_marty_install(
+                self.path_config,
+                context="MARTY analytic compilation",
+            )
+            self.marty_include_path = install.include_dir
+            self.marty_lib_path = install.lib_dir
+
             source = Path(os.path.abspath(os.path.expanduser(os.fspath(source_file))))
             output = Path(os.path.abspath(os.path.expanduser(os.fspath(output_binary))))
             output.parent.mkdir(parents=True, exist_ok=True)
+
+            # The two macros are consumed by defineLibPath() in the generated
+            # analytic source, so the library Makefile emitted by MARTY inherits
+            # the same external installation paths.
             command = [
                 "g++",
                 "-o",
                 str(output),
                 str(source),
-                f"-L{self.marty_lib_path}",
-                f"-Wl,-rpath,{self.marty_lib_path}",
+                f"-I{install.include_dir}",
+                f"-L{install.lib_dir}",
+                f"-Wl,-rpath,{install.lib_dir}",
+                f'-DMARTY_INCLUDE_PATH="{install.include_dir}"',
+                f'-DMARTY_LIBRARY_PATH="{install.lib_dir}"',
                 "-lmarty",
                 "-lgfortran",
             ]
@@ -149,12 +189,7 @@ class MartyCompiler:
         cwd: str | os.PathLike[str] | None = None,
         pattern: str | None = None,
     ):
-        """Execute a trusted executable with explicit arguments.
-
-        ``command`` must be a sequence and is never interpreted by a shell.
-        Generated MARTY source files and parameter files are still executable
-        scientific inputs and must therefore come from a trusted source.
-        """
+        """Execute a trusted executable with explicit arguments."""
         if isinstance(command, (str, bytes, os.PathLike)):
             raise TypeError("command must be a sequence of arguments, not a shell string")
 

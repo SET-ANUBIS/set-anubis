@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 import os
 import shutil
 import pytest
@@ -57,7 +58,14 @@ def test_copy_execute_full_flow(monkeypatch, tmp_path):
     (target_base / "Makefile").write_text("CXXSTD  = -std=c++17\n", encoding="utf-8")
 
     builder = CopyingBuilder()
-    mgr = cm_mod.CopyManager("decay_widths_fake", builder)
+    mgr = cm_mod.CopyManager(
+        "decay_widths_fake",
+        builder,
+        path_config=SimpleNamespace(
+            template_dir=templates,
+            workspace_dir=root / "Assets" / "MARTY" / "MartyTemp",
+        ),
+    )
 
     mgr.execute()
 

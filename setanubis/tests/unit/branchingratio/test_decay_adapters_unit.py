@@ -122,7 +122,7 @@ def test_csv_loader_validation(tmp_path):
 
 
 class _FakeMartyManager:
-    def __init__(self, model_name):
+    def __init__(self, model_name, **kwargs):
         self.model_name = model_name
         self.calls = []
 

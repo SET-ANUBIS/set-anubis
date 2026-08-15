@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 import os
 import pytest
 
@@ -28,11 +29,20 @@ def _patch_module_root_to_tmp(monkeypatch, tmp_path: Path, module):
     return nested
 
 
-def test_prepare_files_builds_tasks(monkeypatch, tmp_path):
-    _patch_module_root_to_tmp(monkeypatch, tmp_path, cm_mod)
+def _paths(tmp_path: Path):
+    templates = tmp_path / "templates"
+    templates.mkdir(exist_ok=True)
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(exist_ok=True)
+    return SimpleNamespace(
+        template_dir=templates,
+        workspace_dir=workspace,
+    )
 
+
+def test_prepare_files_builds_tasks(monkeypatch, tmp_path):
     builder = FakeBuilder()
-    mgr = cm_mod.CopyManager("decay_widths_fake", builder)
+    mgr = cm_mod.CopyManager("decay_widths_fake", builder, path_config=_paths(tmp_path))
 
     mgr.prepare_files()
 
@@ -67,7 +77,7 @@ def test_prepare_files_builds_tasks(monkeypatch, tmp_path):
 
 def test_write_file_creates_and_respects_force(tmp_path):
     builder = FakeBuilder()
-    mgr = cm_mod.CopyManager("anything", builder)
+    mgr = cm_mod.CopyManager("anything", builder, path_config=_paths(tmp_path))
 
     cpp_path = tmp_path / "out" / "code.cpp"
 
@@ -79,3 +89,27 @@ def test_write_file_creates_and_respects_force(tmp_path):
 
     mgr.write_file("// v3", cpp_path, force=True)
     assert cpp_path.read_text() == "// v3"
+
+
+def test_copy_manager_uses_marty_lowercase_namespace(tmp_path):
+    builder = FakeBuilder()
+    manager = cm_mod.CopyManager(
+        "decay_widths_demo__mfo_W_Z_deadbeef00",
+        builder,
+        path_config=_paths(tmp_path),
+    )
+    manager.prepare_files()
+
+    namespace_replacements = [
+        replacement
+        for _, _, modifications in builder.calls
+        for pattern, replacement in modifications
+        if pattern == "using namespace decay_widths;"
+    ]
+
+    assert namespace_replacements
+    assert all(
+        replacement
+        == "using namespace decay_widths_demo__mfo_w_z_deadbeef00;"
+        for replacement in namespace_replacements
+    )
