@@ -86,6 +86,7 @@ class RandomProvider:
                 seed_val = seed
             self._rng = np.random.default_rng(seed_val)
 
+
     @property
     def rng(self) -> np.random.Generator:
         return self._rng

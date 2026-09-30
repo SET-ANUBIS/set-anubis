@@ -217,6 +217,7 @@ class SelectionPipelineBuilder:
                 lifetime_s=float(lifetime_s),
                 llp_pid=int(llp_pid),
                 rng=RandomProvider(seed=seed),
+                seed_for_compat = seed,
             )
         else:
             self._reweighter = None
